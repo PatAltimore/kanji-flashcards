@@ -21,7 +21,7 @@ meanings are kept per kanji.
 
 Which kanji belong to N2 comes from the JLPT N2 kanji list published at
 [tanos.co.uk/jlpt](https://www.tanos.co.uk/jlpt/) by Jonathan Waller, licensed
-[CC BY](https://creativecommons.org/licenses/by/4.0/). The list was obtained
+[Creative Commons Attribution](https://creativecommons.org/share-your-work/cclicenses/). The list was obtained
 from the CSV conversion in
 [Bluskyo/JLPT_Vocabulary](https://github.com/Bluskyo/JLPT_Vocabulary)
 (`data/kanji/parsedData/n2_kanji.csv`). The JLPT has not published official
