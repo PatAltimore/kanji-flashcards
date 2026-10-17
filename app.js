@@ -1373,6 +1373,8 @@
         customTypeAutoAdvanceTimer = null;
         if (!customTypeAnswering && pendingCustomTypeCorrect) advanceCustomTypeCard();
       }, AUTO_ADVANCE_MS);
+    } else {
+      els.customTypeSubmitBtn.focus();
     }
   }
 
@@ -2396,6 +2398,9 @@
         typeAutoAdvanceTimer = null;
         if (!typeAnswering && pendingTypeCorrect) advanceTypeCard();
       }, AUTO_ADVANCE_MS);
+    } else {
+      // The disabled input drops focus; park it on Next so Enter continues.
+      els.typeSubmitBtn.focus();
     }
   }
 
