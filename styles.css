@@ -1430,3 +1430,192 @@ body {
   color: inherit;
   text-decoration: underline;
 }
+
+/* ---------- Bright theme: flat color, big white kanji, bottom response bar ---------- */
+:root[data-theme="bright"] {
+  --bg: #00a9ff;
+  --bg-alt: #0098e6;
+  --surface: rgba(255,255,255,0.16);
+  --surface-2: rgba(255,255,255,0.26);
+  --text: #ffffff;
+  --text-dim: rgba(255,255,255,0.8);
+  --accent: #ffffff;
+  --accent-2: #ffffff;
+  --border: rgba(255,255,255,0.4);
+  --danger: #ffd3d3;
+  --success: #c9ffd9;
+  --gold: #ffffff;
+  --gold-soft: #ffffff;
+  --vermillion-a: #00a9ff;
+  --vermillion-b: #00a9ff;
+  --indigo-a: #00a9ff;
+  --indigo-b: #00a9ff;
+  --card-ink: #ffffff;
+  --card-ink-dim: rgba(255,255,255,0.75);
+  --qt-meaning: #ffffff;
+  --qt-kunyomi: #ffffff;
+  --qt-onyomi: #ffffff;
+  --kanji-glow-opacity: 0;
+  --glass-bg: rgba(255,255,255,0.2);
+  --glass-bg-soft: #ffffff;
+  --glass-border: rgba(255,255,255,0.5);
+}
+
+[data-theme="bright"] body {
+  background: linear-gradient(180deg, #14b1ff 0%, #00a0f5 100%) fixed;
+}
+
+[data-theme="bright"] .primary-btn {
+  background: #ffffff;
+  color: #0083c4;
+}
+
+[data-theme="bright"] .secondary-btn {
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.6);
+}
+
+[data-theme="bright"] .icon-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+}
+
+[data-theme="bright"] .brand-sub {
+  border-color: #ffffff;
+}
+
+[data-theme="bright"] .mode-btn {
+  background: rgba(255,255,255,0.16);
+  border: none;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+[data-theme="bright"] .theme-option.active {
+  border-color: #ffffff;
+}
+
+[data-theme="bright"] .face,
+[data-theme="bright"] .type-card {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+[data-theme="bright"] .face::before,
+[data-theme="bright"] .face::after,
+[data-theme="bright"] .type-card::before,
+[data-theme="bright"] .type-card::after {
+  content: none;
+}
+
+[data-theme="bright"] .kanji {
+  font-weight: 400;
+  text-shadow: none;
+  font-size: calc(min(34vw, 180px) * var(--font-scale));
+}
+
+[data-theme="bright"] .feedback-good { color: #c9ffd9; }
+[data-theme="bright"] .feedback-bad { color: #ffe1e1; }
+
+/* Type screens: kanji fills the colour, prompt bar + response row pinned to
+   the bottom like a quiz keyboard bar. */
+[data-theme="bright"] .screen:has(.type-card) .stage {
+  padding: 0;
+  align-items: stretch;
+}
+
+[data-theme="bright"] .type-card {
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  padding: 0;
+  border-radius: 0;
+  justify-content: flex-start;
+}
+
+[data-theme="bright"] .type-card .kanji {
+  order: 1;
+  flex: 1;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="bright"] .type-card .type-feedback {
+  order: 2;
+  margin: 0;
+  padding: 8px 20px 16px;
+  max-height: 45%;
+  overflow-y: auto;
+}
+
+[data-theme="bright"] .type-card .question-type-badge {
+  order: 3;
+  position: static;
+  transform: none;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: #efeff4;
+  color: #5b5b66;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+}
+
+[data-theme="bright"] .type-card .type-form {
+  order: 4;
+  margin: 0;
+  flex-direction: row;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+[data-theme="bright"] .type-card .type-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: #1c1c22;
+  border-radius: 0;
+  font-size: 1.15rem;
+  padding: 10px;
+}
+
+[data-theme="bright"] .type-card .type-input::placeholder {
+  color: #a8a8b2;
+}
+
+[data-theme="bright"] .type-card .type-input:focus {
+  outline: none;
+}
+
+[data-theme="bright"] .type-card .type-submit-btn {
+  width: auto;
+  margin: 0;
+  flex-shrink: 0;
+  padding: 10px 18px;
+  background: transparent;
+  border: 2px solid #c8c8d0;
+  color: #7a7a86;
+}
+
+[data-theme="bright"] .type-card .congrats,
+[data-theme="bright"] .type-card .new-deck-btn {
+  order: 2;
+  align-self: center;
+}
+
+/* A correct answer shows only the result line before moving on. */
+.type-feedback.quick > :not(.type-feedback-result) {
+  display: none;
+}
+
+.theme-swatch-bright {
+  background: #00a9ff;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
+}

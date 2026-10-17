@@ -7,6 +7,9 @@
   const LESSONS_KEY = "kanjiFlashN2.lessons.v1";
   const CUSTOM_ANSWERS_KEY = "kanjiFlashN2.customAnswers.v1";
   const CUSTOM_DECKS_KEY = "kanjiFlashN2.customDecks.v1";
+  // How long the "Correct!" confirmation shows before a right typed answer
+  // moves on to the next card by itself.
+  const AUTO_ADVANCE_MS = 700;
   const EXPORT_APP_ID = "kanji-flash";
   const EXPORT_VERSION = 1;
   const MIN_MINUTES = 1;
@@ -207,8 +210,8 @@
   let flipped = false;
   let animating = false;
   let stats = { daily: {}, perCard: {} };
-  const THEMES = ["hanafuda", "hyakunin"];
-  const DEFAULT_THEME = "hanafuda";
+  const THEMES = ["bright", "hanafuda", "hyakunin"];
+  const DEFAULT_THEME = "bright";
 
   let settings = { stylizedFont: true, fontScale: 1, defaultDailyMinutes: DEFAULT_MINUTES, lessonQuestions: DEFAULT_QUESTIONS, reviewQuestions: DEFAULT_QUESTIONS, quizQuestions: DEFAULT_QUESTIONS, theme: DEFAULT_THEME };
   let lessonHistory = { completed: {} };
@@ -243,6 +246,8 @@
   let dailyTally = { seen: 0, right: 0, wrong: 0 };
 
   let typeAnswering = true;
+  let typeAutoAdvanceTimer = null;
+  let customTypeAutoAdvanceTimer = null;
   let pendingTypeCorrect = false;
   let pendingTypeRawAnswer = "";
   let currentQuestionType = "meaning";
@@ -1358,12 +1363,22 @@
     els.customTypeSubmitBtn.textContent = "Next";
 
     els.customTypeFeedback.hidden = false;
+    els.customTypeFeedback.classList.toggle("quick", correct);
     updateCustomTypeFeedbackResult(correct, pendingCustomTypeRawAnswer, fuzzy);
     els.customTypeSections.innerHTML = sectionsToHtml(card.sections);
     updateCustomAddAnswerButton();
+
+    if (correct) {
+      customTypeAutoAdvanceTimer = window.setTimeout(() => {
+        customTypeAutoAdvanceTimer = null;
+        if (!customTypeAnswering && pendingCustomTypeCorrect) advanceCustomTypeCard();
+      }, AUTO_ADVANCE_MS);
+    }
   }
 
   function advanceCustomTypeCard() {
+    window.clearTimeout(customTypeAutoAdvanceTimer);
+    customTypeAutoAdvanceTimer = null;
     customTypeIndex++;
     renderCustomType();
   }
@@ -1396,6 +1411,8 @@
   });
 
   els.customTypeBackBtn.addEventListener("click", () => {
+    window.clearTimeout(customTypeAutoAdvanceTimer);
+    customTypeAutoAdvanceTimer = null;
     customTypeDeck = null;
     renderCustomDecksList();
     showScreen("customDecks");
@@ -2363,6 +2380,7 @@
     els.typeSubmitBtn.textContent = "Next";
 
     els.typeFeedback.hidden = false;
+    els.typeFeedback.classList.toggle("quick", correct);
     updateTypeFeedbackResult(correct, pendingTypeRawAnswer, fuzzy);
     els.typeOnyomi.textContent = item.onyomi || "—";
     els.typeKunyomi.textContent = item.kunyomi || "—";
@@ -2372,9 +2390,18 @@
     const cardStats = getCardStats(item.num);
     els.typeCardStatsRight.textContent = String(cardStats.right);
     els.typeCardStatsWrong.textContent = String(cardStats.wrong);
+
+    if (correct) {
+      typeAutoAdvanceTimer = window.setTimeout(() => {
+        typeAutoAdvanceTimer = null;
+        if (!typeAnswering && pendingTypeCorrect) advanceTypeCard();
+      }, AUTO_ADVANCE_MS);
+    }
   }
 
   function advanceTypeCard() {
+    window.clearTimeout(typeAutoAdvanceTimer);
+    typeAutoAdvanceTimer = null;
     const item = queue.shift();
     if (pendingTypeCorrect) {
       masteredCount++;
