@@ -2220,11 +2220,6 @@
       badgeClass: "",
       placeholder: "Type the meaning",
     },
-    kunyomi: {
-      label: "Kunyomi",
-      badgeClass: "qt-kunyomi",
-      placeholder: "Type romaji — becomes hiragana",
-    },
     onyomi: {
       label: "Onyomi",
       badgeClass: "qt-onyomi",
@@ -2235,7 +2230,6 @@
   function availableQuestionTypes(item) {
     const types = ["meaning"];
     if (item.onyomi) types.push("onyomi");
-    if (item.kunyomi) types.push("kunyomi");
     return types;
   }
 
@@ -2251,9 +2245,7 @@
     } catch (err) {
       /* wasn't bound; ignore */
     }
-    if (type === "kunyomi") {
-      wanakana.bind(els.typeInput);
-    } else if (type === "onyomi") {
+    if (type === "onyomi") {
       wanakana.bind(els.typeInput, { IMEMode: "toKatakana" });
     }
   }

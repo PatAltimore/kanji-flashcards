@@ -6,7 +6,7 @@ A dependency-free, mobile-friendly flashcard app for studying the 367 kanji in t
 
 - **Marathon**: work through the complete deck, marking cards as `Got it` or `Again`.
 - **Daily Challenge**: review as many cards as possible before the selected time limit expires.
-- **Type Answer**: enter an onyomi, kunyomi, or English meaning and receive immediate feedback.
+- **Type Answer**: enter an onyomi reading or English meaning and receive immediate feedback.
 - **Lessons**: study a focused kanji group each day with flash cards and typed answers, track completion on a monthly calendar, and review the past week from a separate lesson deck.
 - **Custom Decks Quiz**: a typed-answer placement quiz for an uploaded deck, played in fixed-size rounds (Quiz Questions setting). Unreviewed cards come first (shuffled), each answer is saved immediately so you can stop at any time, and correct cards are placed ahead in the review schedule.
 - **Statistics**: view a seven-day activity summary, overall accuracy, and per-card results.
