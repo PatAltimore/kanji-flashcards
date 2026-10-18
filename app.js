@@ -807,19 +807,19 @@
         <div class="custom-deck-header">
           <div class="custom-deck-info">
             <span class="custom-deck-name">${safeName}</span>
-            <span class="custom-deck-meta">${deck.cards.length} card${deck.cards.length === 1 ? "" : "s"}</span>
+            <span class="custom-deck-meta">${deck.cards.length}枚</span>
           </div>
           <div class="custom-deck-actions">
-            <button class="custom-deck-action-btn" data-action="download" type="button" aria-label="Download ${safeName} as CSV">↓</button>
-            <button class="custom-deck-action-btn" data-action="replace" type="button" aria-label="Replace ${safeName}">↻</button>
-            <button class="custom-deck-action-btn custom-deck-action-delete" data-action="delete" type="button" aria-label="Delete ${safeName}">✕</button>
+            <button class="custom-deck-action-btn" data-action="download" type="button" aria-label="${safeName}をCSVでダウンロード">↓</button>
+            <button class="custom-deck-action-btn" data-action="replace" type="button" aria-label="${safeName}を置き換え">↻</button>
+            <button class="custom-deck-action-btn custom-deck-action-delete" data-action="delete" type="button" aria-label="${safeName}を削除">✕</button>
           </div>
         </div>
         <div class="custom-deck-modes">
-          <button class="custom-deck-mode-btn" data-action="study-cards" type="button">Flashcards</button>
-          <button class="custom-deck-mode-btn" data-action="study-type" type="button">Type Answer</button>
-          <button class="custom-deck-mode-btn" data-action="study-review" type="button"${dueCount ? "" : " disabled"}>Review${dueCount ? ` (${dueCount})` : ""}</button>
-          <button class="custom-deck-mode-btn" data-action="study-quiz" type="button">Quiz${unreviewedCount ? ` (${unreviewedCount} new)` : ""}</button>
+          <button class="custom-deck-mode-btn" data-action="study-cards" type="button">フラッシュカード</button>
+          <button class="custom-deck-mode-btn" data-action="study-type" type="button">入力テスト</button>
+          <button class="custom-deck-mode-btn" data-action="study-review" type="button"${dueCount ? "" : " disabled"}>復習${dueCount ? ` (${dueCount})` : ""}</button>
+          <button class="custom-deck-mode-btn" data-action="study-quiz" type="button">クイズ${unreviewedCount ? ` (新規${unreviewedCount})` : ""}</button>
         </div>
       </div>`;
       })
@@ -839,7 +839,7 @@
     } else if (action === "study-type" || action === "study-quiz") {
       if (!deck.cards.some((c) => c.sections.length)) {
         window.alert(
-          "This deck has no answer data to type against — only front-side content. Try Flashcards mode instead."
+          "このデッキには入力で答えられるデータがなく、表面の内容のみです。代わりにフラッシュカードをお試しください。"
         );
         return;
       }
@@ -857,7 +857,7 @@
       els.csvFileInput.value = "";
       els.csvFileInput.click();
     } else if (action === "delete") {
-      const ok = window.confirm(`Delete "${deck.name}"? This cannot be undone.`);
+      const ok = window.confirm(`「${deck.name}」を削除しますか？この操作は元に戻せません。`);
       if (!ok) return;
       deleteCustomDeckById(deck.id);
       renderCustomDecksList();
@@ -918,7 +918,7 @@
     const { columns, cards, answers } = buildCustomDeckCards(rows);
     if (!cards.length) {
       window.alert(
-        "No flashcards found in that file. Make sure the first row has headers and each row has content in the first column."
+        "ファイルにフラッシュカードが見つかりませんでした。1行目に見出しがあり、各行の1列目に内容があることを確認してください。"
       );
       return;
     }
@@ -926,9 +926,9 @@
     const existing = replaceId ? customDecks.find((d) => d.id === replaceId) : null;
     const defaultName = existing ? existing.name : file.name.replace(/\.(csv|xlsx|xls)$/i, "");
     pendingCsvParse = { cards, columns, answers, replaceId };
-    els.customSaveTitle.textContent = existing ? "Replace Deck" : "New Deck";
+    els.customSaveTitle.textContent = existing ? "デッキを置き換え" : "新しいデッキ";
     els.customDeckNameInput.value = defaultName;
-    els.customSaveInfo.textContent = `${cards.length} card${cards.length === 1 ? "" : "s"} parsed`;
+    els.customSaveInfo.textContent = `${cards.length}枚を読み込み`;
     els.customSaveWarning.hidden = true;
     showScreen("customDeckSave");
   }
@@ -946,17 +946,17 @@
               const rows = excelFileToRows(reader.result);
               handleParsedDeckRows(rows, file);
             } catch (err) {
-              window.alert("Couldn't read that Excel file. Please make sure it's a valid .xlsx or .xls file.");
+              window.alert("Excelファイルを読み込めませんでした。有効な.xlsxまたは.xlsファイルか確認してください。");
             }
           };
           reader.onerror = () => {
-            window.alert("Couldn't read that file. Please try again.");
+            window.alert("ファイルを読み込めませんでした。もう一度お試しください。");
           };
           reader.readAsArrayBuffer(file);
         })
         .catch(() => {
           window.alert(
-            "Couldn't load Excel support. Check your connection and try again, or upload a CSV instead."
+            "Excelのサポートを読み込めませんでした。接続を確認してもう一度お試しいただくか、CSVをアップロードしてください。"
           );
         });
       return;
@@ -968,7 +968,7 @@
       handleParsedDeckRows(rows, file);
     };
     reader.onerror = () => {
-      window.alert("Couldn't read that file. Please try again.");
+      window.alert("ファイルを読み込めませんでした。もう一度お試しください。");
     };
     reader.readAsText(file, "UTF-8");
   });
@@ -1143,11 +1143,11 @@
     if (mode === "quiz") {
       const left = getUnreviewedCustomCards(deck).length;
       els.customCompleteStat.textContent =
-        `${customQuizKnown} of ${shown} correct · ${left} card${left === 1 ? "" : "s"} still unreviewed`;
+        `${shown}問中${customQuizKnown}問正解 · 未復習${left}枚`;
     } else {
-      els.customCompleteStat.textContent = `${shown} card${shown === 1 ? "" : "s"} reviewed`;
+      els.customCompleteStat.textContent = `${shown}枚を復習しました`;
     }
-    els.customStudyAgainBtn.textContent = mode === "quiz" ? "Next Round" : "Study Again";
+    els.customStudyAgainBtn.textContent = mode === "quiz" ? "次のラウンド" : "もう一度学習";
     showScreen("customComplete");
   }
 
@@ -1191,7 +1191,7 @@
     if (!due.length) {
       renderCustomDecksList();
       showScreen("customDecks");
-      window.alert("Nothing due for review in this deck right now.");
+      window.alert("このデッキには現在復習するカードがありません。");
       return;
     }
     customStudyDeck = deck;
@@ -1310,14 +1310,14 @@
     els.customTypeInput.disabled = false;
     els.customTypeInput.value = "";
     els.customTypeFeedback.hidden = true;
-    els.customTypeSubmitBtn.textContent = "Check";
+    els.customTypeSubmitBtn.textContent = "確認";
     els.customTypeBadge.textContent = customTypeCurrentSection.label;
     const badgeClass = badgeClassForLabel(customTypeCurrentSection.label);
     els.customTypeBadge.className = "question-type-badge" + (badgeClass ? ` ${badgeClass}` : "");
     els.customTypeFront.textContent = card.front;
     els.customTypeProgress.textContent =
       customTypeMode === "quiz"
-        ? `${idx + 1} / ${customTypeCards.length} · ${getUnreviewedCustomCards(deck).length} new`
+        ? `${idx + 1} / ${customTypeCards.length} · 新規${getUnreviewedCustomCards(deck).length}`
         : `${idx + 1} / ${customTypeCards.length}`;
     els.customTypeInput.focus();
   }
@@ -1327,11 +1327,11 @@
     els.customTypeCard.classList.toggle("answer-right", correct);
     els.customTypeFeedbackResult.textContent = correct
       ? fuzzy
-        ? "✓ Correct! (close enough — minor typo)"
-        : "✓ Correct!"
+        ? "✓ 正解！（ほぼ一致 — 軽いタイプミス）"
+        : "✓ 正解！"
       : raw
-      ? `✕ Not quite — you wrote "${raw}"`
-      : "✕ No answer given";
+      ? `✕ 惜しい — 入力: 「${raw}」`
+      : "✕ 未回答";
     els.customTypeFeedbackResult.className =
       "type-feedback-result " + (correct ? "feedback-good" : "feedback-bad");
   }
@@ -1340,7 +1340,7 @@
     const canAdd = !pendingCustomTypeCorrect && Boolean(pendingCustomTypeRawAnswer);
     els.customAddAnswerBtn.hidden = !canAdd;
     if (canAdd) {
-      els.customAddAnswerBtnText.textContent = `Add "${pendingCustomTypeRawAnswer}" as ${customTypeCurrentSection.label.toLowerCase()}`;
+      els.customAddAnswerBtnText.textContent = `「${pendingCustomTypeRawAnswer}」を${customTypeCurrentSection.label}として追加`;
     }
   }
 
@@ -1363,7 +1363,7 @@
     pendingCustomTypeCorrect = correct;
     pendingCustomTypeRawAnswer = raw.trim();
     els.customTypeInput.disabled = true;
-    els.customTypeSubmitBtn.textContent = "Next";
+    els.customTypeSubmitBtn.textContent = "次へ";
 
     els.customTypeFeedback.hidden = false;
     els.customTypeFeedback.classList.toggle("quick", correct);
@@ -1561,7 +1561,7 @@
   els.reshuffleDeckBtn.addEventListener("click", () => {
     reshuffleDeck();
     const original = els.reshuffleDeckBtn.textContent;
-    els.reshuffleDeckBtn.textContent = "Deck Reset ✓";
+    els.reshuffleDeckBtn.textContent = "リセットしました ✓";
     els.reshuffleDeckBtn.disabled = true;
     window.setTimeout(() => {
       els.reshuffleDeckBtn.textContent = original;
@@ -1587,7 +1587,7 @@
       els.newDeckBtn.hidden = false;
       els.card.classList.add("complete");
       els.card.classList.remove("flipped");
-      els.progress.textContent = `${masteredCount} / ${totalCount} · done!`;
+      els.progress.textContent = `${masteredCount} / ${totalCount} · 完了！`;
       els.againBtn.disabled = true;
       els.gotItBtn.disabled = true;
       if (mode === "marathon") saveState();
@@ -1596,7 +1596,7 @@
     const item = queue[0];
     els.kanji.textContent = item.kanji;
     els.frontHint.hidden = false;
-    els.frontHint.textContent = "tap to reveal";
+    els.frontHint.textContent = "タップして答えを見る";
     els.congratsMsg.hidden = true;
     els.newDeckBtn.hidden = true;
     els.card.classList.remove("complete");
@@ -1617,7 +1617,7 @@
     if (mode === "marathon" || mode === "lesson-cards") {
       els.progress.textContent = mode === "lesson-cards"
         ? `${lessonSession.seen} / ${lessonSession.cards.length}`
-        : `${masteredCount} / ${totalCount} · ${queue.length} left`;
+        : `${masteredCount} / ${totalCount} · 残り${queue.length}`;
     }
     els.card.classList.toggle("flipped", flipped);
     els.againBtn.disabled = !flipped;
@@ -1795,23 +1795,23 @@
     const todayKey = dateKey(today);
     const lessonCount = Math.ceil(allKanji.length / LESSON_SIZE);
     const lessonNumber = (((dayDifference(today, getLessonEpochDate()) % lessonCount) + lessonCount) % lessonCount) + 1;
-    els.lessonMonthLabel.textContent = today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-    els.lessonTitle.textContent = `Lesson ${lessonNumber}`;
-    els.lessonSubtitle.textContent = `${lessonCardsForDate(today).length} kanji focus today. Complete both practice rounds to mark the date.`;
-    const headings = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    els.lessonMonthLabel.textContent = today.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
+    els.lessonTitle.textContent = `レッスン${lessonNumber}`;
+    els.lessonSubtitle.textContent = `今日の重点漢字は${lessonCardsForDate(today).length}字。2つの練習ラウンドを完了すると日付に印が付きます。`;
+    const headings = ["日", "月", "火", "水", "木", "金", "土"];
     let html = headings.map((day) => `<span class="calendar-heading">${day}</span>`).join("");
     for (let i = 0; i < firstDay.getDay(); i++) html += `<span class="calendar-day calendar-empty"></span>`;
     for (let day = 1; day <= daysInMonth; day++) {
       const key = dateKey(new Date(today.getFullYear(), today.getMonth(), day));
       const completed = Boolean(lessonHistory.completed[key]);
-      html += `<span class="calendar-day${key === todayKey ? " calendar-today" : ""}${completed ? " calendar-complete" : ""}">${day}${completed ? `<span class="calendar-check" aria-label="Lesson completed">✓</span>` : ""}</span>`;
+      html += `<span class="calendar-day${key === todayKey ? " calendar-today" : ""}${completed ? " calendar-complete" : ""}">${day}${completed ? `<span class="calendar-check" aria-label="レッスン完了">✓</span>` : ""}</span>`;
     }
     els.lessonCalendar.innerHTML = html;
     const reviewCount = getReviewCards().length;
     els.startReviewBtn.disabled = reviewCount === 0;
     els.lessonStatus.textContent = reviewCount
-      ? `${reviewCount} card${reviewCount === 1 ? "" : "s"} due for review.`
-      : "No cards due for review right now — nice work.";
+      ? `${reviewCount}枚の復習カードがあります。`
+      : "現在復習するカードはありません。お疲れさまです。";
   }
 
   function beginLesson(cards, kind) {
@@ -1856,14 +1856,14 @@
       masteredCount = savedMainSession.masteredCount;
     }
     savedMainSession = null;
-    els.lessonResultTitle.textContent = lessonSession.kind === "review" ? "Review complete" : "Lesson complete";
+    els.lessonResultTitle.textContent = lessonSession.kind === "review" ? "復習完了" : "レッスン完了";
     els.lessonResultSeen.textContent = String(lessonSession.seen);
     els.lessonResultRight.textContent = String(lessonSession.right);
     els.lessonResultWrong.textContent = String(lessonSession.wrong);
     const accuracy = lessonSession.seen
       ? Math.round((lessonSession.right / lessonSession.seen) * 100)
       : 0;
-    els.lessonResultAccuracy.textContent = `${accuracy}% accuracy`;
+    els.lessonResultAccuracy.textContent = `正答率 ${accuracy}%`;
     lessonSession = null;
     mode = null;
     showScreen("lessonResults");
@@ -1960,7 +1960,7 @@
     const accuracy = dailyTally.seen
       ? Math.round((dailyTally.right / dailyTally.seen) * 100)
       : 0;
-    els.resultAccuracy.textContent = `${accuracy}% accuracy`;
+    els.resultAccuracy.textContent = `正答率 ${accuracy}%`;
     showScreen("dailyResults");
   }
 
@@ -1996,8 +1996,8 @@
   // ---------- statistics ----------
 
   function formatDayLabel(d, isToday) {
-    if (isToday) return "Today";
-    return d.toLocaleDateString(undefined, { weekday: "short" });
+    if (isToday) return "今日";
+    return d.toLocaleDateString("ja-JP", { weekday: "short" });
   }
 
   function renderStats() {
@@ -2048,54 +2048,54 @@
     const dueCount = getReviewCards().length;
 
     els.statsBody.innerHTML = `
-      <div class="stats-section-title">Last 7 Days</div>
+      <div class="stats-section-title">過去7日間</div>
       <div class="stats-table">
         <div class="stats-row stats-header">
-          <span class="stats-cell stats-cell-date">Day</span>
-          <span class="stats-cell stats-cell-num">Total</span>
-          <span class="stats-cell stats-cell-right">Got it</span>
-          <span class="stats-cell stats-cell-wrong">Again</span>
+          <span class="stats-cell stats-cell-date">日</span>
+          <span class="stats-cell stats-cell-num">合計</span>
+          <span class="stats-cell stats-cell-right">覚えた</span>
+          <span class="stats-cell stats-cell-wrong">もう一度</span>
         </div>
         ${rowsHtml}
       </div>
-      <div class="stats-section-title">Overall</div>
+      <div class="stats-section-title">全体</div>
       <div class="stats-overall">
         <div class="overall-tile">
           <div class="overall-num">${totalCompleted}</div>
-          <div class="overall-label">Reviewed</div>
+          <div class="overall-label">復習数</div>
         </div>
         <div class="overall-tile">
           <div class="overall-num">${totalRight}</div>
-          <div class="overall-label">Got it</div>
+          <div class="overall-label">覚えた</div>
         </div>
         <div class="overall-tile">
           <div class="overall-num">${totalWrong}</div>
-          <div class="overall-label">Again</div>
+          <div class="overall-label">もう一度</div>
         </div>
         <div class="overall-tile">
           <div class="overall-num">${overallAccuracy}%</div>
-          <div class="overall-label">Accuracy</div>
+          <div class="overall-label">正答率</div>
         </div>
       </div>
-      <div class="stats-section-title">Mastery</div>
+      <div class="stats-section-title">習熟度</div>
       <div class="stats-overall">
         <div class="overall-tile">
           <div class="overall-num">${newCount}</div>
-          <div class="overall-label">New</div>
+          <div class="overall-label">新規</div>
         </div>
         <div class="overall-tile">
           <div class="overall-num">${learning}</div>
-          <div class="overall-label">Learning</div>
+          <div class="overall-label">学習中</div>
         </div>
         <div class="overall-tile">
           <div class="overall-num">${known}</div>
-          <div class="overall-label">Known</div>
+          <div class="overall-label">習得済み</div>
         </div>
       </div>
       ${
         dueCount
-          ? `<button class="secondary-btn stats-review-btn" type="button" data-action="review-now">${dueCount} card${dueCount === 1 ? "" : "s"} due — Review now</button>`
-          : `<div class="stats-footnote">Nothing due for review right now.</div>`
+          ? `<button class="secondary-btn stats-review-btn" type="button" data-action="review-now">${dueCount}枚が復習待ち — 今すぐ復習</button>`
+          : `<div class="stats-footnote">現在復習するカードはありません。</div>`
       }
     `;
   }
@@ -2113,7 +2113,7 @@
 
   els.resetStatsBtn.addEventListener("click", () => {
     const ok = window.confirm(
-      "Reset all statistics? This clears your daily history and per-card right/wrong counts. This cannot be undone."
+      "すべての統計をリセットしますか？日ごとの履歴とカードごとの正解・不正解数が消去されます。この操作は元に戻せません。"
     );
     if (!ok) return;
     stats = { daily: {}, perCard: {} };
@@ -2219,12 +2219,12 @@
   // same field) rather than one combined pool of everything.
   const QUESTION_TYPES = {
     meaning: {
-      label: "Meaning",
+      label: "意味",
       badgeClass: "",
-      placeholder: "Answer",
+      placeholder: "答え",
     },
     onyomi: {
-      label: "Reading",
+      label: "読み",
       badgeClass: "qt-onyomi",
       placeholder: "答え",
     },
@@ -2293,7 +2293,7 @@
     els.typeInput.disabled = false;
     els.typeInput.value = "";
     els.typeFeedback.hidden = true;
-    els.typeSubmitBtn.textContent = "Check";
+    els.typeSubmitBtn.textContent = "確認";
 
     if (queue.length === 0) {
       if (mode === "lesson-type") {
@@ -2306,7 +2306,7 @@
       els.typeForm.hidden = true;
       els.typeCongratsMsg.hidden = false;
       els.typeNewDeckBtn.hidden = false;
-      els.typeProgress.textContent = `${masteredCount} / ${totalCount} · done!`;
+      els.typeProgress.textContent = `${masteredCount} / ${totalCount} · 完了！`;
       if (mode === "type") saveState();
       return;
     }
@@ -2328,7 +2328,7 @@
     els.typeKanji.textContent = item.kanji;
     els.typeProgress.textContent = mode === "lesson-type"
       ? `${lessonSession.seen} / ${lessonSession.cards.length}`
-      : `${masteredCount} / ${totalCount} · ${queue.length} left`;
+      : `${masteredCount} / ${totalCount} · 残り${queue.length}`;
     els.typeInput.focus();
     if (mode === "type") saveState();
   }
@@ -2338,11 +2338,11 @@
     els.typeCard.classList.toggle("answer-right", correct);
     els.typeFeedbackResult.textContent = correct
       ? fuzzy
-        ? "✓ Correct! (close enough — minor typo)"
-        : "✓ Correct!"
+        ? "✓ 正解！（ほぼ一致 — 軽いタイプミス）"
+        : "✓ 正解！"
       : raw
-      ? `✕ Not quite — you wrote "${raw}"`
-      : "✕ No answer given";
+      ? `✕ 惜しい — 入力: 「${raw}」`
+      : "✕ 未回答";
     els.typeFeedbackResult.className =
       "type-feedback-result " + (correct ? "feedback-good" : "feedback-bad");
   }
@@ -2361,8 +2361,8 @@
     const canAdd = !pendingTypeCorrect && Boolean(pendingTypeRawAnswer);
     els.addAnswerBtn.hidden = !canAdd;
     if (canAdd) {
-      const label = QUESTION_TYPES[currentQuestionType].label.toLowerCase();
-      els.addAnswerBtnText.textContent = `Add "${pendingTypeRawAnswer}" as ${label}`;
+      const label = QUESTION_TYPES[currentQuestionType].label;
+      els.addAnswerBtnText.textContent = `「${pendingTypeRawAnswer}」を${label}として追加`;
     }
   }
 
@@ -2377,7 +2377,7 @@
     pendingTypeCorrect = correct;
     pendingTypeRawAnswer = raw.trim();
     els.typeInput.disabled = true;
-    els.typeSubmitBtn.textContent = "Next";
+    els.typeSubmitBtn.textContent = "次へ";
 
     els.typeFeedback.hidden = false;
     els.typeFeedback.classList.toggle("quick", correct);
@@ -2648,7 +2648,7 @@
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setDataStatus("Backup file downloaded.");
+    setDataStatus("バックアップファイルをダウンロードしました。");
   }
 
   function isPlainObject(value) {
@@ -2683,7 +2683,7 @@
     customDecks = decks;
     saveCustomDecks();
     pendingImport = null;
-    setDataStatus("Backup imported.");
+    setDataStatus("バックアップをインポートしました。");
     showScreen("home");
   }
 
@@ -2699,13 +2699,13 @@
       .then((text) => {
         const parsed = parseImportText(text);
         if (!parsed) {
-          setDataStatus("That file isn't a valid Kanji Flash backup.");
+          setDataStatus("このファイルは有効な漢字フラッシュのバックアップではありません。");
           return;
         }
         pendingImport = parsed;
         showScreen("importChoice");
       })
-      .catch(() => setDataStatus("Couldn't read that file."));
+      .catch(() => setDataStatus("ファイルを読み込めませんでした。"));
   });
 
   els.importMergeBtn.addEventListener("click", () => {

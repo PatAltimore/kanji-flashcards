@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f1115">
-<title>Kanji Flash · JLPT N2</title>
+<title>漢字フラッシュ · JLPT N2</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>漢</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
     <header class="topbar">
       <span class="icon-btn-spacer"></span>
       <span class="brand">漢字 <span class="brand-sub">N2</span></span>
-      <button class="icon-btn icon-btn-text" id="settingsBtn" type="button" aria-label="Settings">設定</button>
+      <button class="icon-btn icon-btn-text" id="settingsBtn" type="button" aria-label="設定">設定</button>
     </header>
     <div class="home-menu">
       <button class="mode-btn" id="modeMarathonBtn" type="button">
@@ -64,20 +64,20 @@
   <!-- LESSONS -->
   <section class="screen" id="screen-lessons" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
-      <span class="screen-title">Lessons</span>
+      <button class="icon-btn" data-back type="button" aria-label="ホームに戻る">←</button>
+      <span class="screen-title">レッスン</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <main class="lessons-body">
       <div class="lesson-heading">
-        <div class="lesson-kicker" id="lessonMonthLabel">This month</div>
-        <h1 id="lessonTitle">Today's lesson</h1>
-        <p id="lessonSubtitle">Build your exam deck one day at a time.</p>
+        <div class="lesson-kicker" id="lessonMonthLabel">今月</div>
+        <h1 id="lessonTitle">今日のレッスン</h1>
+        <p id="lessonSubtitle">試験対策を一日ずつ積み重ねましょう。</p>
       </div>
-      <div class="calendar" id="lessonCalendar" aria-label="Lesson calendar"></div>
+      <div class="calendar" id="lessonCalendar" aria-label="レッスンカレンダー"></div>
       <div class="lesson-actions">
-        <button class="primary-btn" id="startLessonBtn" type="button">Start today's lesson</button>
-        <button class="secondary-btn" id="startReviewBtn" type="button">Review due cards</button>
+        <button class="primary-btn" id="startLessonBtn" type="button">今日のレッスンを始める</button>
+        <button class="secondary-btn" id="startReviewBtn" type="button">復習するカード</button>
       </div>
       <div class="lesson-status" id="lessonStatus"></div>
     </main>
@@ -86,68 +86,68 @@
   <!-- DAILY CHALLENGE SETUP -->
   <section class="screen" id="screen-daily-setup" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
-      <span class="screen-title">Daily Challenge</span>
+      <button class="icon-btn" data-back type="button" aria-label="ホームに戻る">←</button>
+      <span class="screen-title">デイリーチャレンジ</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <div class="setup-body">
-      <div class="time-label">Time Limit</div>
+      <div class="time-label">制限時間</div>
       <div class="time-picker">
-        <button class="time-btn" id="timeUpBtn" type="button" aria-label="Increase minutes">▲</button>
+        <button class="time-btn" id="timeUpBtn" type="button" aria-label="分を増やす">▲</button>
         <div class="time-value-wrap">
           <span class="time-value" id="timeValue">3</span>
-          <span class="time-unit">minutes</span>
+          <span class="time-unit">分</span>
         </div>
-        <button class="time-btn" id="timeDownBtn" type="button" aria-label="Decrease minutes">▼</button>
+        <button class="time-btn" id="timeDownBtn" type="button" aria-label="分を減らす">▼</button>
       </div>
-      <button class="primary-btn" id="startDailyBtn" type="button">Start Challenge</button>
+      <button class="primary-btn" id="startDailyBtn" type="button">チャレンジ開始</button>
     </div>
   </section>
 
   <!-- SHARED FLASHCARD PLAY SCREEN (Marathon & Daily Challenge) -->
   <section class="screen" id="screen-play" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
+      <button class="icon-btn" data-back type="button" aria-label="ホームに戻る">←</button>
       <span class="progress" id="progress" hidden>0 / 0</span>
       <span class="timer" id="timerDisplay" hidden>3:00</span>
       <span class="icon-btn-spacer"></span>
     </header>
 
     <main class="stage" id="stage">
-      <div class="card" id="card" tabindex="0" role="button" aria-label="Flashcard, tap to reveal reading">
+      <div class="card" id="card" tabindex="0" role="button" aria-label="フラッシュカード。タップして読みを表示">
         <div class="card-inner" id="cardInner">
           <section class="face face-front">
             <div class="kanji" id="kanjiChar">?</div>
-            <div class="hint" id="frontHint">tap to reveal</div>
-            <div class="congrats" id="congratsMsg" hidden>Congratulations!<br>You've mastered the deck.</div>
+            <div class="hint" id="frontHint">タップして答えを見る</div>
+            <div class="congrats" id="congratsMsg" hidden>おめでとうございます！<br>デッキをマスターしました。</div>
             <button class="grade-btn new-deck-btn" id="newDeckBtn" type="button" hidden>
-              <span class="grade-text">New Deck</span>
+              <span class="grade-text">新しいデッキ</span>
             </button>
           </section>
           <section class="face face-back">
             <div class="kanji-small" id="kanjiCharBack">?</div>
             <div class="reading-block">
-              <div class="reading-label">Onyomi</div>
+              <div class="reading-label">音読み</div>
               <div class="reading-value" id="onyomi">—</div>
             </div>
             <div class="reading-block">
-              <div class="reading-label">Kunyomi</div>
+              <div class="reading-label">訓読み</div>
               <div class="reading-value" id="kunyomi">—</div>
             </div>
             <div class="meaning" id="meaning">—</div>
             <div class="custom-answers" id="cardCustomAnswers" hidden>
-              <div class="reading-label">Your Accepted Answers</div>
+              <div class="reading-label">追加した答え</div>
               <div class="reading-value custom-answers-value" id="cardCustomAnswersList">—</div>
             </div>
             <div class="card-stats" id="cardStats">
               <span class="stat-wrong">✕ <span id="cardStatsWrong">0</span></span>
               <span class="stat-right">✓ <span id="cardStatsRight">0</span></span>
             </div>
-            <button class="grade-btn grade-again corner-btn corner-left" id="againBtn" aria-label="Mark as needs practice, put back in stack">
-              <span class="grade-icon">✕</span><span class="grade-text">Again</span>
+            <button class="grade-btn grade-again corner-btn corner-left" id="againBtn" aria-label="要練習としてスタックに戻す">
+              <span class="grade-icon">✕</span><span class="grade-text">もう一度</span>
             </button>
-            <button class="grade-btn grade-good corner-btn corner-right" id="gotItBtn" aria-label="Mark as known, remove from stack">
-              <span class="grade-icon">✓</span><span class="grade-text">Got it</span>
+            <button class="grade-btn grade-good corner-btn corner-right" id="gotItBtn" aria-label="覚えたとしてスタックから外す">
+              <span class="grade-icon">✓</span><span class="grade-text">覚えた</span>
             </button>
           </section>
         </div>
@@ -159,15 +159,15 @@
   <section class="screen" id="screen-daily-results" hidden>
     <div class="results-body">
       <div class="results-emoji">終</div>
-      <div class="results-title">Time's Up!</div>
-      <div class="results-stat"><span id="resultSeen">0</span> cards reviewed</div>
+      <div class="results-title">時間切れ！</div>
+      <div class="results-stat"><span id="resultSeen">0</span> 枚を復習しました</div>
       <div class="results-row">
-        <div class="results-pill pill-good">✓ <span id="resultRight">0</span> right</div>
-        <div class="results-pill pill-bad">✕ <span id="resultWrong">0</span> wrong</div>
+        <div class="results-pill pill-good">✓ <span id="resultRight">0</span> 正解</div>
+        <div class="results-pill pill-bad">✕ <span id="resultWrong">0</span> 不正解</div>
       </div>
-      <div class="results-accuracy" id="resultAccuracy">0% accuracy</div>
-      <button class="primary-btn" id="dailyAgainBtn" type="button">Play Again</button>
-      <button class="secondary-btn" id="dailyHomeBtn" type="button">Back to Home</button>
+      <div class="results-accuracy" id="resultAccuracy">正答率 0%</div>
+      <button class="primary-btn" id="dailyAgainBtn" type="button">もう一度挑戦</button>
+      <button class="secondary-btn" id="dailyHomeBtn" type="button">ホームに戻る</button>
     </div>
   </section>
 
@@ -175,27 +175,27 @@
   <section class="screen" id="screen-lesson-results" hidden>
     <div class="results-body">
       <div class="results-emoji">学</div>
-      <div class="results-title" id="lessonResultTitle">Lesson complete</div>
-      <div class="results-stat"><span id="lessonResultSeen">0</span> questions answered</div>
+      <div class="results-title" id="lessonResultTitle">レッスン完了</div>
+      <div class="results-stat"><span id="lessonResultSeen">0</span> 問に回答しました</div>
       <div class="results-row">
-        <div class="results-pill pill-good">✓ <span id="lessonResultRight">0</span> right</div>
-        <div class="results-pill pill-bad">✕ <span id="lessonResultWrong">0</span> wrong</div>
+        <div class="results-pill pill-good">✓ <span id="lessonResultRight">0</span> 正解</div>
+        <div class="results-pill pill-bad">✕ <span id="lessonResultWrong">0</span> 不正解</div>
       </div>
-      <div class="results-accuracy" id="lessonResultAccuracy">0% accuracy</div>
-      <button class="primary-btn" id="lessonResultsLessonsBtn" type="button">Back to Lessons</button>
+      <div class="results-accuracy" id="lessonResultAccuracy">正答率 0%</div>
+      <button class="primary-btn" id="lessonResultsLessonsBtn" type="button">レッスンに戻る</button>
     </div>
   </section>
 
   <!-- TYPE ANSWER -->
   <section class="screen" id="screen-type" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
+      <button class="icon-btn" data-back type="button" aria-label="ホームに戻る">←</button>
       <span class="progress" id="typeProgress">0 / 0</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <main class="stage">
       <div class="type-card" id="typeCard">
-        <div class="question-type-badge" id="questionTypeBadge">Meaning</div>
+        <div class="question-type-badge" id="questionTypeBadge">意味</div>
         <div class="kanji" id="typeKanji">?</div>
 
         <form class="type-form" id="typeForm" autocomplete="off">
@@ -203,31 +203,31 @@
             class="type-input"
             id="typeInput"
             type="text"
-            placeholder="Answer"
+            placeholder="答え"
             autocomplete="off"
             autocapitalize="off"
             autocorrect="off"
             spellcheck="false"
           >
-          <button class="primary-btn type-submit-btn" id="typeSubmitBtn" type="submit">Check</button>
+          <button class="primary-btn type-submit-btn" id="typeSubmitBtn" type="submit">確認</button>
         </form>
 
         <div class="type-feedback" id="typeFeedback" hidden>
           <div class="type-feedback-result" id="typeFeedbackResult"></div>
           <button class="grade-btn add-answer-btn" id="addAnswerBtn" type="button" hidden>
-            <span class="grade-icon">+</span><span class="grade-text" id="addAnswerBtnText">Add my answer</span>
+            <span class="grade-icon">+</span><span class="grade-text" id="addAnswerBtnText">答えを追加</span>
           </button>
           <div class="reading-block">
-            <div class="reading-label">Onyomi</div>
+            <div class="reading-label">音読み</div>
             <div class="reading-value" id="typeOnyomi">—</div>
           </div>
           <div class="reading-block">
-            <div class="reading-label">Kunyomi</div>
+            <div class="reading-label">訓読み</div>
             <div class="reading-value" id="typeKunyomi">—</div>
           </div>
           <div class="meaning" id="typeMeaning">—</div>
           <div class="custom-answers" id="typeCustomAnswers" hidden>
-            <div class="reading-label">Your Accepted Answers</div>
+            <div class="reading-label">追加した答え</div>
             <div class="reading-value custom-answers-value" id="typeCustomAnswersList">—</div>
           </div>
           <div class="card-stats" id="typeCardStats">
@@ -236,9 +236,9 @@
           </div>
         </div>
 
-        <div class="congrats" id="typeCongratsMsg" hidden>Congratulations!<br>You've mastered the deck.</div>
+        <div class="congrats" id="typeCongratsMsg" hidden>おめでとうございます！<br>デッキをマスターしました。</div>
         <button class="grade-btn new-deck-btn" id="typeNewDeckBtn" type="button" hidden>
-          <span class="grade-text">New Deck</span>
+          <span class="grade-text">新しいデッキ</span>
         </button>
       </div>
     </main>
@@ -247,8 +247,8 @@
   <!-- STATISTICS -->
   <section class="screen" id="screen-stats" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
-      <span class="screen-title">Statistics</span>
+      <button class="icon-btn" data-back type="button" aria-label="ホームに戻る">←</button>
+      <span class="screen-title">統計</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <div class="stats-body" id="statsBody"></div>
@@ -257,17 +257,17 @@
   <!-- CUSTOM DECKS LIST -->
   <section class="screen" id="screen-custom-decks" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
-      <span class="screen-title">Custom Decks</span>
+      <button class="icon-btn" data-back type="button" aria-label="ホームに戻る">←</button>
+      <span class="screen-title">カスタムデッキ</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <div class="custom-decks-body">
-      <button class="primary-btn custom-upload-btn" id="uploadCsvBtn" type="button">Upload File</button>
+      <button class="primary-btn custom-upload-btn" id="uploadCsvBtn" type="button">ファイルをアップロード</button>
       <input type="file" id="csvFileInput" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden>
       <div class="custom-decks-list" id="customDecksList"></div>
       <div class="custom-decks-empty" id="customDecksEmpty" hidden>
-        <p>No custom decks yet — upload a CSV or Excel file to get started.</p>
-        <button class="secondary-btn" id="downloadTemplateBtn" type="button">Download Example CSV</button>
+        <p>カスタムデッキはまだありません。CSVまたはExcelファイルをアップロードして始めましょう。</p>
+        <button class="secondary-btn" id="downloadTemplateBtn" type="button">サンプルCSVをダウンロード</button>
       </div>
     </div>
   </section>
@@ -275,40 +275,40 @@
   <!-- CUSTOM DECK SAVE (name a newly-parsed CSV, or confirm a replace) -->
   <section class="screen" id="screen-custom-deck-save" hidden>
     <header class="topbar">
-      <button class="icon-btn" id="customSaveCancelBtn" type="button" aria-label="Cancel">✕</button>
-      <span class="screen-title" id="customSaveTitle">New Deck</span>
+      <button class="icon-btn" id="customSaveCancelBtn" type="button" aria-label="キャンセル">✕</button>
+      <span class="screen-title" id="customSaveTitle">新しいデッキ</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <div class="custom-save-body">
-      <div class="settings-label">Deck Name</div>
-      <input type="text" class="custom-deck-name-input" id="customDeckNameInput" maxlength="60" placeholder="Deck name" autocomplete="off">
-      <div class="custom-save-info" id="customSaveInfo">0 cards parsed</div>
+      <div class="settings-label">デッキ名</div>
+      <input type="text" class="custom-deck-name-input" id="customDeckNameInput" maxlength="60" placeholder="デッキ名" autocomplete="off">
+      <div class="custom-save-info" id="customSaveInfo">0枚を読み込み</div>
       <div class="custom-save-warning" id="customSaveWarning" hidden></div>
-      <button class="primary-btn" id="customSaveConfirmBtn" type="button">Save Deck</button>
+      <button class="primary-btn" id="customSaveConfirmBtn" type="button">デッキを保存</button>
     </div>
   </section>
 
   <!-- CUSTOM DECK STUDY -->
   <section class="screen" id="screen-custom-study" hidden>
     <header class="topbar">
-      <button class="icon-btn" id="customStudyBackBtn" type="button" aria-label="Back to deck list">◀</button>
+      <button class="icon-btn" id="customStudyBackBtn" type="button" aria-label="デッキ一覧に戻る">◀</button>
       <span class="progress" id="customStudyProgress">0 / 0</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <main class="stage">
-      <div class="card" id="customStudyCard" tabindex="0" role="button" aria-label="Flashcard, tap to reveal">
+      <div class="card" id="customStudyCard" tabindex="0" role="button" aria-label="フラッシュカード。タップして表示">
         <div class="card-inner">
           <section class="face face-front">
             <div class="kanji custom-kanji" id="customStudyFront">?</div>
-            <div class="hint">tap to reveal</div>
+            <div class="hint">タップして答えを見る</div>
           </section>
           <section class="face face-back">
             <div class="custom-study-sections" id="customStudyBackSections"></div>
-            <button class="grade-btn grade-again corner-btn corner-left" id="customFlashAgainBtn" type="button" aria-label="Mark as needs practice, next card">
-              <span class="grade-icon">✕</span><span class="grade-text">Again</span>
+            <button class="grade-btn grade-again corner-btn corner-left" id="customFlashAgainBtn" type="button" aria-label="要練習。次のカードへ">
+              <span class="grade-icon">✕</span><span class="grade-text">もう一度</span>
             </button>
-            <button class="grade-btn grade-good corner-btn corner-right" id="customFlashGotItBtn" type="button" aria-label="Mark as known, next card">
-              <span class="grade-icon">✓</span><span class="grade-text">Got it</span>
+            <button class="grade-btn grade-good corner-btn corner-right" id="customFlashGotItBtn" type="button" aria-label="覚えた。次のカードへ">
+              <span class="grade-icon">✓</span><span class="grade-text">覚えた</span>
             </button>
           </section>
         </div>
@@ -319,13 +319,13 @@
   <!-- CUSTOM DECK TYPE ANSWER -->
   <section class="screen" id="screen-custom-type" hidden>
     <header class="topbar">
-      <button class="icon-btn" id="customTypeBackBtn" type="button" aria-label="Back to deck list">◀</button>
+      <button class="icon-btn" id="customTypeBackBtn" type="button" aria-label="デッキ一覧に戻る">◀</button>
       <span class="progress" id="customTypeProgress">0 / 0</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <main class="stage">
       <div class="type-card" id="customTypeCard">
-        <div class="question-type-badge" id="customTypeBadge">Section</div>
+        <div class="question-type-badge" id="customTypeBadge">項目</div>
         <div class="kanji custom-kanji" id="customTypeFront">?</div>
 
         <form class="type-form" id="customTypeForm" autocomplete="off">
@@ -333,19 +333,19 @@
             class="type-input"
             id="customTypeInput"
             type="text"
-            placeholder="Type the answer"
+            placeholder="答えを入力"
             autocomplete="off"
             autocapitalize="off"
             autocorrect="off"
             spellcheck="false"
           >
-          <button class="primary-btn type-submit-btn" id="customTypeSubmitBtn" type="submit">Check</button>
+          <button class="primary-btn type-submit-btn" id="customTypeSubmitBtn" type="submit">確認</button>
         </form>
 
         <div class="type-feedback" id="customTypeFeedback" hidden>
           <div class="type-feedback-result" id="customTypeFeedbackResult"></div>
           <button class="grade-btn add-answer-btn" id="customAddAnswerBtn" type="button" hidden>
-            <span class="grade-icon">+</span><span class="grade-text" id="customAddAnswerBtnText">Add my answer</span>
+            <span class="grade-icon">+</span><span class="grade-text" id="customAddAnswerBtnText">答えを追加</span>
           </button>
           <div class="custom-study-sections" id="customTypeSections"></div>
         </div>
@@ -357,58 +357,58 @@
   <section class="screen" id="screen-custom-complete" hidden>
     <div class="results-body">
       <div class="results-emoji">完</div>
-      <div class="results-title">Deck Complete!</div>
-      <div class="results-stat" id="customCompleteStat">0 cards reviewed</div>
-      <button class="primary-btn" id="customStudyAgainBtn" type="button">Study Again</button>
-      <button class="secondary-btn" id="customBackToListBtn" type="button">Back to Decks</button>
+      <div class="results-title">デッキ完了！</div>
+      <div class="results-stat" id="customCompleteStat">0枚を復習しました</div>
+      <button class="primary-btn" id="customStudyAgainBtn" type="button">もう一度学習</button>
+      <button class="secondary-btn" id="customBackToListBtn" type="button">デッキ一覧に戻る</button>
     </div>
   </section>
 
   <!-- SETTINGS -->
   <section class="screen" id="screen-settings" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
-      <span class="screen-title">Settings</span>
+      <button class="icon-btn" data-back type="button" aria-label="ホームに戻る">←</button>
+      <span class="screen-title">設定</span>
       <span class="icon-btn-spacer"></span>
     </header>
     <div class="settings-body">
       <div class="settings-row settings-row-col">
         <div class="settings-label-group">
-          <div class="settings-label">Backup</div>
-          <div class="settings-sub" id="dataStatus">Progress is saved on this device. Export it to move to another device.</div>
+          <div class="settings-label">バックアップ</div>
+          <div class="settings-sub" id="dataStatus">進捗はこの端末に保存されます。別の端末に移すにはエクスポートしてください。</div>
         </div>
         <div class="data-actions">
-          <button class="secondary-btn" id="exportDataBtn" type="button">Export</button>
-          <button class="secondary-btn" id="importDataBtn" type="button">Import</button>
+          <button class="secondary-btn" id="exportDataBtn" type="button">エクスポート</button>
+          <button class="secondary-btn" id="importDataBtn" type="button">インポート</button>
         </div>
         <input type="file" id="importFileInput" accept=".json,application/json" hidden>
       </div>
 
       <div class="settings-row settings-row-col">
         <div class="settings-label-group">
-          <div class="settings-label">Theme</div>
-          <div class="settings-sub">Card and color style</div>
+          <div class="settings-label">テーマ</div>
+          <div class="settings-sub">カードと色のスタイル</div>
         </div>
         <div class="theme-options" id="themeOptions">
           <button class="theme-option" data-theme-value="dark" type="button">
             <span class="theme-swatch theme-swatch-dark"></span>
-            <span>Dark</span>
+            <span>ダーク</span>
           </button>
           <button class="theme-option" data-theme-value="hanafuda" type="button">
             <span class="theme-swatch theme-swatch-hanafuda"></span>
-            <span>Hanafuda</span>
+            <span>花札</span>
           </button>
           <button class="theme-option" data-theme-value="hyakunin" type="button">
             <span class="theme-swatch theme-swatch-hyakunin"></span>
-            <span>Hyakunin Isshu</span>
+            <span>百人一首</span>
           </button>
         </div>
       </div>
 
       <div class="settings-row">
         <div class="settings-label-group">
-          <div class="settings-label">Stylized Kanji Font</div>
-          <div class="settings-sub">Shippori Mincho for kanji characters</div>
+          <div class="settings-label">装飾書体の漢字</div>
+          <div class="settings-sub">漢字にしっぽり明朝を使用</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="stylizedFontToggle" checked>
@@ -418,43 +418,43 @@
 
       <div class="settings-row">
         <div class="settings-label-group">
-          <div class="settings-label">Lesson Questions</div>
-          <div class="settings-sub">Flash cards and typed answers per lesson</div>
+          <div class="settings-label">レッスンの問題数</div>
+          <div class="settings-sub">レッスンごとのフラッシュカードと入力問題</div>
         </div>
         <div class="mini-stepper">
-          <button class="time-btn time-btn-mini" id="lessonQuestionsDownBtn" type="button" aria-label="Decrease lesson questions">▼</button>
+          <button class="time-btn time-btn-mini" id="lessonQuestionsDownBtn" type="button" aria-label="レッスンの問題数を減らす">▼</button>
           <span class="mini-stepper-value" id="lessonQuestionsValue">10</span>
-          <button class="time-btn time-btn-mini" id="lessonQuestionsUpBtn" type="button" aria-label="Increase lesson questions">▲</button>
+          <button class="time-btn time-btn-mini" id="lessonQuestionsUpBtn" type="button" aria-label="レッスンの問題数を増やす">▲</button>
         </div>
       </div>
 
       <div class="settings-row">
         <div class="settings-label-group">
-          <div class="settings-label">Review Questions</div>
-          <div class="settings-sub">Questions drawn from the past week</div>
+          <div class="settings-label">復習の問題数</div>
+          <div class="settings-sub">過去1週間から出題</div>
         </div>
         <div class="mini-stepper">
-          <button class="time-btn time-btn-mini" id="reviewQuestionsDownBtn" type="button" aria-label="Decrease review questions">▼</button>
+          <button class="time-btn time-btn-mini" id="reviewQuestionsDownBtn" type="button" aria-label="復習の問題数を減らす">▼</button>
           <span class="mini-stepper-value" id="reviewQuestionsValue">10</span>
-          <button class="time-btn time-btn-mini" id="reviewQuestionsUpBtn" type="button" aria-label="Increase review questions">▲</button>
+          <button class="time-btn time-btn-mini" id="reviewQuestionsUpBtn" type="button" aria-label="復習の問題数を増やす">▲</button>
         </div>
       </div>
 
       <div class="settings-row">
         <div class="settings-label-group">
-          <div class="settings-label">Quiz Questions</div>
-          <div class="settings-sub">Typed questions per custom deck quiz round</div>
+          <div class="settings-label">クイズの問題数</div>
+          <div class="settings-sub">カスタムデッキのクイズ1ラウンドあたりの入力問題</div>
         </div>
         <div class="mini-stepper">
-          <button class="time-btn time-btn-mini" id="quizQuestionsDownBtn" type="button" aria-label="Decrease quiz questions">▼</button>
+          <button class="time-btn time-btn-mini" id="quizQuestionsDownBtn" type="button" aria-label="クイズの問題数を減らす">▼</button>
           <span class="mini-stepper-value" id="quizQuestionsValue">10</span>
-          <button class="time-btn time-btn-mini" id="quizQuestionsUpBtn" type="button" aria-label="Increase quiz questions">▲</button>
+          <button class="time-btn time-btn-mini" id="quizQuestionsUpBtn" type="button" aria-label="クイズの問題数を増やす">▲</button>
         </div>
       </div>
 
       <div class="settings-row settings-row-col">
         <div class="settings-label-group">
-          <div class="settings-label">Font Size</div>
+          <div class="settings-label">文字サイズ</div>
           <div class="settings-sub" id="fontSizeValue">100%</div>
         </div>
         <input type="range" class="settings-slider" id="fontSizeSlider" min="80" max="140" step="5" value="100">
@@ -462,30 +462,31 @@
 
       <div class="settings-row">
         <div class="settings-label-group">
-          <div class="settings-label">Daily Challenge Default</div>
-          <div class="settings-sub">Starting time limit</div>
+          <div class="settings-label">デイリーチャレンジの初期設定</div>
+          <div class="settings-sub">開始時の制限時間</div>
         </div>
         <div class="mini-stepper">
-          <button class="time-btn time-btn-mini" id="defaultMinutesDownBtn" type="button" aria-label="Decrease default minutes">▼</button>
+          <button class="time-btn time-btn-mini" id="defaultMinutesDownBtn" type="button" aria-label="初期の分数を減らす">▼</button>
           <span class="mini-stepper-value" id="defaultMinutesValue">3</span>
-          <button class="time-btn time-btn-mini" id="defaultMinutesUpBtn" type="button" aria-label="Increase default minutes">▲</button>
+          <button class="time-btn time-btn-mini" id="defaultMinutesUpBtn" type="button" aria-label="初期の分数を増やす">▲</button>
         </div>
       </div>
 
       <div class="settings-actions">
-        <button class="secondary-btn" id="reshuffleDeckBtn" type="button">Reshuffle Deck</button>
-        <button class="danger-btn" id="resetStatsBtn" type="button">Reset Statistics</button>
+        <button class="secondary-btn" id="reshuffleDeckBtn" type="button">デッキをシャッフル</button>
+        <button class="danger-btn" id="resetStatsBtn" type="button">統計をリセット</button>
       </div>
 
       <p class="data-credits">
-        Kanji readings and meanings come from
+        漢字の読みと意味は
         <a href="https://www.edrdg.org/wiki/index.php/KANJIDIC_Project" target="_blank" rel="noopener">KANJIDIC2</a>
-        &copy; the Electronic Dictionary Research and Development Group
-        (<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>).
-        The JLPT N2 kanji list is from
+        &copy; 電子辞書研究開発グループ（EDRDG）
+        (<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>)
+        を利用しています。JLPT N2の漢字リストは
         <a href="https://www.tanos.co.uk/jlpt/" target="_blank" rel="noopener">tanos.co.uk</a>
-        by Jonathan Waller
-        (<a href="https://creativecommons.org/share-your-work/cclicenses/" target="_blank" rel="noopener">Creative Commons Attribution</a>).
+        （Jonathan Waller 氏、
+        <a href="https://creativecommons.org/share-your-work/cclicenses/" target="_blank" rel="noopener">クリエイティブ・コモンズ 表示</a>）
+        によるものです。
       </p>
     </div>
   </section>
@@ -494,11 +495,11 @@
   <section class="screen" id="screen-import-choice" hidden>
     <div class="results-body">
       <div class="results-emoji">合</div>
-      <div class="results-title">Import Backup</div>
-      <p class="import-choice-desc">How should the backup be combined with the data on this device?</p>
-      <button class="primary-btn" id="importMergeBtn" type="button">Merge Both (Recommended)</button>
-      <button class="secondary-btn" id="importReplaceBtn" type="button">Replace This Device's Data</button>
-      <button class="secondary-btn" id="importCancelBtn" type="button">Cancel</button>
+      <div class="results-title">バックアップをインポート</div>
+      <p class="import-choice-desc">バックアップをこの端末のデータとどのように組み合わせますか？</p>
+      <button class="primary-btn" id="importMergeBtn" type="button">両方を統合（おすすめ）</button>
+      <button class="secondary-btn" id="importReplaceBtn" type="button">この端末のデータを置き換え</button>
+      <button class="secondary-btn" id="importCancelBtn" type="button">キャンセル</button>
     </div>
   </section>
 
