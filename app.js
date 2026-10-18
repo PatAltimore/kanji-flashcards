@@ -95,6 +95,9 @@
     defaultMinutesValue: document.getElementById("defaultMinutesValue"),
     reshuffleDeckBtn: document.getElementById("reshuffleDeckBtn"),
     dataStatus: document.getElementById("dataStatus"),
+    customDecksSub: document.getElementById("customDecksSub"),
+    customDecksDue: document.getElementById("customDecksDue"),
+    customDecksDueNum: document.getElementById("customDecksDueNum"),
     exportDataBtn: document.getElementById("exportDataBtn"),
     importDataBtn: document.getElementById("importDataBtn"),
     importFileInput: document.getElementById("importFileInput"),
@@ -271,6 +274,21 @@
     Object.keys(screens).forEach((key) => {
       screens[key].hidden = key !== name;
     });
+    if (name === "home") updateHomeInfo();
+  }
+
+  // The Custom Decks tile on the home screen shows how many reviews are due
+  // across all of the player's decks.
+  function updateHomeInfo() {
+    let due = 0;
+    customDecks.forEach((deck) => {
+      due += getDueCustomCards(deck).length;
+    });
+    els.customDecksSub.textContent = customDecks.length
+      ? `${customDecks.length}個のデッキ`
+      : "自分のカードで学習";
+    els.customDecksDueNum.textContent = String(due);
+    els.customDecksDue.classList.toggle("has-due", due > 0);
   }
 
   // ---------- shared deck persistence (all modes) ----------

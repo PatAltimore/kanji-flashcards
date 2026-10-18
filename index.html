@@ -22,6 +22,16 @@
       <button class="icon-btn icon-btn-text" id="settingsBtn" type="button" aria-label="設定">設定</button>
     </header>
     <div class="home-menu">
+      <button class="mode-btn mode-btn-featured" id="modeCustomDecksBtn" type="button">
+        <span class="mode-text">
+          <span class="mode-label">カスタムデッキ</span>
+          <span class="mode-sub" id="customDecksSub">自分のカードで学習</span>
+        </span>
+        <span class="mode-due" id="customDecksDue">
+          <span class="mode-due-num" id="customDecksDueNum">0</span>
+          <span class="mode-due-label">復習待ち</span>
+        </span>
+      </button>
       <button class="mode-btn" id="modeMarathonBtn" type="button">
         <span class="mode-text">
           <span class="mode-label">マラソン</span>
@@ -44,12 +54,6 @@
         <span class="mode-text">
           <span class="mode-label">レッスン</span>
           <span class="mode-sub">毎日ひとつの集中レッスン</span>
-        </span>
-      </button>
-      <button class="mode-btn" id="modeCustomDecksBtn" type="button">
-        <span class="mode-text">
-          <span class="mode-label">カスタムデッキ</span>
-          <span class="mode-sub">自分のカードで学習</span>
         </span>
       </button>
       <button class="mode-btn" id="modeStatsBtn" type="button">
