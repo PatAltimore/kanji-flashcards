@@ -105,7 +105,8 @@
     syncUnpaired: document.getElementById("syncUnpaired"),
     syncPaired: document.getElementById("syncPaired"),
     syncNowBtn: document.getElementById("syncNowBtn"),
-    syncUnpairBtn: document.getElementById("syncUnpairBtn"),
+    syncSasTitle: document.getElementById("syncSasTitle"),
+    syncSasHint: document.getElementById("syncSasHint"),
     syncStatus: document.getElementById("syncStatus"),
     syncTech: document.getElementById("syncTech"),
     syncNearbyStatus: document.getElementById("syncNearbyStatus"),
@@ -2951,8 +2952,16 @@
 
   function askToVerifyNumber(number) {
     els.syncSas.textContent = number;
+    if (loadSyncPair()) {
+      els.syncSasTitle.textContent = "新しいデバイスが見つかりました";
+      els.syncSasHint.textContent =
+        "もう一方の画面にも同じ番号が表示されていますか？「同じ」を押すと、このデバイスは新しいデバイスとペアリングされ、今のペアリングは置き換えられます。";
+    } else {
+      els.syncSasTitle.textContent = "近くのデバイスが見つかりました";
+      els.syncSasHint.textContent = "もう一方の画面にも同じ番号が表示されていますか？";
+      setNearbyStatus("近くのデバイスが見つかりました。");
+    }
     els.syncSasBox.hidden = false;
-    setNearbyStatus("近くのデバイスが見つかりました。");
     return new Promise((resolve) => {
       syncVerify = resolve;
     });
@@ -2961,40 +2970,58 @@
   // Finds a device on the same network and pairs after both people confirm
   // the same number; the code buttons below are the fallback.
   function startNearby() {
-    if (loadSyncPair()) return;
-    stopSyncActivity();
-    setSyncTech(null);
-    setSyncStatus("");
-    setNearbyStatus("近くのデバイスを探しています…");
+    const pair = loadSyncPair();
+    if (syncPairing) {
+      syncPairing.cancel();
+      syncPairing = null;
+    }
+    resolveSyncVerify(false);
+    if (!pair) {
+      setSyncTech(null);
+      setSyncStatus("");
+      setNearbyStatus("近くのデバイスを探しています…");
+    }
     ensurePeerLoaded()
       .then(() => {
-        if (els.screenSync.hidden || loadSyncPair()) return;
-        syncPairing = KanjiFlashSync.nearbyPairing({
-          onStage: setSyncTech,
-          onWaiting: () => {
-            resolveSyncVerify(false);
-            setNearbyStatus("近くのデバイスを探しています…もう一方のデバイスでもこの画面を開いてください。");
+        const current = loadSyncPair();
+        if (els.screenSync.hidden || Boolean(current) !== Boolean(pair)) return;
+        syncPairing = KanjiFlashSync.nearbyPairing(
+          {
+            // A paired device only watches quietly; its screen shows the sync.
+            onStage: pair ? undefined : setSyncTech,
+            onWaiting: () => {
+              resolveSyncVerify(false);
+              if (!pair) {
+                setNearbyStatus("近くのデバイスを探しています…もう一方のデバイスでもこの画面を開いてください。");
+              }
+            },
+            onVerify: askToVerifyNumber,
+            onVerifyCancelled: () => resolveSyncVerify(false),
+            onRejected: (who) =>
+              setSyncStatus(
+                pair
+                  ? "キャンセルしました。"
+                  : who === "remote"
+                  ? "相手のデバイスがキャンセルしました。もう一度探しています…"
+                  : "キャンセルしました。もう一度探しています…"
+              ),
+            onPaired: (key, role) => savePairAndSync(key, role),
+            onError: (err) => {
+              if (pair) return;
+              const type = typeof err === "string" ? err : err && err.type;
+              setNearbyStatus(
+                type === "no-network-id"
+                  ? "ネットワークを特定できませんでした。ネットワークを確認して、もう一度お試しください。"
+                  : describeSyncError(err)
+              );
+            },
           },
-          onVerify: askToVerifyNumber,
-          onVerifyCancelled: () => resolveSyncVerify(false),
-          onRejected: (who) =>
-            setSyncStatus(
-              who === "remote"
-                ? "相手のデバイスがキャンセルしました。もう一度探しています…"
-                : "キャンセルしました。もう一度探しています…"
-            ),
-          onPaired: (key, role) => savePairAndSync(key, role),
-          onError: (err) => {
-            const type = typeof err === "string" ? err : err && err.type;
-            setNearbyStatus(
-              type === "no-network-id"
-                ? "ネットワークを特定できませんでした。ネットワークを確認して、もう一度お試しください。"
-                : describeSyncError(err)
-            );
-          },
-        });
+          { key: pair ? pair.key : undefined }
+        );
       })
-      .catch(() => setNearbyStatus("同期の準備に失敗しました。ネットワークを確認してください。"));
+      .catch(() => {
+        if (!pair) setNearbyStatus("同期の準備に失敗しました。ネットワークを確認してください。");
+      });
   }
 
   function setSyncStatus(text, tone) {
@@ -3112,7 +3139,10 @@
   function startSyncSession() {
     const pair = loadSyncPair();
     if (!pair) return;
-    stopSyncActivity();
+    if (syncSession) {
+      syncSession.stop();
+      syncSession = null;
+    }
     setSyncTech(null);
     setSyncStatus("準備中…");
     ensurePeerLoaded()
@@ -3145,6 +3175,7 @@
     refreshSyncUI();
     setSyncStatus("ペアリングが完了しました。", "ok");
     startSyncSession();
+    startNearby(); // keep watching for a new device, now with the new pair key
   }
 
   els.openSyncBtn.addEventListener("click", () => {
@@ -3152,29 +3183,13 @@
     refreshSyncUI();
     setSyncStatus("");
     if (loadSyncPair()) startSyncSession();
-    else startNearby();
+    startNearby(); // paired or not: finds a new device or, if unpaired, a partner
   });
 
   els.syncSasYesBtn.addEventListener("click", () => resolveSyncVerify(true));
   els.syncSasNoBtn.addEventListener("click", () => resolveSyncVerify(false));
 
   els.syncNowBtn.addEventListener("click", startSyncSession);
-
-  els.syncUnpairBtn.addEventListener("click", () => {
-    if (!window.confirm("ペアリングを解除しますか？（データは消えません）")) return;
-    stopSyncActivity();
-    // The saved baseline is kept on purpose: pairing with the same device again
-    // continues from it instead of adding the shared history a second time.
-    try {
-      localStorage.removeItem(SYNC_PAIR_KEY);
-    } catch (err) {
-      /* ignore */
-    }
-    refreshSyncUI();
-    setSyncStatus("ペアリングを解除しました。");
-    startNearby();
-  });
-
 
   // ---------- export / import ----------
 

@@ -304,6 +304,7 @@
   const STUN_URL = "stun:stun.l.google.com:19302";
   const STUN_TIMEOUT_MS = 6000;
   const NEARBY_RETRY_MS = 2500;
+  const PARTNER_RECHECK_MS = 30000;
 
   function expandIPv6(address) {
     const clean = address.split("%")[0].toLowerCase();
@@ -380,6 +381,18 @@
     return digits.slice(0, 3) + " " + digits.slice(3);
   }
 
+  // Keyed proof that the other device knows our pair key, so two devices that
+  // are already paired recognise each other in the room without showing a
+  // prompt, and a stranger (or a new device) can't pretend to be the partner.
+  async function hmacHex(keyHex, text) {
+    const bytes = new Uint8Array((keyHex.match(/../g) || []).map((pair) => parseInt(pair, 16)));
+    const key = await root.crypto.subtle.importKey("raw", bytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+    const signature = await root.crypto.subtle.sign("HMAC", key, new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(signature))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
   async function connectionVerificationNumber(conn) {
     for (let i = 0; i < 20; i++) {
       const pc = conn.peerConnection;
@@ -391,7 +404,11 @@
     return null;
   }
 
-  function nearbyPairing(handlers) {
+  // `options.key` (the current pair key) is passed by a device that is already
+  // paired: it keeps watching the room so it can notice a new device, which
+  // it only pairs with after the same number check as a first pairing.
+  function nearbyPairing(handlers, options) {
+    const pairKey = options && options.key;
     const stage = reporter(handlers);
     let stopped = false;
     let done = false;
@@ -435,6 +452,11 @@
       let localOk = false;
       let remoteOk = false;
       let finished = false;
+      const myNonce = randomString("0123456789abcdef", 16);
+      let resolvePartner = null;
+      const partnerPromise = new Promise((resolve) => {
+        resolvePartner = resolve;
+      });
 
       const maybeFinish = () => {
         if (finished || role !== "a" || !localOk || !remoteOk) return;
@@ -450,7 +472,19 @@
         "data",
         makeReceiver((message) => {
           if (stopped || finished) return;
-          if (message.t === "confirm") {
+          if (message.t === "hello") {
+            // Answer the other device's challenge (empty if we have no key).
+            const mac = pairKey && typeof message.nonce === "string" ? hmacHex(pairKey, "kf-room|" + message.nonce) : Promise.resolve(null);
+            mac.then((value) => sendJson(c, { t: "proof", mac: value })).catch(() => {});
+          } else if (message.t === "proof") {
+            if (pairKey && typeof message.mac === "string") {
+              hmacHex(pairKey, "kf-room|" + myNonce)
+                .then((expected) => resolvePartner(expected === message.mac))
+                .catch(() => resolvePartner(false));
+            } else {
+              resolvePartner(false);
+            }
+          } else if (message.t === "confirm") {
             remoteOk = true;
             maybeFinish();
           } else if (message.t === "reject") {
@@ -473,6 +507,33 @@
           retry();
         }
       });
+
+      sendJson(c, { t: "hello", nonce: myNonce });
+      const isPartner = await Promise.race([
+        partnerPromise,
+        new Promise((resolve) => root.setTimeout(() => resolve(false), 6000)),
+      ]);
+      if (stopped || finished) return;
+      if (isPartner) {
+        // Our own partner: normal sync handles it, nothing to pair. The device
+        // holding the room keeps listening for a new device; the one that
+        // joined only looks again now and then.
+        finished = true;
+        stage("partner recognised");
+        if (handlers.onPartnerSeen) handlers.onPartnerSeen();
+        if (role === "a") {
+          try {
+            c.close();
+          } catch (err) {
+            /* ignore */
+          }
+          conn = null;
+          verifying = false;
+        } else {
+          retry(PARTNER_RECHECK_MS);
+        }
+        return;
+      }
 
       stage("comparing numbers");
       const number = await connectionVerificationNumber(c);
