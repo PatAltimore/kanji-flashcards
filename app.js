@@ -2224,7 +2224,7 @@
       placeholder: "Type the meaning",
     },
     onyomi: {
-      label: "Onyomi",
+      label: "Reading",
       badgeClass: "qt-onyomi",
       placeholder: "Type romaji — becomes katakana",
     },
