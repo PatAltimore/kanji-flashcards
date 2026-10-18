@@ -113,6 +113,11 @@
     syncUnpairBtn: document.getElementById("syncUnpairBtn"),
     syncStatus: document.getElementById("syncStatus"),
     syncTech: document.getElementById("syncTech"),
+    syncNearbyStatus: document.getElementById("syncNearbyStatus"),
+    syncSasBox: document.getElementById("syncSasBox"),
+    syncSas: document.getElementById("syncSas"),
+    syncSasYesBtn: document.getElementById("syncSasYesBtn"),
+    syncSasNoBtn: document.getElementById("syncSasNoBtn"),
     syncApprove: document.getElementById("syncApprove"),
     syncAllowBtn: document.getElementById("syncAllowBtn"),
     syncDenyBtn: document.getElementById("syncDenyBtn"),
@@ -2929,6 +2934,7 @@
   let syncSession = null; // running sync session
   let peerLoadPromise = null;
   let syncApproval = null; // resolver for the open "allow this device?" question
+  let syncVerify = null; // resolver for the open "same number on both?" question
   let syncStages = [];
 
   // The last few connection steps, shown small under the status so a stalled
@@ -2946,6 +2952,67 @@
       syncApproval = null;
       resolve(allowed);
     }
+  }
+
+  function setNearbyStatus(text) {
+    els.syncNearbyStatus.textContent = text;
+  }
+
+  function resolveSyncVerify(same) {
+    els.syncSasBox.hidden = true;
+    if (syncVerify) {
+      const resolve = syncVerify;
+      syncVerify = null;
+      resolve(same);
+    }
+  }
+
+  function askToVerifyNumber(number) {
+    els.syncSas.textContent = number;
+    els.syncSasBox.hidden = false;
+    setNearbyStatus("近くのデバイスが見つかりました。");
+    return new Promise((resolve) => {
+      syncVerify = resolve;
+    });
+  }
+
+  // Finds a device on the same network and pairs after both people confirm
+  // the same number; the code buttons below are the fallback.
+  function startNearby() {
+    if (loadSyncPair()) return;
+    stopSyncActivity();
+    setSyncTech(null);
+    setSyncStatus("");
+    setNearbyStatus("近くのデバイスを探しています…");
+    ensurePeerLoaded()
+      .then(() => {
+        if (els.screenSync.hidden || loadSyncPair()) return;
+        syncPairing = KanjiFlashSync.nearbyPairing({
+          onStage: setSyncTech,
+          onWaiting: () => {
+            resolveSyncVerify(false);
+            setNearbyStatus("近くのデバイスを探しています…もう一方のデバイスでもこの画面を開いてください。");
+          },
+          onVerify: askToVerifyNumber,
+          onVerifyCancelled: () => resolveSyncVerify(false),
+          onRejected: (who) =>
+            setSyncStatus(
+              who === "remote"
+                ? "相手のデバイスがキャンセルしました。もう一度探しています…"
+                : "キャンセルしました。もう一度探しています…"
+            ),
+          onPaired: (key, role) => savePairAndSync(key, role),
+          onError: (err) => {
+            const type = typeof err === "string" ? err : err && err.type;
+            setNearbyStatus(
+              type === "no-network-id"
+                ? "ネットワークを特定できませんでした。下の「コードで接続」を使ってください。"
+                : describeSyncError(err)
+            );
+          },
+        });
+      })
+      .catch(() => setNearbyStatus("同期の準備に失敗しました。ネットワークを確認してください。"));
   }
 
   function askToAllowDevice() {
@@ -2985,6 +3052,7 @@
 
   function stopSyncActivity() {
     resolveSyncApproval(false);
+    resolveSyncVerify(false);
     if (syncPairing) {
       syncPairing.cancel();
       syncPairing = null;
@@ -3001,6 +3069,7 @@
     els.syncPaired.hidden = !paired;
     els.syncCodeBox.hidden = true;
     els.syncCreateCodeBtn.hidden = false;
+    els.syncSasBox.hidden = true;
   }
 
   function describeSyncError(err) {
@@ -3100,8 +3169,11 @@
     refreshSyncUI();
     setSyncStatus("");
     if (loadSyncPair()) startSyncSession();
+    else startNearby();
   });
 
+  els.syncSasYesBtn.addEventListener("click", () => resolveSyncVerify(true));
+  els.syncSasNoBtn.addEventListener("click", () => resolveSyncVerify(false));
   els.syncAllowBtn.addEventListener("click", () => resolveSyncApproval(true));
   els.syncDenyBtn.addEventListener("click", () => resolveSyncApproval(false));
 
@@ -3135,6 +3207,7 @@
     stopSyncActivity();
     refreshSyncUI();
     setSyncStatus("");
+    startNearby();
   });
 
   els.syncJoinForm.addEventListener("submit", (e) => {
@@ -3176,6 +3249,7 @@
     }
     refreshSyncUI();
     setSyncStatus("ペアリングを解除しました。");
+    startNearby();
   });
 
 

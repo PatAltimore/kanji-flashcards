@@ -418,6 +418,283 @@
     };
   }
 
+  // ------------------------------------------------ nearby device pairing
+  //
+  // No code to type: devices on the same network find each other through a
+  // shared "room" id derived from their public network address (learned from a
+  // STUN request). The first device claims the room id on the PeerJS broker
+  // and waits; the next one connects to it. Anyone else behind the same
+  // address could connect too, so both screens then show a verification
+  // number computed from the two connection fingerprints and the user confirms
+  // that they match on both devices before anything is paired.
+
+  const NEARBY_SALT = "kanjiflash-nearby-v1|";
+  const STUN_URL = "stun:stun.l.google.com:19302";
+  const STUN_TIMEOUT_MS = 6000;
+  const NEARBY_RETRY_MS = 2500;
+
+  function expandIPv6(address) {
+    const clean = address.split("%")[0].toLowerCase();
+    const halves = clean.split("::");
+    const head = halves[0] ? halves[0].split(":") : [];
+    const tail = halves.length > 1 && halves[1] ? halves[1].split(":") : [];
+    const missing = Math.max(0, 8 - head.length - tail.length);
+    const groups = halves.length > 1 ? [...head, ...Array(missing).fill("0"), ...tail] : head;
+    return groups.map((g) => g.replace(/^0+(?=.)/, "") || "0");
+  }
+
+  // Devices on one network share an IPv4 address behind the router, or an IPv6
+  // /64 prefix. Prefer IPv4 when there is one.
+  function networkKeyFromAddresses(addresses) {
+    const v4 = addresses.find((a) => /^\d{1,3}(\.\d{1,3}){3}$/.test(a));
+    if (v4) return "v4:" + v4;
+    const v6 = addresses.find((a) => a.includes(":"));
+    if (v6) return "v6:" + expandIPv6(v6).slice(0, 4).join(":");
+    return null;
+  }
+
+  function findPublicAddresses(timeoutMs) {
+    return new Promise((resolve) => {
+      const addresses = [];
+      let done = false;
+      let pc = null;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        try {
+          if (pc) pc.close();
+        } catch (err) {
+          /* ignore */
+        }
+        resolve(addresses);
+      };
+      try {
+        pc = new root.RTCPeerConnection({ iceServers: [{ urls: STUN_URL }] });
+        pc.createDataChannel("probe");
+        pc.onicecandidate = (event) => {
+          if (!event.candidate) {
+            finish();
+            return;
+          }
+          const parts = event.candidate.candidate.trim().split(/\s+/);
+          if (parts.length > 7 && parts[6] === "typ" && parts[7] === "srflx") addresses.push(parts[4]);
+        };
+        pc.createOffer()
+          .then((offer) => pc.setLocalDescription(offer))
+          .catch(finish);
+        root.setTimeout(finish, timeoutMs);
+      } catch (err) {
+        finish();
+      }
+    });
+  }
+
+  async function nearbyRoomId() {
+    const key = networkKeyFromAddresses(await findPublicAddresses(STUN_TIMEOUT_MS));
+    if (!key) return null;
+    return PEER_PREFIX + "near-" + (await sha256Hex(NEARBY_SALT + key)).slice(0, 24);
+  }
+
+  function fingerprintFromSdp(sdp) {
+    const match = /a=fingerprint:sha-256\s+([0-9A-Fa-f:]+)/.exec(sdp || "");
+    return match ? match[1].toUpperCase() : null;
+  }
+
+  // The same number on both devices; a device that is relaying between two
+  // others would have a different fingerprint on each leg.
+  async function verificationNumber(fingerprintA, fingerprintB) {
+    const hex = await sha256Hex([fingerprintA, fingerprintB].sort().join("|"));
+    const digits = String(parseInt(hex.slice(0, 8), 16) % 1000000).padStart(6, "0");
+    return digits.slice(0, 3) + " " + digits.slice(3);
+  }
+
+  async function connectionVerificationNumber(conn) {
+    for (let i = 0; i < 20; i++) {
+      const pc = conn.peerConnection;
+      const local = pc && pc.localDescription && fingerprintFromSdp(pc.localDescription.sdp);
+      const remote = pc && pc.remoteDescription && fingerprintFromSdp(pc.remoteDescription.sdp);
+      if (local && remote) return verificationNumber(local, remote);
+      await new Promise((resolve) => root.setTimeout(resolve, 150));
+    }
+    return null;
+  }
+
+  function nearbyPairing(handlers) {
+    const stage = reporter(handlers);
+    let stopped = false;
+    let done = false;
+    let peer = null;
+    let conn = null;
+    let timer = null;
+    let verifying = false;
+    let roomId = null;
+
+    function release() {
+      if (conn) {
+        try {
+          conn.close();
+        } catch (err) {
+          /* ignore */
+        }
+        conn = null;
+      }
+      if (peer) {
+        try {
+          peer.destroy();
+        } catch (err) {
+          /* ignore */
+        }
+        peer = null;
+      }
+      verifying = false;
+    }
+
+    function retry(delay) {
+      if (stopped || done) return;
+      release();
+      handlers.onWaiting();
+      timer = root.setTimeout(claim, delay === undefined ? NEARBY_RETRY_MS : delay);
+    }
+
+    // Runs once a data connection to the other device is open (role "a" is the
+    // device that claimed the room, "b" the one that joined it).
+    async function verify(c, role) {
+      verifying = true;
+      let localOk = false;
+      let remoteOk = false;
+      let finished = false;
+
+      const maybeFinish = () => {
+        if (finished || role !== "a" || !localOk || !remoteOk) return;
+        finished = true;
+        done = true;
+        const key = randomString("0123456789abcdef", 32);
+        sendJson(c, { t: "paired", key });
+        handlers.onPaired(key, "a");
+        root.setTimeout(cancel, 800);
+      };
+
+      c.on(
+        "data",
+        makeReceiver((message) => {
+          if (stopped || finished) return;
+          if (message.t === "confirm") {
+            remoteOk = true;
+            maybeFinish();
+          } else if (message.t === "reject") {
+            finished = true;
+            handlers.onVerifyCancelled();
+            handlers.onRejected("remote");
+            retry();
+          } else if (message.t === "paired" && message.key && role === "b" && localOk) {
+            finished = true;
+            done = true;
+            handlers.onPaired(message.key, "b");
+            root.setTimeout(cancel, 800);
+          }
+        })
+      );
+      c.on("close", () => {
+        if (!finished && !stopped && !done) {
+          finished = true;
+          handlers.onVerifyCancelled();
+          retry();
+        }
+      });
+
+      stage("comparing numbers");
+      const number = await connectionVerificationNumber(c);
+      if (stopped || finished) return;
+      if (!number) {
+        finished = true;
+        handlers.onError("no-fingerprint");
+        retry(5000);
+        return;
+      }
+      const same = await handlers.onVerify(number);
+      if (stopped || finished) return;
+      if (!same) {
+        finished = true;
+        sendJson(c, { t: "reject" });
+        handlers.onRejected("local");
+        retry(1500);
+        return;
+      }
+      localOk = true;
+      sendJson(c, { t: "confirm" });
+      maybeFinish();
+    }
+
+    function guest() {
+      if (stopped) return;
+      peer = new root.Peer();
+      peer.on("open", () => {
+        stage("nearby device found");
+        const c = peer.connect(roomId, CONN_OPTIONS);
+        conn = c;
+        watchIce(c, "nearby", stage);
+        c.on("open", () => verify(c, "b"));
+        c.on("error", () => retry());
+      });
+      peer.on("error", (err) => {
+        if (stopped) return;
+        if (err.type === "peer-unavailable") retry(1500);
+        else handlers.onError(err);
+      });
+    }
+
+    function claim() {
+      if (stopped) return;
+      peer = new root.Peer(roomId);
+      peer.on("open", () => stage("waiting for nearby device"));
+      peer.on("connection", (c) => {
+        if (verifying) {
+          c.close();
+          return;
+        }
+        conn = c;
+        stage("nearby device connecting");
+        watchIce(c, "nearby", stage);
+        if (c.open) verify(c, "a");
+        else c.on("open", () => verify(c, "a"));
+      });
+      peer.on("error", (err) => {
+        if (stopped) return;
+        if (err.type === "unavailable-id") {
+          // Another device already holds the room: join it instead.
+          peer.destroy();
+          peer = null;
+          guest();
+        } else {
+          handlers.onError(err);
+        }
+      });
+    }
+
+    function cancel() {
+      stopped = true;
+      root.clearTimeout(timer);
+      release();
+    }
+
+    stage("finding your network");
+    nearbyRoomId()
+      .catch(() => null)
+      .then((id) => {
+        if (stopped) return;
+        if (!id) {
+          handlers.onError("no-network-id");
+          return;
+        }
+        roomId = id;
+        stage("network found");
+        handlers.onWaiting();
+        claim();
+      });
+
+    return { cancel };
+  }
+
   // Once paired: role "a" listens, role "b" keeps trying to reach it. When the
   // two connect, each sends its state and merges the other's.
   async function startSync(options) {
@@ -527,7 +804,13 @@
     normalizeCode,
     hostPairing,
     joinPairing,
+    nearbyPairing,
     startSync,
+    // exposed for tests
+    expandIPv6,
+    networkKeyFromAddresses,
+    fingerprintFromSdp,
+    verificationNumber,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.KanjiFlashSync = api;

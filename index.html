@@ -517,6 +517,21 @@
 
       <div id="syncUnpaired">
         <div class="sync-card">
+          <div class="sync-card-title">近くのデバイス</div>
+          <div class="sync-hint" id="syncNearbyStatus">近くのデバイスを探しています…</div>
+          <div class="sync-sas" id="syncSasBox" hidden>
+            <div class="sync-sas-number" id="syncSas"></div>
+            <div class="sync-hint">もう一方の画面にも同じ番号が表示されていますか？</div>
+            <div class="sync-approve-buttons">
+              <button class="primary-btn" id="syncSasYesBtn" type="button">同じ</button>
+              <button class="secondary-btn" id="syncSasNoBtn" type="button">違う</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sync-divider">見つからない場合は、コードで接続</div>
+
+        <div class="sync-card">
           <div class="sync-card-title">1台目：コードを作成</div>
           <button class="primary-btn" id="syncCreateCodeBtn" type="button">コードを作成</button>
           <div id="syncCodeBox" hidden>

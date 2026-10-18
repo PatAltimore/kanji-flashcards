@@ -1840,3 +1840,25 @@ body {
   gap: 10px;
   justify-content: center;
 }
+
+.sync-sas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.sync-sas-number {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  user-select: all;
+}
+
+.sync-divider {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin: 0 0 14px;
+}

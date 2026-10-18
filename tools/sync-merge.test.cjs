@@ -1,6 +1,6 @@
 // Run with: node tools/sync-merge.test.cjs
 const assert = require("node:assert/strict");
-const { mergeState } = require("../sync.js");
+const { mergeState, expandIPv6, networkKeyFromAddresses, fingerprintFromSdp, verificationNumber } = require("../sync.js");
 
 const empty = () => ({
   stats: { daily: {}, perCard: {} },
@@ -12,10 +12,9 @@ const empty = () => ({
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 let passed = 0;
+const queue = [];
 function test(name, fn) {
-  fn();
-  passed++;
-  console.log("ok -", name);
+  queue.push({ name, fn });
 }
 
 test("merging identical states changes nothing (idempotent)", () => {
@@ -137,4 +136,38 @@ test("a deck changed after it was deleted elsewhere comes back", () => {
   assert.equal(mergeState(a, b, null).customDecks.length, 1);
 });
 
-console.log(`\n${passed} tests passed`);
+test("network key: IPv4 preferred, IPv6 uses the /64 prefix", () => {
+  assert.equal(networkKeyFromAddresses(["2001:db8:1:2:aaaa:bbbb:cccc:dddd", "203.0.113.7"]), "v4:203.0.113.7");
+  assert.equal(networkKeyFromAddresses(["2001:db8:1:2:aaaa:bbbb:cccc:dddd"]), "v6:2001:db8:1:2");
+  // two devices on one LAN differ in the host bits but share the /64
+  assert.equal(
+    networkKeyFromAddresses(["2001:db8:1:2:1111:2222:3333:4444"]),
+    networkKeyFromAddresses(["2001:0db8:0001:0002::9"])
+  );
+  assert.equal(networkKeyFromAddresses([]), null);
+  assert.deepEqual(expandIPv6("2001:db8::1"), ["2001", "db8", "0", "0", "0", "0", "0", "1"]);
+});
+
+test("verification number: same on both devices, different for different connections", async () => {
+  const a = "AA:BB:CC";
+  const b = "11:22:33";
+  const forward = await verificationNumber(a, b);
+  const backward = await verificationNumber(b, a);
+  assert.equal(forward, backward);
+  assert.match(forward, /^\d{3} \d{3}$/);
+  assert.notEqual(await verificationNumber(a, "99:99:99"), forward);
+  assert.equal(fingerprintFromSdp("v=0\r\na=fingerprint:sha-256 aa:bb:CC:01\r\na=setup:actpass"), "AA:BB:CC:01");
+  assert.equal(fingerprintFromSdp("v=0"), null);
+});
+
+(async () => {
+  for (const { name, fn } of queue) {
+    await fn();
+    passed++;
+    console.log("ok -", name);
+  }
+  console.log(`\n${passed} tests passed`);
+})().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
