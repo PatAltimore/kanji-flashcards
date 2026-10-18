@@ -185,8 +185,20 @@
     return { decks, deleted };
   }
 
+  // Which baseline to merge against. The baseline saved after the last sync
+  // only describes the history shared with the device it was saved with, so it
+  // is ignored for a different device (merging against it would subtract
+  // history the new device never had). `record` is { with, stats } or, from
+  // before partners were tracked, the stats object itself.
+  function selectBase(record, partnerId) {
+    if (!record) return null;
+    if (!record.stats) return record;
+    if (!partnerId || !record.with || record.with === partnerId) return record.stats;
+    return null;
+  }
+
   /*
-   * state shape (what each device sends):
+   * state shape (what each device sends; `deviceId` identifies the device):
    *   { stats: {daily, perCard}, customAnswers, lessons, customDecks, deletedDecks }
    * `base` is the stats both devices had after their last sync (or null).
    */
@@ -659,6 +671,7 @@
   const api = {
     mergeState,
     mergeStats,
+    selectBase,
     nearbyPairing,
     startSync,
     // exposed for tests

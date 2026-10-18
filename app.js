@@ -14,6 +14,7 @@
   const EXPORT_VERSION = 1;
   const SYNC_PAIR_KEY = "kanjiFlashN2.sync.v1";
   const SYNC_BASE_KEY = "kanjiFlashN2.syncBase.v1";
+  const DEVICE_ID_KEY = "kanjiFlashN2.deviceId.v1";
   const DECK_TOMBSTONES_KEY = "kanjiFlashN2.deckTombstones.v1";
   const PEERJS_SRC = "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js";
   const PEERJS_SRI = "sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR";
@@ -3057,8 +3058,22 @@
     return "接続できませんでした。同じWi-Fiに接続して、もう一度お試しください。";
   }
 
+  // A random id for this browser, sent with each sync so the other device can
+  // tell whether it is the same device it synced with before.
+  function getDeviceId() {
+    let id = loadJson(DEVICE_ID_KEY, null);
+    if (typeof id !== "string" || id.length < 16) {
+      const bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+      id = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+      saveJson(DEVICE_ID_KEY, id);
+    }
+    return id;
+  }
+
   function buildSyncState() {
     return {
+      deviceId: getDeviceId(),
       stats: { daily: stats.daily || {}, perCard: stats.perCard || {} },
       customAnswers,
       lessons: {
@@ -3079,7 +3094,9 @@
     if (!remote || typeof remote !== "object" || JSON.stringify(remote).includes('"__proto__"')) {
       throw new Error("Invalid sync data");
     }
-    const merged = KanjiFlashSync.mergeState(buildSyncState(), remote, loadJson(SYNC_BASE_KEY, null));
+    const partnerId = typeof remote.deviceId === "string" ? remote.deviceId : null;
+    const base = KanjiFlashSync.selectBase(loadJson(SYNC_BASE_KEY, null), partnerId);
+    const merged = KanjiFlashSync.mergeState(buildSyncState(), remote, base);
     stats = { daily: merged.stats.daily, perCard: merged.stats.perCard };
     saveStats();
     customAnswers = normalizeCustomAnswersShape(merged.customAnswers);
@@ -3089,7 +3106,7 @@
     customDecks = merged.customDecks;
     saveCustomDecks();
     saveJson(DECK_TOMBSTONES_KEY, merged.deletedDecks);
-    saveJson(SYNC_BASE_KEY, merged.stats);
+    saveJson(SYNC_BASE_KEY, { with: partnerId, stats: merged.stats });
   }
 
   function startSyncSession() {
@@ -3146,9 +3163,10 @@
   els.syncUnpairBtn.addEventListener("click", () => {
     if (!window.confirm("ペアリングを解除しますか？（データは消えません）")) return;
     stopSyncActivity();
+    // The saved baseline is kept on purpose: pairing with the same device again
+    // continues from it instead of adding the shared history a second time.
     try {
       localStorage.removeItem(SYNC_PAIR_KEY);
-      localStorage.removeItem(SYNC_BASE_KEY);
     } catch (err) {
       /* ignore */
     }

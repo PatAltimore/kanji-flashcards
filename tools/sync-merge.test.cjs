@@ -1,6 +1,6 @@
 // Run with: node tools/sync-merge.test.cjs
 const assert = require("node:assert/strict");
-const { mergeState, expandIPv6, networkKeyFromAddresses, fingerprintFromSdp, verificationNumber } = require("../sync.js");
+const { mergeState, selectBase, expandIPv6, networkKeyFromAddresses, fingerprintFromSdp, verificationNumber } = require("../sync.js");
 
 const empty = () => ({
   stats: { daily: {}, perCard: {} },
@@ -158,6 +158,36 @@ test("verification number: same on both devices, different for different connect
   assert.notEqual(await verificationNumber(a, "99:99:99"), forward);
   assert.equal(fingerprintFromSdp("v=0\r\na=fingerprint:sha-256 aa:bb:CC:01\r\na=setup:actpass"), "AA:BB:CC:01");
   assert.equal(fingerprintFromSdp("v=0"), null);
+});
+
+test("baseline is only used with the device it was saved with", () => {
+  const stats = { daily: { d: { completed: 1, right: 1, wrong: 0 } }, perCard: {} };
+  assert.equal(selectBase(null, "x"), null);
+  assert.equal(selectBase({ with: "x", stats }, "x"), stats); // same device re-paired
+  assert.equal(selectBase({ with: "x", stats }, "y"), null); // a different device
+  assert.equal(selectBase({ with: "x", stats }, null), stats); // partner didn't say who it is
+  assert.equal(selectBase(stats, "anyone"), stats); // saved before partners were tracked
+});
+
+test("re-pairing the same devices does not double count; a new device is added, not subtracted", () => {
+  const day = "2026-10-18";
+  const device = (completed) => ({
+    ...empty(),
+    stats: { daily: { [day]: { completed, right: completed, wrong: 0 } }, perCard: {} },
+  });
+  // Both devices synced at 10; the phone then did 3 more and the PC 2 more.
+  const shared = { daily: { [day]: { completed: 10, right: 10, wrong: 0 } }, perCard: {} };
+  const record = { with: "phone", stats: shared };
+  const pc = device(12);
+  const phone = device(13);
+  const merged = mergeState(pc, phone, selectBase(record, "phone"));
+  assert.equal(merged.stats.daily[day].completed, 15);
+  // Without the right baseline (the old behavior after unpairing) it doubled:
+  assert.equal(mergeState(pc, phone, null).stats.daily[day].completed, 25);
+  // A brand-new, empty device: the baseline from the old phone must not apply.
+  const fresh = device(0);
+  const withNew = mergeState(pc, fresh, selectBase(record, "new-phone"));
+  assert.equal(withNew.stats.daily[day].completed, 12);
 });
 
 (async () => {
