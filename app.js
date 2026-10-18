@@ -2221,7 +2221,7 @@
     meaning: {
       label: "意味",
       badgeClass: "",
-      placeholder: "答え",
+      placeholder: "Answer",
     },
     onyomi: {
       label: "読み",
