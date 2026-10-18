@@ -228,6 +228,8 @@
   let customStudyCards = [];
   let customQuizKnown = 0;
   let customTypeCards = [];
+  let customTypeSections = null;
+  let customReviewState = new Map();
   let customTypeMode = "type"; // "type" | "quiz" | "review"
   let customStudyMode = "cards"; // flashcards only; typed review runs through the custom type screen
   let customStudyIndex = 0;
@@ -1213,7 +1215,16 @@
       window.alert("このデッキには現在復習するカードがありません。");
       return;
     }
-    startCustomTypeSession(deck, due, "review");
+    const questions = buildReviewQuestions(due);
+    customReviewState = new Map(
+      due.map((card) => [card.front, { left: card.sections.length, anyWrong: false }])
+    );
+    startCustomTypeSession(
+      deck,
+      questions.map((q) => q.card),
+      "review",
+      questions.map((q) => q.section)
+    );
   }
 
   function renderCustomStudy() {
@@ -1286,14 +1297,36 @@
     return card.sections[Math.floor(Math.random() * card.sections.length)];
   }
 
-  function startCustomTypeSession(deck, cards, mode) {
+  // `sections` (optional, parallel to `cards`) pins which section each
+  // question asks about; without it a random section is picked per card.
+  function startCustomTypeSession(deck, cards, mode, sections) {
     customTypeDeck = deck;
     customTypeCards = cards;
+    customTypeSections = sections || null;
     customTypeMode = mode;
     customTypeIndex = 0;
     customQuizKnown = 0;
     showScreen("customType");
     renderCustomType();
+  }
+
+  // Review asks every section (reading, meaning, ...) of each due card as its
+  // own question. Questions are shuffled together, then picked one at a time,
+  // skipping any that belong to the same card as the previous question so a
+  // term's reading and meaning don't come back to back (unless only that
+  // card's questions are left).
+  function buildReviewQuestions(cards) {
+    const pool = shuffle(
+      cards.flatMap((card) => card.sections.map((section) => ({ card, section })))
+    );
+    const ordered = [];
+    while (pool.length) {
+      const last = ordered.length ? ordered[ordered.length - 1].card : null;
+      let k = pool.findIndex((q) => q.card !== last);
+      if (k === -1) k = 0;
+      ordered.push(pool.splice(k, 1)[0]);
+    }
+    return ordered;
   }
 
   function startCustomDeckType(deck) {
@@ -1313,11 +1346,17 @@
     const deck = customTypeDeck;
     const idx = customTypeIndex;
     if (idx >= customTypeCards.length) {
-      showCustomDeckComplete(deck, customTypeMode, customTypeCards.length);
+      const shown =
+        customTypeMode === "review"
+          ? new Set(customTypeCards.map((c) => c.front)).size
+          : customTypeCards.length;
+      showCustomDeckComplete(deck, customTypeMode, shown);
       return;
     }
     const card = customTypeCards[idx];
-    customTypeCurrentSection = pickCustomQuestionSection(card);
+    customTypeCurrentSection = customTypeSections
+      ? customTypeSections[idx]
+      : pickCustomQuestionSection(card);
     customTypeAnswering = true;
     els.customTypeCard.classList.remove("answer-wrong", "answer-right");
     els.customTypeInput.disabled = false;
@@ -1368,6 +1407,18 @@
     if (customTypeMode === "quiz") {
       applyCustomQuizResult(deck, card, correct);
       if (correct) customQuizKnown++;
+    } else if (customTypeMode === "review") {
+      // A term is graded once: wrong as soon as any of its questions is missed,
+      // right only after all of its questions have been answered correctly.
+      const state = customReviewState.get(card.front);
+      state.left--;
+      if (!correct && !state.anyWrong) {
+        state.anyWrong = true;
+        applyCustomSrsResult(deck, card.front, false);
+      }
+      if (state.left === 0 && !state.anyWrong) {
+        applyCustomSrsResult(deck, card.front, true);
+      }
     } else {
       applyCustomSrsResult(deck, card.front, correct);
     }
