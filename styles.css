@@ -1628,6 +1628,25 @@ body {
   color: #8f2a23;
 }
 
+/* A right answer turns them green. */
+[data-theme="dark"] .type-card.answer-right .question-type-badge {
+  background: #b5e8c8;
+  color: #14502e;
+}
+
+[data-theme="dark"] .type-card.answer-right .type-form {
+  background: #e2f6ea;
+}
+
+[data-theme="dark"] .type-card.answer-right .type-input {
+  color: #14502e;
+}
+
+[data-theme="dark"] .type-card.answer-right .type-submit-btn {
+  border-color: #86c9a2;
+  color: #1c6b3e;
+}
+
 /* A correct answer shows only the result line before moving on. */
 .type-feedback.quick > :not(.type-feedback-result) {
   display: none;

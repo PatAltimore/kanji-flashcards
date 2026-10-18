@@ -1306,7 +1306,7 @@
     const card = customTypeCards[idx];
     customTypeCurrentSection = pickCustomQuestionSection(card);
     customTypeAnswering = true;
-    els.customTypeCard.classList.remove("answer-wrong");
+    els.customTypeCard.classList.remove("answer-wrong", "answer-right");
     els.customTypeInput.disabled = false;
     els.customTypeInput.value = "";
     els.customTypeFeedback.hidden = true;
@@ -1324,6 +1324,7 @@
 
   function updateCustomTypeFeedbackResult(correct, raw, fuzzy) {
     els.customTypeCard.classList.toggle("answer-wrong", !correct);
+    els.customTypeCard.classList.toggle("answer-right", correct);
     els.customTypeFeedbackResult.textContent = correct
       ? fuzzy
         ? "✓ Correct! (close enough — minor typo)"
@@ -2288,7 +2289,7 @@
 
   function renderType() {
     typeAnswering = true;
-    els.typeCard.classList.remove("answer-wrong");
+    els.typeCard.classList.remove("answer-wrong", "answer-right");
     els.typeInput.disabled = false;
     els.typeInput.value = "";
     els.typeFeedback.hidden = true;
@@ -2334,6 +2335,7 @@
 
   function updateTypeFeedbackResult(correct, raw, fuzzy) {
     els.typeCard.classList.toggle("answer-wrong", !correct);
+    els.typeCard.classList.toggle("answer-right", correct);
     els.typeFeedbackResult.textContent = correct
       ? fuzzy
         ? "✓ Correct! (close enough — minor typo)"
