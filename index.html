@@ -390,6 +390,14 @@
         <input type="file" id="importFileInput" accept=".json,application/json" hidden>
       </div>
 
+      <div class="settings-row">
+        <div class="settings-label-group">
+          <div class="settings-label">デバイス同期</div>
+          <div class="settings-sub">スマホとPCを直接つないで進捗を同期</div>
+        </div>
+        <button class="secondary-btn" id="openSyncBtn" type="button">開く</button>
+      </div>
+
       <div class="settings-row settings-row-col">
         <div class="settings-label-group">
           <div class="settings-label">テーマ</div>
@@ -497,6 +505,46 @@
     </div>
   </section>
 
+  <!-- DEVICE SYNC -->
+  <section class="screen" id="screen-sync" hidden>
+    <header class="topbar">
+      <button class="icon-btn" data-back type="button" aria-label="ホームに戻る">←</button>
+      <span class="screen-title">デバイス同期</span>
+      <span class="icon-btn-spacer"></span>
+    </header>
+    <div class="sync-body">
+      <p class="sync-intro">スマホとPCを直接つないで進捗を同期します。データはサーバーに保存されず、2台の間だけでやり取りされます。</p>
+
+      <div id="syncUnpaired">
+        <div class="sync-card">
+          <div class="sync-card-title">1台目：コードを作成</div>
+          <button class="primary-btn" id="syncCreateCodeBtn" type="button">コードを作成</button>
+          <div id="syncCodeBox" hidden>
+            <div class="sync-code" id="syncCode"></div>
+            <div class="sync-hint">もう一方のデバイスでこのコードを入力してください。</div>
+            <button class="secondary-btn" id="syncCancelCodeBtn" type="button">キャンセル</button>
+          </div>
+        </div>
+        <form class="sync-card" id="syncJoinForm" autocomplete="off">
+          <div class="sync-card-title">2台目：コードを入力</div>
+          <input class="sync-input" id="syncCodeInput" type="text" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="12" placeholder="ABCD-EFGH">
+          <button class="primary-btn" id="syncJoinBtn" type="submit">接続</button>
+        </form>
+      </div>
+
+      <div id="syncPaired" hidden>
+        <div class="sync-card">
+          <div class="sync-card-title">ペアリング済み</div>
+          <div class="sync-hint">両方のデバイスでこの画面を開くと、自動的に同期されます。</div>
+          <button class="primary-btn" id="syncNowBtn" type="button">今すぐ同期</button>
+          <button class="secondary-btn" id="syncUnpairBtn" type="button">ペアリングを解除</button>
+        </div>
+      </div>
+
+      <div class="sync-status" id="syncStatus" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
   <!-- IMPORT CHOICE -->
   <section class="screen" id="screen-import-choice" hidden>
     <div class="results-body">
@@ -512,6 +560,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/wanakana@5.3.1/wanakana.min.js"></script>
+<script src="sync.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

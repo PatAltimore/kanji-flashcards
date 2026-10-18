@@ -49,3 +49,9 @@ The included GitHub Actions workflow publishes the repository root to GitHub Pag
 ## License
 
 The code is released under the [MIT License](LICENSE). The kanji data in `data/n2-kanji.json` is derived from KANJIDIC2 and is licensed separately under CC BY-SA 4.0; see [NOTICE.md](NOTICE.md) for sources and attribution.
+
+## Syncing between devices
+
+Settings > Device sync pairs two devices (for example a phone and a PC) over a direct WebRTC connection using [PeerJS](https://peerjs.com/). Create a code on one device and enter it on the other; after that, open the sync screen on both and they connect and merge progress automatically (statistics, review schedule, lessons, custom answers, custom decks). Nothing is stored on a server: PeerJS's free public broker only introduces the devices, and the data travels between them encrypted. Both devices need to be online and on the sync screen at the same time, and connections can fail across some mobile networks without a relay, in which case use the same Wi-Fi. Settings and marathon progress stay per device. Only two devices are supported per pairing.
+
+`sync.js` holds the merge logic; its tests run with `node tools/sync-merge.test.cjs`.

@@ -1735,3 +1735,77 @@ body {
   background: #2b2b2b;
   border: 2px solid #f0f0f0;
 }
+
+/* ---------- device sync ---------- */
+
+.sync-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 20px calc(24px + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sync-intro,
+.sync-hint {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.sync-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.sync-card-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.sync-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+  user-select: all;
+}
+
+.sync-input {
+  background: var(--glass-bg-soft);
+  border: 1.5px solid var(--glass-border);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.sync-input:focus {
+  outline: 2px solid var(--gold-soft);
+  outline-offset: 2px;
+}
+
+.sync-status {
+  min-height: 1.5em;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.sync-status.sync-ok { color: var(--success); font-weight: 700; }
+.sync-status.sync-bad { color: var(--danger); }

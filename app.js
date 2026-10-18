@@ -12,6 +12,11 @@
   const AUTO_ADVANCE_MS = 700;
   const EXPORT_APP_ID = "kanji-flash";
   const EXPORT_VERSION = 1;
+  const SYNC_PAIR_KEY = "kanjiFlashN2.sync.v1";
+  const SYNC_BASE_KEY = "kanjiFlashN2.syncBase.v1";
+  const DECK_TOMBSTONES_KEY = "kanjiFlashN2.deckTombstones.v1";
+  const PEERJS_SRC = "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js";
+  const PEERJS_SRI = "sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR";
   const MIN_MINUTES = 1;
   const MAX_MINUTES = 30;
   const DEFAULT_MINUTES = 3;
@@ -94,6 +99,19 @@
     defaultMinutesValue: document.getElementById("defaultMinutesValue"),
     reshuffleDeckBtn: document.getElementById("reshuffleDeckBtn"),
     dataStatus: document.getElementById("dataStatus"),
+    openSyncBtn: document.getElementById("openSyncBtn"),
+    screenSync: document.getElementById("screen-sync"),
+    syncUnpaired: document.getElementById("syncUnpaired"),
+    syncPaired: document.getElementById("syncPaired"),
+    syncCreateCodeBtn: document.getElementById("syncCreateCodeBtn"),
+    syncCodeBox: document.getElementById("syncCodeBox"),
+    syncCode: document.getElementById("syncCode"),
+    syncCancelCodeBtn: document.getElementById("syncCancelCodeBtn"),
+    syncJoinForm: document.getElementById("syncJoinForm"),
+    syncCodeInput: document.getElementById("syncCodeInput"),
+    syncNowBtn: document.getElementById("syncNowBtn"),
+    syncUnpairBtn: document.getElementById("syncUnpairBtn"),
+    syncStatus: document.getElementById("syncStatus"),
     customDecksSub: document.getElementById("customDecksSub"),
     customDecksDue: document.getElementById("customDecksDue"),
     customDecksDueNum: document.getElementById("customDecksDueNum"),
@@ -199,6 +217,7 @@
     settings: els.screenSettings,
     lessons: els.screenLessons,
     importChoice: els.screenImportChoice,
+    sync: els.screenSync,
     customDecks: els.screenCustomDecks,
     customDeckSave: els.screenCustomDeckSave,
     customStudy: els.screenCustomStudy,
@@ -295,6 +314,7 @@
       screens[key].hidden = key !== name;
     });
     if (name === "home") updateHomeInfo();
+    if (name !== "sync") stopSyncActivity();
   }
 
   // The Custom Decks tile on the home screen shows how many reviews are due
@@ -841,9 +861,31 @@
     return deck;
   }
 
+  function loadJson(key, fallback) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || "null");
+      return parsed === null ? fallback : parsed;
+    } catch (err) {
+      return fallback;
+    }
+  }
+
+  function saveJson(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (err) {
+      /* localStorage unavailable */
+    }
+  }
+
   function deleteCustomDeckById(id) {
     customDecks = customDecks.filter((d) => d.id !== id);
     saveCustomDecks();
+    // Device sync matches decks by id; the tombstone stops the other device
+    // from sending a deleted deck back.
+    const tombstones = loadJson(DECK_TOMBSTONES_KEY, {});
+    tombstones[id] = new Date().toISOString();
+    saveJson(DECK_TOMBSTONES_KEY, tombstones);
   }
 
   function renderCustomDecksList() {
@@ -2876,6 +2918,209 @@
       deck: incoming.deck || local.deck,
     };
   }
+
+  // ---------- device sync ----------
+
+  let syncPairing = null; // pairing in progress (host or guest handle)
+  let syncSession = null; // running sync session
+  let peerLoadPromise = null;
+
+  function setSyncStatus(text, tone) {
+    els.syncStatus.textContent = text;
+    els.syncStatus.className = "sync-status" + (tone ? ` sync-${tone}` : "");
+  }
+
+  function ensurePeerLoaded() {
+    if (window.Peer) return Promise.resolve();
+    if (peerLoadPromise) return peerLoadPromise;
+    peerLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = PEERJS_SRC;
+      script.integrity = PEERJS_SRI;
+      script.crossOrigin = "anonymous";
+      script.onload = () => resolve();
+      script.onerror = () => {
+        peerLoadPromise = null;
+        reject(new Error("Failed to load PeerJS"));
+      };
+      document.head.appendChild(script);
+    });
+    return peerLoadPromise;
+  }
+
+  function loadSyncPair() {
+    const pair = loadJson(SYNC_PAIR_KEY, null);
+    return pair && typeof pair.key === "string" && (pair.role === "a" || pair.role === "b") ? pair : null;
+  }
+
+  function stopSyncActivity() {
+    if (syncPairing) {
+      syncPairing.cancel();
+      syncPairing = null;
+    }
+    if (syncSession) {
+      syncSession.stop();
+      syncSession = null;
+    }
+  }
+
+  function refreshSyncUI() {
+    const paired = Boolean(loadSyncPair());
+    els.syncUnpaired.hidden = paired;
+    els.syncPaired.hidden = !paired;
+    els.syncCodeBox.hidden = true;
+    els.syncCreateCodeBtn.hidden = false;
+  }
+
+  function describeSyncError(err) {
+    const type = typeof err === "string" ? err : err && err.type;
+    if (type === "not-found") return "コードが見つかりません。もう一方の画面にコードが表示されているか確認してください。";
+    if (type === "denied") return "相手のデバイスが接続を許可しませんでした。";
+    if (type === "timeout") return "接続がタイムアウトしました。同じWi-Fiに接続して、もう一度お試しください。";
+    if (type === "network" || type === "server-error" || type === "socket-error" || type === "socket-closed") {
+      return "同期サーバーに接続できません。ネットワークを確認してください。";
+    }
+    return "接続できませんでした。同じWi-Fiに接続して、もう一度お試しください。";
+  }
+
+  function buildSyncState() {
+    return {
+      stats: { daily: stats.daily || {}, perCard: stats.perCard || {} },
+      customAnswers,
+      lessons: {
+        completed: lessonHistory.completed,
+        placement: lessonHistory.placement,
+        today: lessonHistory.today,
+        ...(lessonHistory.epoch ? { epoch: lessonHistory.epoch } : {}),
+      },
+      customDecks,
+      deletedDecks: loadJson(DECK_TOMBSTONES_KEY, {}),
+    };
+  }
+
+  // Merges the other device's state into this one. Both devices run this, so
+  // the merge is symmetric; `base` (what both had after the last sync) keeps
+  // counters from being added twice.
+  function applySyncState(remote) {
+    if (!remote || typeof remote !== "object" || JSON.stringify(remote).includes('"__proto__"')) {
+      throw new Error("Invalid sync data");
+    }
+    const merged = KanjiFlashSync.mergeState(buildSyncState(), remote, loadJson(SYNC_BASE_KEY, null));
+    stats = { daily: merged.stats.daily, perCard: merged.stats.perCard };
+    saveStats();
+    customAnswers = normalizeCustomAnswersShape(merged.customAnswers);
+    saveCustomAnswers();
+    lessonHistory = normalizeLessonHistory({ ...merged.lessons });
+    saveLessonHistory();
+    customDecks = merged.customDecks;
+    saveCustomDecks();
+    saveJson(DECK_TOMBSTONES_KEY, merged.deletedDecks);
+    saveJson(SYNC_BASE_KEY, merged.stats);
+  }
+
+  function startSyncSession() {
+    const pair = loadSyncPair();
+    if (!pair) return;
+    stopSyncActivity();
+    setSyncStatus("準備中…");
+    ensurePeerLoaded()
+      .then(() =>
+        KanjiFlashSync.startSync({
+          key: pair.key,
+          role: pair.role,
+          getState: buildSyncState,
+          onRemoteState: applySyncState,
+          onStatus: (status) =>
+            setSyncStatus(
+              status === "connected"
+                ? "接続しました。同期中…"
+                : "もう一方のデバイスでこの画面を開いてください…（待機中）"
+            ),
+          onDone: () => setSyncStatus("同期が完了しました。", "ok"),
+          onError: (err) => setSyncStatus(describeSyncError(err), "bad"),
+        })
+      )
+      .then((session) => {
+        if (els.screenSync.hidden) session.stop();
+        else syncSession = session;
+      })
+      .catch(() => setSyncStatus("同期の準備に失敗しました。ネットワークを確認してください。", "bad"));
+  }
+
+  function savePairAndSync(key, role) {
+    saveJson(SYNC_PAIR_KEY, { key, role });
+    refreshSyncUI();
+    setSyncStatus("ペアリングが完了しました。", "ok");
+    startSyncSession();
+  }
+
+  els.openSyncBtn.addEventListener("click", () => {
+    showScreen("sync");
+    refreshSyncUI();
+    setSyncStatus("");
+    if (loadSyncPair()) startSyncSession();
+  });
+
+  els.syncCreateCodeBtn.addEventListener("click", () => {
+    stopSyncActivity();
+    setSyncStatus("準備中…");
+    ensurePeerLoaded()
+      .then(() => {
+        syncPairing = KanjiFlashSync.hostPairing({
+          onCode: (code) => {
+            els.syncCode.textContent = KanjiFlashSync.formatCode(code);
+            els.syncCodeBox.hidden = false;
+            els.syncCreateCodeBtn.hidden = true;
+            setSyncStatus("もう一方のデバイスの接続を待っています…");
+          },
+          onRequest: () => window.confirm("別のデバイスが接続を求めています。許可しますか？"),
+          onPaired: (key, role) => savePairAndSync(key, role),
+          onError: (err) => setSyncStatus(describeSyncError(err), "bad"),
+        });
+      })
+      .catch(() => setSyncStatus("同期の準備に失敗しました。ネットワークを確認してください。", "bad"));
+  });
+
+  els.syncCancelCodeBtn.addEventListener("click", () => {
+    stopSyncActivity();
+    refreshSyncUI();
+    setSyncStatus("");
+  });
+
+  els.syncJoinForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const code = KanjiFlashSync.normalizeCode(els.syncCodeInput.value);
+    if (code.length < 8) {
+      setSyncStatus("8文字のコードを入力してください。", "bad");
+      return;
+    }
+    stopSyncActivity();
+    setSyncStatus("接続中…");
+    ensurePeerLoaded()
+      .then(() => {
+        syncPairing = KanjiFlashSync.joinPairing(code, {
+          onPaired: (key, role) => savePairAndSync(key, role),
+          onError: (err) => setSyncStatus(describeSyncError(err), "bad"),
+        });
+      })
+      .catch(() => setSyncStatus("同期の準備に失敗しました。ネットワークを確認してください。", "bad"));
+  });
+
+  els.syncNowBtn.addEventListener("click", startSyncSession);
+
+  els.syncUnpairBtn.addEventListener("click", () => {
+    if (!window.confirm("ペアリングを解除しますか？（データは消えません）")) return;
+    stopSyncActivity();
+    try {
+      localStorage.removeItem(SYNC_PAIR_KEY);
+      localStorage.removeItem(SYNC_BASE_KEY);
+    } catch (err) {
+      /* ignore */
+    }
+    refreshSyncUI();
+    setSyncStatus("ペアリングを解除しました。");
+  });
+
 
   // ---------- export / import ----------
 
