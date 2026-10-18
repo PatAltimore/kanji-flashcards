@@ -112,6 +112,10 @@
     syncNowBtn: document.getElementById("syncNowBtn"),
     syncUnpairBtn: document.getElementById("syncUnpairBtn"),
     syncStatus: document.getElementById("syncStatus"),
+    syncTech: document.getElementById("syncTech"),
+    syncApprove: document.getElementById("syncApprove"),
+    syncAllowBtn: document.getElementById("syncAllowBtn"),
+    syncDenyBtn: document.getElementById("syncDenyBtn"),
     customDecksSub: document.getElementById("customDecksSub"),
     customDecksDue: document.getElementById("customDecksDue"),
     customDecksDueNum: document.getElementById("customDecksDueNum"),
@@ -2924,6 +2928,32 @@
   let syncPairing = null; // pairing in progress (host or guest handle)
   let syncSession = null; // running sync session
   let peerLoadPromise = null;
+  let syncApproval = null; // resolver for the open "allow this device?" question
+  let syncStages = [];
+
+  // The last few connection steps, shown small under the status so a stalled
+  // attempt shows where it stopped.
+  function setSyncTech(stage) {
+    if (stage === null) syncStages = [];
+    else syncStages = [...syncStages, stage].slice(-5);
+    els.syncTech.textContent = syncStages.join(" → ");
+  }
+
+  function resolveSyncApproval(allowed) {
+    els.syncApprove.hidden = true;
+    if (syncApproval) {
+      const resolve = syncApproval;
+      syncApproval = null;
+      resolve(allowed);
+    }
+  }
+
+  function askToAllowDevice() {
+    els.syncApprove.hidden = false;
+    return new Promise((resolve) => {
+      syncApproval = resolve;
+    });
+  }
 
   function setSyncStatus(text, tone) {
     els.syncStatus.textContent = text;
@@ -2954,6 +2984,7 @@
   }
 
   function stopSyncActivity() {
+    resolveSyncApproval(false);
     if (syncPairing) {
       syncPairing.cancel();
       syncPairing = null;
@@ -2976,7 +3007,15 @@
     const type = typeof err === "string" ? err : err && err.type;
     if (type === "not-found") return "コードが見つかりません。もう一方の画面にコードが表示されているか確認してください。";
     if (type === "denied") return "相手のデバイスが接続を許可しませんでした。";
-    if (type === "timeout") return "接続がタイムアウトしました。同じWi-Fiに接続して、もう一度お試しください。";
+    if (type === "timeout") {
+      return "相手のデバイスが応答しませんでした。相手の画面で「許可」を押したか確認して、もう一度お試しください。";
+    }
+    if (type === "ice-failed") {
+      return "デバイス間の直接接続に失敗しました。VPNや、端末同士の通信を制限するWi-Fi（ゲストWi-Fiなど）が原因かもしれません。";
+    }
+    if (type === "guest-left" || type === "closed") {
+      return "相手のデバイスとの接続が切れました。もう一度お試しください。";
+    }
     if (type === "network" || type === "server-error" || type === "socket-error" || type === "socket-closed") {
       return "同期サーバーに接続できません。ネットワークを確認してください。";
     }
@@ -3022,6 +3061,7 @@
     const pair = loadSyncPair();
     if (!pair) return;
     stopSyncActivity();
+    setSyncTech(null);
     setSyncStatus("準備中…");
     ensurePeerLoaded()
       .then(() =>
@@ -3029,6 +3069,7 @@
           key: pair.key,
           role: pair.role,
           getState: buildSyncState,
+          onStage: setSyncTech,
           onRemoteState: applySyncState,
           onStatus: (status) =>
             setSyncStatus(
@@ -3061,8 +3102,12 @@
     if (loadSyncPair()) startSyncSession();
   });
 
+  els.syncAllowBtn.addEventListener("click", () => resolveSyncApproval(true));
+  els.syncDenyBtn.addEventListener("click", () => resolveSyncApproval(false));
+
   els.syncCreateCodeBtn.addEventListener("click", () => {
     stopSyncActivity();
+    setSyncTech(null);
     setSyncStatus("準備中…");
     ensurePeerLoaded()
       .then(() => {
@@ -3073,7 +3118,12 @@
             els.syncCreateCodeBtn.hidden = true;
             setSyncStatus("もう一方のデバイスの接続を待っています…");
           },
-          onRequest: () => window.confirm("別のデバイスが接続を求めています。許可しますか？"),
+          onStage: setSyncTech,
+          onRequest: askToAllowDevice,
+          onRequestCancelled: () => {
+            resolveSyncApproval(false);
+            setSyncStatus("相手のデバイスとの接続が切れました。", "bad");
+          },
           onPaired: (key, role) => savePairAndSync(key, role),
           onError: (err) => setSyncStatus(describeSyncError(err), "bad"),
         });
@@ -3095,10 +3145,17 @@
       return;
     }
     stopSyncActivity();
+    setSyncTech(null);
     setSyncStatus("接続中…");
     ensurePeerLoaded()
       .then(() => {
         syncPairing = KanjiFlashSync.joinPairing(code, {
+          onStage: (stage) => {
+            setSyncTech(stage);
+            if (stage.startsWith("connected, waiting")) {
+              setSyncStatus("接続しました。もう一方のデバイスで「許可」を押してください…");
+            }
+          },
           onPaired: (key, role) => savePairAndSync(key, role),
           onError: (err) => setSyncStatus(describeSyncError(err), "bad"),
         });

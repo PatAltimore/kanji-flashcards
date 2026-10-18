@@ -522,6 +522,13 @@
           <div id="syncCodeBox" hidden>
             <div class="sync-code" id="syncCode"></div>
             <div class="sync-hint">もう一方のデバイスでこのコードを入力してください。</div>
+            <div class="sync-approve" id="syncApprove" hidden>
+              <div class="sync-approve-text">別のデバイスが接続を求めています。許可しますか？</div>
+              <div class="sync-approve-buttons">
+                <button class="primary-btn" id="syncAllowBtn" type="button">許可</button>
+                <button class="secondary-btn" id="syncDenyBtn" type="button">拒否</button>
+              </div>
+            </div>
             <button class="secondary-btn" id="syncCancelCodeBtn" type="button">キャンセル</button>
           </div>
         </div>
@@ -542,6 +549,7 @@
       </div>
 
       <div class="sync-status" id="syncStatus" role="status" aria-live="polite"></div>
+      <div class="sync-tech" id="syncTech"></div>
     </div>
   </section>
 

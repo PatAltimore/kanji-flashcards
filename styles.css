@@ -1809,3 +1809,34 @@ body {
 
 .sync-status.sync-ok { color: var(--success); font-weight: 700; }
 .sync-status.sync-bad { color: var(--danger); }
+
+.sync-tech {
+  min-height: 1.2em;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+  opacity: 0.8;
+  word-break: break-word;
+}
+
+.sync-approve {
+  border: 1.5px solid var(--gold);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sync-approve-text {
+  font-weight: 700;
+  text-align: center;
+}
+
+.sync-approve-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}

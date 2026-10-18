@@ -212,7 +212,7 @@
   const CODE_LENGTH = 8;
   const CHUNK_SIZE = 12000;
   const RETRY_MS = 3000;
-  const PAIR_TIMEOUT_MS = 45000;
+  const PAIR_TIMEOUT_MS = 120000;
 
   function randomString(alphabet, length) {
     const bytes = new Uint8Array(length);
@@ -277,6 +277,21 @@
 
   const CONN_OPTIONS = { serialization: "raw", reliable: true };
 
+  // Stage reports let the UI show where a connection attempt stops.
+  function reporter(handlers) {
+    return (text) => {
+      if (handlers && typeof handlers.onStage === "function") handlers.onStage(text);
+    };
+  }
+
+  // WebRTC connection state changes (PeerJS relays them on the connection).
+  function watchIce(conn, label, stage, onFailed) {
+    conn.on("iceStateChanged", (state) => {
+      stage(label + " ice " + state);
+      if (state === "failed" && onFailed) onFailed();
+    });
+  }
+
   // Show a code on this device; the other device enters it. `onRequest`
   // resolves true/false to accept the other device. On accept both sides end
   // up holding the same random pair key.
@@ -284,11 +299,15 @@
     let peer = null;
     let cancelled = false;
     let busy = false;
+    const stage = reporter(handlers);
 
     function open() {
       const code = generateCode();
       peer = new root.Peer(PEER_PREFIX + "pair-" + code);
-      peer.on("open", () => handlers.onCode(code));
+      peer.on("open", () => {
+        stage("code registered");
+        handlers.onCode(code);
+      });
       peer.on("error", (err) => {
         if (cancelled) return;
         if (err.type === "unavailable-id") {
@@ -303,10 +322,22 @@
           conn.close();
           return;
         }
+        stage("device connecting");
+        watchIce(conn, "host", stage);
+        let pending = false;
         const receive = makeReceiver((message) => {
           if (message.t !== "hello" || busy) return;
           busy = true;
+          pending = true;
+          stage("asking to allow");
           Promise.resolve(handlers.onRequest()).then((ok) => {
+            pending = false;
+            if (!conn.open) {
+              // The other device gave up while the question was open.
+              busy = false;
+              handlers.onError("guest-left");
+              return;
+            }
             if (!ok) {
               sendJson(conn, { t: "denied" });
               busy = false;
@@ -319,6 +350,9 @@
           });
         });
         conn.on("data", receive);
+        conn.on("close", () => {
+          if (pending && handlers.onRequestCancelled) handlers.onRequestCancelled();
+        });
       });
     }
 
@@ -336,6 +370,7 @@
     let peer = null;
     let finished = false;
     let timer = null;
+    const stage = reporter(handlers);
 
     function finish() {
       finished = true;
@@ -352,7 +387,10 @@
     timer = root.setTimeout(() => fail("timeout"), PAIR_TIMEOUT_MS);
     peer.on("error", (err) => fail(err.type === "peer-unavailable" ? "not-found" : err.type || "error"));
     peer.on("open", () => {
+      stage("server reached");
       const conn = peer.connect(PEER_PREFIX + "pair-" + code, CONN_OPTIONS);
+      stage("contacting device");
+      watchIce(conn, "guest", stage, () => fail("ice-failed"));
       const receive = makeReceiver((message) => {
         if (message.t === "paired" && message.key) {
           finish();
@@ -363,7 +401,11 @@
         }
       });
       conn.on("data", receive);
-      conn.on("open", () => sendJson(conn, { t: "hello" }));
+      conn.on("open", () => {
+        stage("connected, waiting for approval");
+        sendJson(conn, { t: "hello" });
+      });
+      conn.on("close", () => fail("closed"));
       conn.on("error", () => fail("error"));
     });
 
@@ -386,6 +428,7 @@
     let stopped = false;
     let connected = false;
     let retryTimer = null;
+    const stage = reporter(options);
 
     function wire(conn) {
       connected = true;
@@ -427,6 +470,8 @@
     function tryConnect() {
       if (stopped || connected || options.role !== "b") return;
       const conn = peer.connect(partnerId, CONN_OPTIONS);
+      stage("contacting other device");
+      watchIce(conn, "sync", stage);
       conn.on("open", () => wire(conn));
       conn.on("error", () => {});
       retryTimer = root.setTimeout(() => {
@@ -440,6 +485,7 @@
     function open() {
       peer = new root.Peer(myId);
       peer.on("open", () => {
+        stage("server reached");
         options.onStatus("waiting");
         tryConnect();
       });
