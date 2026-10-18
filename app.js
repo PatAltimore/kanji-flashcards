@@ -210,8 +210,8 @@
   let flipped = false;
   let animating = false;
   let stats = { daily: {}, perCard: {} };
-  const THEMES = ["bright", "hanafuda", "hyakunin"];
-  const DEFAULT_THEME = "bright";
+  const THEMES = ["dark", "hanafuda", "hyakunin"];
+  const DEFAULT_THEME = "dark";
 
   let settings = { stylizedFont: true, fontScale: 1, defaultDailyMinutes: DEFAULT_MINUTES, lessonQuestions: DEFAULT_QUESTIONS, reviewQuestions: DEFAULT_QUESTIONS, quizQuestions: DEFAULT_QUESTIONS, theme: DEFAULT_THEME };
   let lessonHistory = { completed: {} };
