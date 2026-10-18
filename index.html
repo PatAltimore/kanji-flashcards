@@ -19,49 +19,43 @@
     <header class="topbar">
       <span class="icon-btn-spacer"></span>
       <span class="brand">漢字 <span class="brand-sub">N2</span></span>
-      <button class="icon-btn" id="settingsBtn" type="button" aria-label="Settings">⚙️</button>
+      <button class="icon-btn icon-btn-text" id="settingsBtn" type="button" aria-label="Settings">設定</button>
     </header>
     <div class="home-menu">
       <button class="mode-btn" id="modeMarathonBtn" type="button">
-        <span class="mode-icon">🏃</span>
         <span class="mode-text">
-          <span class="mode-label">Marathon</span>
-          <span class="mode-sub">The full 367-card deck</span>
+          <span class="mode-label">マラソン</span>
+          <span class="mode-sub">全367枚のデッキ</span>
         </span>
       </button>
       <button class="mode-btn" id="modeDailyBtn" type="button">
-        <span class="mode-icon">⏱️</span>
         <span class="mode-text">
-          <span class="mode-label">Daily Challenge</span>
-          <span class="mode-sub">Beat the clock</span>
+          <span class="mode-label">デイリーチャレンジ</span>
+          <span class="mode-sub">時間との勝負</span>
         </span>
       </button>
       <button class="mode-btn" id="modeTypeBtn" type="button">
-        <span class="mode-icon">⌨️</span>
         <span class="mode-text">
-          <span class="mode-label">Type Answer</span>
-          <span class="mode-sub">Type the reading or meaning</span>
+          <span class="mode-label">入力テスト</span>
+          <span class="mode-sub">読みか意味を入力</span>
         </span>
       </button>
       <button class="mode-btn" id="modeLessonsBtn" type="button">
-        <span class="mode-icon">📅</span>
         <span class="mode-text">
-          <span class="mode-label">Lessons</span>
-          <span class="mode-sub">Prepare with one focused lesson each day</span>
+          <span class="mode-label">レッスン</span>
+          <span class="mode-sub">毎日ひとつの集中レッスン</span>
         </span>
       </button>
       <button class="mode-btn" id="modeCustomDecksBtn" type="button">
-        <span class="mode-icon">🗂️</span>
         <span class="mode-text">
-          <span class="mode-label">Custom Decks</span>
-          <span class="mode-sub">Study your own flashcards</span>
+          <span class="mode-label">カスタムデッキ</span>
+          <span class="mode-sub">自分のカードで学習</span>
         </span>
       </button>
       <button class="mode-btn" id="modeStatsBtn" type="button">
-        <span class="mode-icon">📊</span>
         <span class="mode-text">
-          <span class="mode-label">Statistics</span>
-          <span class="mode-sub">Track your progress</span>
+          <span class="mode-label">統計</span>
+          <span class="mode-sub">上達を確認</span>
         </span>
       </button>
     </div>
@@ -70,7 +64,7 @@
   <!-- LESSONS -->
   <section class="screen" id="screen-lessons" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">🏠</button>
+      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
       <span class="screen-title">Lessons</span>
       <span class="icon-btn-spacer"></span>
     </header>
@@ -92,7 +86,7 @@
   <!-- DAILY CHALLENGE SETUP -->
   <section class="screen" id="screen-daily-setup" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">🏠</button>
+      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
       <span class="screen-title">Daily Challenge</span>
       <span class="icon-btn-spacer"></span>
     </header>
@@ -113,7 +107,7 @@
   <!-- SHARED FLASHCARD PLAY SCREEN (Marathon & Daily Challenge) -->
   <section class="screen" id="screen-play" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">🏠</button>
+      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
       <span class="progress" id="progress" hidden>0 / 0</span>
       <span class="timer" id="timerDisplay" hidden>3:00</span>
       <span class="icon-btn-spacer"></span>
@@ -127,7 +121,7 @@
             <div class="hint" id="frontHint">tap to reveal</div>
             <div class="congrats" id="congratsMsg" hidden>Congratulations!<br>You've mastered the deck.</div>
             <button class="grade-btn new-deck-btn" id="newDeckBtn" type="button" hidden>
-              <span class="grade-icon">🔀</span><span class="grade-text">New Deck</span>
+              <span class="grade-text">New Deck</span>
             </button>
           </section>
           <section class="face face-back">
@@ -164,7 +158,7 @@
   <!-- DAILY CHALLENGE RESULTS -->
   <section class="screen" id="screen-daily-results" hidden>
     <div class="results-body">
-      <div class="results-emoji">⏰</div>
+      <div class="results-emoji">終</div>
       <div class="results-title">Time's Up!</div>
       <div class="results-stat"><span id="resultSeen">0</span> cards reviewed</div>
       <div class="results-row">
@@ -180,7 +174,7 @@
   <!-- LESSON RESULTS -->
   <section class="screen" id="screen-lesson-results" hidden>
     <div class="results-body">
-      <div class="results-emoji">📚</div>
+      <div class="results-emoji">学</div>
       <div class="results-title" id="lessonResultTitle">Lesson complete</div>
       <div class="results-stat"><span id="lessonResultSeen">0</span> questions answered</div>
       <div class="results-row">
@@ -195,7 +189,7 @@
   <!-- TYPE ANSWER -->
   <section class="screen" id="screen-type" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">🏠</button>
+      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
       <span class="progress" id="typeProgress">0 / 0</span>
       <span class="icon-btn-spacer"></span>
     </header>
@@ -221,7 +215,7 @@
         <div class="type-feedback" id="typeFeedback" hidden>
           <div class="type-feedback-result" id="typeFeedbackResult"></div>
           <button class="grade-btn add-answer-btn" id="addAnswerBtn" type="button" hidden>
-            <span class="grade-icon">➕</span><span class="grade-text" id="addAnswerBtnText">Add my answer</span>
+            <span class="grade-icon">+</span><span class="grade-text" id="addAnswerBtnText">Add my answer</span>
           </button>
           <div class="reading-block">
             <div class="reading-label">Onyomi</div>
@@ -244,7 +238,7 @@
 
         <div class="congrats" id="typeCongratsMsg" hidden>Congratulations!<br>You've mastered the deck.</div>
         <button class="grade-btn new-deck-btn" id="typeNewDeckBtn" type="button" hidden>
-          <span class="grade-icon">🔀</span><span class="grade-text">New Deck</span>
+          <span class="grade-text">New Deck</span>
         </button>
       </div>
     </main>
@@ -253,7 +247,7 @@
   <!-- STATISTICS -->
   <section class="screen" id="screen-stats" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">🏠</button>
+      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
       <span class="screen-title">Statistics</span>
       <span class="icon-btn-spacer"></span>
     </header>
@@ -263,7 +257,7 @@
   <!-- CUSTOM DECKS LIST -->
   <section class="screen" id="screen-custom-decks" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">🏠</button>
+      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
       <span class="screen-title">Custom Decks</span>
       <span class="icon-btn-spacer"></span>
     </header>
@@ -351,7 +345,7 @@
         <div class="type-feedback" id="customTypeFeedback" hidden>
           <div class="type-feedback-result" id="customTypeFeedbackResult"></div>
           <button class="grade-btn add-answer-btn" id="customAddAnswerBtn" type="button" hidden>
-            <span class="grade-icon">➕</span><span class="grade-text" id="customAddAnswerBtnText">Add my answer</span>
+            <span class="grade-icon">+</span><span class="grade-text" id="customAddAnswerBtnText">Add my answer</span>
           </button>
           <div class="custom-study-sections" id="customTypeSections"></div>
         </div>
@@ -362,7 +356,7 @@
   <!-- CUSTOM DECK COMPLETE -->
   <section class="screen" id="screen-custom-complete" hidden>
     <div class="results-body">
-      <div class="results-emoji">🎉</div>
+      <div class="results-emoji">完</div>
       <div class="results-title">Deck Complete!</div>
       <div class="results-stat" id="customCompleteStat">0 cards reviewed</div>
       <button class="primary-btn" id="customStudyAgainBtn" type="button">Study Again</button>
@@ -373,7 +367,7 @@
   <!-- SETTINGS -->
   <section class="screen" id="screen-settings" hidden>
     <header class="topbar">
-      <button class="icon-btn" data-back type="button" aria-label="Back to home">🏠</button>
+      <button class="icon-btn" data-back type="button" aria-label="Back to home">←</button>
       <span class="screen-title">Settings</span>
       <span class="icon-btn-spacer"></span>
     </header>
@@ -499,7 +493,7 @@
   <!-- IMPORT CHOICE -->
   <section class="screen" id="screen-import-choice" hidden>
     <div class="results-body">
-      <div class="results-emoji">🔀</div>
+      <div class="results-emoji">合</div>
       <div class="results-title">Import Backup</div>
       <p class="import-choice-desc">How should the backup be combined with the data on this device?</p>
       <button class="primary-btn" id="importMergeBtn" type="button">Merge Both (Recommended)</button>

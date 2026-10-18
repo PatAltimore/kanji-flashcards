@@ -192,6 +192,14 @@ body {
   cursor: pointer;
 }
 
+.icon-btn-text {
+  width: auto;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .icon-btn:active {
   transform: scale(0.92);
 }
@@ -489,11 +497,6 @@ body {
   transform: scale(0.98);
 }
 
-.mode-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-
 .mode-text {
   display: flex;
   flex-direction: column;
@@ -759,7 +762,10 @@ body {
 }
 
 .results-emoji {
+  font-family: "Shippori Mincho", serif;
   font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .results-title {

@@ -810,16 +810,16 @@
             <span class="custom-deck-meta">${deck.cards.length} card${deck.cards.length === 1 ? "" : "s"}</span>
           </div>
           <div class="custom-deck-actions">
-            <button class="custom-deck-action-btn" data-action="download" type="button" aria-label="Download ${safeName} as CSV">⬇️</button>
-            <button class="custom-deck-action-btn" data-action="replace" type="button" aria-label="Replace ${safeName}">🔄</button>
-            <button class="custom-deck-action-btn custom-deck-action-delete" data-action="delete" type="button" aria-label="Delete ${safeName}">🗑️</button>
+            <button class="custom-deck-action-btn" data-action="download" type="button" aria-label="Download ${safeName} as CSV">↓</button>
+            <button class="custom-deck-action-btn" data-action="replace" type="button" aria-label="Replace ${safeName}">↻</button>
+            <button class="custom-deck-action-btn custom-deck-action-delete" data-action="delete" type="button" aria-label="Delete ${safeName}">✕</button>
           </div>
         </div>
         <div class="custom-deck-modes">
-          <button class="custom-deck-mode-btn" data-action="study-cards" type="button">🎴 Flashcards</button>
-          <button class="custom-deck-mode-btn" data-action="study-type" type="button">⌨️ Type Answer</button>
-          <button class="custom-deck-mode-btn" data-action="study-review" type="button"${dueCount ? "" : " disabled"}>🔁 Review${dueCount ? ` (${dueCount})` : ""}</button>
-          <button class="custom-deck-mode-btn" data-action="study-quiz" type="button">🧭 Quiz${unreviewedCount ? ` (${unreviewedCount} new)` : ""}</button>
+          <button class="custom-deck-mode-btn" data-action="study-cards" type="button">Flashcards</button>
+          <button class="custom-deck-mode-btn" data-action="study-type" type="button">Type Answer</button>
+          <button class="custom-deck-mode-btn" data-action="study-review" type="button"${dueCount ? "" : " disabled"}>Review${dueCount ? ` (${dueCount})` : ""}</button>
+          <button class="custom-deck-mode-btn" data-action="study-quiz" type="button">Quiz${unreviewedCount ? ` (${unreviewedCount} new)` : ""}</button>
         </div>
       </div>`;
       })
@@ -1581,7 +1581,7 @@
         startLessonTyping();
         return;
       }
-      els.kanji.textContent = "\u{1F389}";
+      els.kanji.textContent = "完";
       els.frontHint.hidden = true;
       els.congratsMsg.hidden = false;
       els.newDeckBtn.hidden = false;
@@ -2302,7 +2302,7 @@
       }
       els.questionTypeBadge.hidden = true;
       setTypeInputMode("meaning");
-      els.typeKanji.textContent = "\u{1F389}";
+      els.typeKanji.textContent = "完";
       els.typeForm.hidden = true;
       els.typeCongratsMsg.hidden = false;
       els.typeNewDeckBtn.hidden = false;
