@@ -228,8 +228,8 @@
   let customStudyCards = [];
   let customQuizKnown = 0;
   let customTypeCards = [];
-  let customTypeMode = "type"; // "type" | "quiz"
-  let customStudyMode = "cards"; // "cards" | "review" — which completion/restart path to use
+  let customTypeMode = "type"; // "type" | "quiz" | "review"
+  let customStudyMode = "cards"; // flashcards only; typed review runs through the custom type screen
   let customStudyIndex = 0;
   let customStudyFlipped = false;
   let customTypeDeck = null;
@@ -1203,22 +1203,17 @@
     renderCustomStudy();
   }
 
-  // Same flashcard screen, but scoped to just this deck's due cards.
+  // Typed-answer review of just this deck's due cards (cards with no answer
+  // data can't be typed against, so they're skipped).
   function startCustomDeckReview(deck) {
-    const due = getDueCustomCards(deck);
+    const due = getDueCustomCards(deck).filter((c) => c.sections.length);
     if (!due.length) {
       renderCustomDecksList();
       showScreen("customDecks");
       window.alert("このデッキには現在復習するカードがありません。");
       return;
     }
-    customStudyDeck = deck;
-    customStudyCards = due;
-    customStudyMode = "review";
-    customStudyIndex = 0;
-    customStudyFlipped = false;
-    showScreen("customStudy");
-    renderCustomStudy();
+    startCustomTypeSession(deck, due, "review");
   }
 
   function renderCustomStudy() {
