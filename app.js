@@ -113,6 +113,7 @@
     syncSasHint: document.getElementById("syncSasHint"),
     syncStatus: document.getElementById("syncStatus"),
     syncTech: document.getElementById("syncTech"),
+    syncRoomTech: document.getElementById("syncRoomTech"),
     syncNearbyStatus: document.getElementById("syncNearbyStatus"),
     syncSasBox: document.getElementById("syncSasBox"),
     syncSas: document.getElementById("syncSas"),
@@ -514,6 +515,7 @@
 
   function initSyncCounts() {
     migrateOldPairing();
+    ensureSelfInGroup();
     const saved = loadJson(SYNC_COUNTS_KEY, null);
     syncCounts =
       saved && typeof saved === "object" && saved.devices && typeof saved.devices === "object"
@@ -3014,6 +3016,15 @@
     els.syncTech.textContent = syncStages.join(" → ");
   }
 
+  // Steps of the same-network search, shown for a device already in a group
+  // (its main status line shows the sync itself).
+  let roomStages = [];
+
+  function setRoomTech(stage) {
+    roomStages = [...roomStages, stage].slice(-4);
+    els.syncRoomTech.textContent = "近くの検索: " + roomStages.join(" → ");
+  }
+
   function setNearbyStatus(text) {
     els.syncNearbyStatus.textContent = text;
   }
@@ -3062,6 +3073,8 @@
       syncPairing = null;
     }
     resolveSyncVerify(false);
+    roomStages = [];
+    els.syncRoomTech.textContent = "";
     if (!group) {
       setSyncTech(null);
       setSyncStatus("");
@@ -3072,7 +3085,7 @@
         if (els.screenSync.hidden || Boolean(loadSyncGroup()) !== Boolean(group)) return;
         syncPairing = KanjiFlashSync.nearbyPairing(
           {
-            onStage: group ? undefined : setSyncTech,
+            onStage: group ? setRoomTech : setSyncTech,
             onWaiting: () => {
               resolveSyncVerify(false);
               if (!group) {
@@ -3089,6 +3102,7 @@
                   ? "相手のデバイスがキャンセルしました。もう一度探しています…"
                   : "キャンセルしました。もう一度探しています…"
               ),
+            onMemberSeen: addGroupMember,
             onJoined: ({ key, members }) => joinGroup(key, members),
             onError: (err) => {
               if (group) return;
@@ -3102,6 +3116,7 @@
           },
           {
             key: group ? group.key : undefined,
+            roomSalt: loadJson("kanjiFlashN2.testRoomSalt", ""), // testing only
             deviceId: getDeviceId(),
             getMembers: () => {
               const current = loadSyncGroup();
@@ -3148,6 +3163,26 @@
 
   function saveSyncGroup(group) {
     saveJson(SYNC_GROUP_KEY, group);
+  }
+
+  // Devices only connect to members they know about, so every member must
+  // list itself and learn the others. A device is added once it has proved it
+  // holds the group key (by answering the keyed challenge).
+  function addGroupMember(deviceId) {
+    const group = loadSyncGroup();
+    if (!group || typeof deviceId !== "string" || !deviceId || group.members[deviceId]) return;
+    group.members[deviceId] = new Date().toISOString();
+    saveSyncGroup(group);
+    refreshSyncUI();
+  }
+
+  function ensureSelfInGroup() {
+    const group = loadSyncGroup();
+    const id = getDeviceId();
+    if (group && !group.members[id]) {
+      group.members[id] = new Date().toISOString();
+      saveSyncGroup(group);
+    }
   }
 
   // Devices paired with the earlier two-device version keep working: its pair
@@ -3330,6 +3365,7 @@
           },
           getState: buildSyncState,
           onRemoteState: applySyncState,
+          onMember: addGroupMember,
           onStage: setSyncTech,
           onStatus: ({ connected }) =>
             setSyncStatus(

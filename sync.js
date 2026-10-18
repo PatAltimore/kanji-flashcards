@@ -392,6 +392,7 @@
   const STUN_TIMEOUT_MS = 6000;
   const NEARBY_RETRY_MS = 2500;
   const MEMBER_RECHECK_MS = 30000;
+  const NEARBY_OPEN_TIMEOUT_MS = 12000;
 
   function expandIPv6(address) {
     const clean = address.split("%")[0].toLowerCase();
@@ -449,10 +450,12 @@
     });
   }
 
-  async function nearbyRoomId() {
+  // `roomSalt` is for testing only: it gives a test its own room so it can't
+  // meet real devices on the same network.
+  async function nearbyRoomId(roomSalt) {
     const key = networkKeyFromAddresses(await findPublicAddresses(STUN_TIMEOUT_MS));
     if (!key) return null;
-    return PEER_PREFIX + "near-" + (await sha256Hex(NEARBY_SALT + key)).slice(0, 24);
+    return PEER_PREFIX + "near-" + (await sha256Hex(NEARBY_SALT + (roomSalt || "") + key)).slice(0, 24);
   }
 
   function fingerprintFromSdp(sdp) {
@@ -485,7 +488,7 @@
    *   getMembers () => { [deviceId]: lastSeenISO } for this device's group
    * handlers: onWaiting, onVerify(number, { hasMine, hasTheirs }) -> Promise<bool>,
    *   onVerifyCancelled, onRejected(who), onJoined({ key, members }),
-   *   onMemberSeen, onError, onStage
+   *   onMemberSeen(deviceId), onError, onStage
    *
    * Two devices that already share a group key recognise each other silently.
    * Otherwise, after both people confirm the number, the group is formed or
@@ -624,7 +627,7 @@
         // that joined only looks again now and then.
         finished = true;
         stage("group member recognised");
-        if (handlers.onMemberSeen) handlers.onMemberSeen();
+        if (handlers.onMemberSeen) handlers.onMemberSeen(theirId);
         if (role === "a") {
           try {
             c.close();
@@ -670,7 +673,26 @@
         const c = peer.connect(roomId, CONN_OPTIONS);
         conn = c;
         watchIce(c, "nearby", stage);
-        c.on("open", () => verify(c, "b"));
+        // The room's id can briefly belong to a device that has gone away; if
+        // nothing answers, start over (which tries to claim the room again).
+        let opened = false;
+        const noAnswer = root.setTimeout(() => {
+          if (!opened && !stopped && !done) {
+            stage("no answer, trying again");
+            retry();
+          }
+        }, NEARBY_OPEN_TIMEOUT_MS);
+        c.on("open", () => {
+          opened = true;
+          root.clearTimeout(noAnswer);
+          verify(c, "b");
+        });
+        c.on("close", () => {
+          if (!opened) {
+            root.clearTimeout(noAnswer);
+            retry();
+          }
+        });
         c.on("error", () => retry());
       });
       peer.on("error", (err) => {
@@ -715,7 +737,7 @@
     }
 
     stage("finding your network");
-    nearbyRoomId()
+    nearbyRoomId(options && options.roomSalt)
       .catch(() => null)
       .then((id) => {
         if (stopped) return;
@@ -742,8 +764,9 @@
   // received state changes ours we pass the result on to our other connections,
   // so a change reaches devices we are not directly connected to.
   //
-  // options: { key, deviceId, getMembers, getState, onRemoteState, onStatus,
-  //            onSynced, onStage, onError }
+  // options: { key, deviceId, getMembers, getState, onRemoteState, onMember,
+  //            onStatus, onSynced, onStage, onError }
+  //   onMember(deviceId) is called for each device that proves it holds the key.
   //   onRemoteState(state) merges and returns true if it changed this device.
   async function startGroupSync(options) {
     const hash = (await sha256Hex(options.key)).slice(0, 24);
@@ -818,6 +841,7 @@
                 }
                 authed = true;
                 links.set(remoteId, { conn, authed: true });
+                if (options.onMember) options.onMember(remoteId);
                 report();
                 sendState(conn, true);
               })
