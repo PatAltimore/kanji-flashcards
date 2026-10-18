@@ -2221,12 +2221,12 @@
     meaning: {
       label: "Meaning",
       badgeClass: "",
-      placeholder: "Type the meaning",
+      placeholder: "Answer",
     },
     onyomi: {
       label: "Reading",
       badgeClass: "qt-onyomi",
-      placeholder: "Type romaji — becomes katakana",
+      placeholder: "答え",
     },
   };
 
