@@ -527,31 +527,8 @@
               <button class="secondary-btn" id="syncSasNoBtn" type="button">違う</button>
             </div>
           </div>
+          <div class="sync-hint">見つからない場合は、2台が同じWi-Fiに接続されているか確認してください。</div>
         </div>
-
-        <div class="sync-divider">見つからない場合は、コードで接続</div>
-
-        <div class="sync-card">
-          <div class="sync-card-title">1台目：コードを作成</div>
-          <button class="primary-btn" id="syncCreateCodeBtn" type="button">コードを作成</button>
-          <div id="syncCodeBox" hidden>
-            <div class="sync-code" id="syncCode"></div>
-            <div class="sync-hint">もう一方のデバイスでこのコードを入力してください。</div>
-            <div class="sync-approve" id="syncApprove" hidden>
-              <div class="sync-approve-text">別のデバイスが接続を求めています。許可しますか？</div>
-              <div class="sync-approve-buttons">
-                <button class="primary-btn" id="syncAllowBtn" type="button">許可</button>
-                <button class="secondary-btn" id="syncDenyBtn" type="button">拒否</button>
-              </div>
-            </div>
-            <button class="secondary-btn" id="syncCancelCodeBtn" type="button">キャンセル</button>
-          </div>
-        </div>
-        <form class="sync-card" id="syncJoinForm" autocomplete="off">
-          <div class="sync-card-title">2台目：コードを入力</div>
-          <input class="sync-input" id="syncCodeInput" type="text" inputmode="text" autocapitalize="characters" autocorrect="off" spellcheck="false" maxlength="12" placeholder="ABCD-EFGH">
-          <button class="primary-btn" id="syncJoinBtn" type="submit">接続</button>
-        </form>
       </div>
 
       <div id="syncPaired" hidden>

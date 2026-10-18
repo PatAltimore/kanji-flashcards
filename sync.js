@@ -6,9 +6,10 @@
  *      over and over (merging identical states changes nothing). Counters are
  *      merged three-way against the state both devices had after their last
  *      sync, so nothing is double counted.
- *   2. A peer-to-peer transport on PeerJS (WebRTC). Devices are paired once
- *      with a short code; after that, opening the sync screen on both devices
- *      connects them directly and they exchange state. Nothing is stored on a
+ *   2. A peer-to-peer transport on PeerJS (WebRTC). Devices on the same
+ *      network find each other and are paired once by confirming a
+ *      verification number; after that, opening the sync screen on both
+ *      devices connects them directly and they exchange state. Nothing is stored on a
  *      server: PeerJS's public broker only introduces the two devices.
  */
 (function (root) {
@@ -208,11 +209,8 @@
   // ------------------------------------------------------------ transport
 
   const PEER_PREFIX = "kanjiflash-";
-  const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const CODE_LENGTH = 8;
   const CHUNK_SIZE = 12000;
   const RETRY_MS = 3000;
-  const PAIR_TIMEOUT_MS = 120000;
 
   function randomString(alphabet, length) {
     const bytes = new Uint8Array(length);
@@ -220,18 +218,6 @@
     let out = "";
     for (let i = 0; i < length; i++) out += alphabet[bytes[i] % alphabet.length];
     return out;
-  }
-
-  function generateCode() {
-    return randomString(CODE_ALPHABET, CODE_LENGTH);
-  }
-
-  function formatCode(code) {
-    return code.slice(0, 4) + "-" + code.slice(4);
-  }
-
-  function normalizeCode(text) {
-    return String(text || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   }
 
   async function sha256Hex(text) {
@@ -290,132 +276,6 @@
       stage(label + " ice " + state);
       if (state === "failed" && onFailed) onFailed();
     });
-  }
-
-  // Show a code on this device; the other device enters it. `onRequest`
-  // resolves true/false to accept the other device. On accept both sides end
-  // up holding the same random pair key.
-  function hostPairing(handlers) {
-    let peer = null;
-    let cancelled = false;
-    let busy = false;
-    const stage = reporter(handlers);
-
-    function open() {
-      const code = generateCode();
-      peer = new root.Peer(PEER_PREFIX + "pair-" + code);
-      peer.on("open", () => {
-        stage("code registered");
-        handlers.onCode(code);
-      });
-      peer.on("error", (err) => {
-        if (cancelled) return;
-        if (err.type === "unavailable-id") {
-          peer.destroy();
-          open();
-        } else {
-          handlers.onError(err);
-        }
-      });
-      peer.on("connection", (conn) => {
-        if (busy) {
-          conn.close();
-          return;
-        }
-        stage("device connecting");
-        watchIce(conn, "host", stage);
-        let pending = false;
-        const receive = makeReceiver((message) => {
-          if (message.t !== "hello" || busy) return;
-          busy = true;
-          pending = true;
-          stage("asking to allow");
-          Promise.resolve(handlers.onRequest()).then((ok) => {
-            pending = false;
-            if (!conn.open) {
-              // The other device gave up while the question was open.
-              busy = false;
-              handlers.onError("guest-left");
-              return;
-            }
-            if (!ok) {
-              sendJson(conn, { t: "denied" });
-              busy = false;
-              return;
-            }
-            const key = randomString("0123456789abcdef", 32);
-            sendJson(conn, { t: "paired", key });
-            handlers.onPaired(key, "a");
-            root.setTimeout(() => cancel(), 800);
-          });
-        });
-        conn.on("data", receive);
-        conn.on("close", () => {
-          if (pending && handlers.onRequestCancelled) handlers.onRequestCancelled();
-        });
-      });
-    }
-
-    function cancel() {
-      cancelled = true;
-      if (peer) peer.destroy();
-    }
-
-    open();
-    return { cancel };
-  }
-
-  function joinPairing(rawCode, handlers) {
-    const code = normalizeCode(rawCode);
-    let peer = null;
-    let finished = false;
-    let timer = null;
-    const stage = reporter(handlers);
-
-    function finish() {
-      finished = true;
-      root.clearTimeout(timer);
-    }
-    function fail(reason) {
-      if (finished) return;
-      finish();
-      if (peer) peer.destroy();
-      handlers.onError(reason);
-    }
-
-    peer = new root.Peer();
-    timer = root.setTimeout(() => fail("timeout"), PAIR_TIMEOUT_MS);
-    peer.on("error", (err) => fail(err.type === "peer-unavailable" ? "not-found" : err.type || "error"));
-    peer.on("open", () => {
-      stage("server reached");
-      const conn = peer.connect(PEER_PREFIX + "pair-" + code, CONN_OPTIONS);
-      stage("contacting device");
-      watchIce(conn, "guest", stage, () => fail("ice-failed"));
-      const receive = makeReceiver((message) => {
-        if (message.t === "paired" && message.key) {
-          finish();
-          handlers.onPaired(message.key, "b");
-          root.setTimeout(() => peer.destroy(), 500);
-        } else if (message.t === "denied") {
-          fail("denied");
-        }
-      });
-      conn.on("data", receive);
-      conn.on("open", () => {
-        stage("connected, waiting for approval");
-        sendJson(conn, { t: "hello" });
-      });
-      conn.on("close", () => fail("closed"));
-      conn.on("error", () => fail("error"));
-    });
-
-    return {
-      cancel() {
-        finished = true;
-        root.clearTimeout(timer);
-        if (peer) peer.destroy();
-      },
-    };
   }
 
   // ------------------------------------------------ nearby device pairing
@@ -799,11 +659,6 @@
   const api = {
     mergeState,
     mergeStats,
-    generateCode,
-    formatCode,
-    normalizeCode,
-    hostPairing,
-    joinPairing,
     nearbyPairing,
     startSync,
     // exposed for tests

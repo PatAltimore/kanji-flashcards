@@ -1772,33 +1772,6 @@ body {
   font-size: 1rem;
 }
 
-.sync-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-align: center;
-  user-select: all;
-}
-
-.sync-input {
-  background: var(--glass-bg-soft);
-  border: 1.5px solid var(--glass-border);
-  color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 1.3rem;
-  letter-spacing: 0.1em;
-  text-align: center;
-  text-transform: uppercase;
-  padding: 12px 14px;
-  border-radius: 12px;
-}
-
-.sync-input:focus {
-  outline: 2px solid var(--gold-soft);
-  outline-offset: 2px;
-}
-
 .sync-status {
   min-height: 1.5em;
   text-align: center;
@@ -1821,20 +1794,6 @@ body {
   word-break: break-word;
 }
 
-.sync-approve {
-  border: 1.5px solid var(--gold);
-  border-radius: 12px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.sync-approve-text {
-  font-weight: 700;
-  text-align: center;
-}
-
 .sync-approve-buttons {
   display: flex;
   gap: 10px;
@@ -1854,11 +1813,4 @@ body {
   font-weight: 700;
   letter-spacing: 0.15em;
   user-select: all;
-}
-
-.sync-divider {
-  text-align: center;
-  color: var(--text-dim);
-  font-size: 0.8rem;
-  margin: 0 0 14px;
 }
