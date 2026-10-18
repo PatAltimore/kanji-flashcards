@@ -81,9 +81,11 @@
       <div class="calendar" id="lessonCalendar" aria-label="レッスンカレンダー"></div>
       <div class="lesson-actions">
         <button class="primary-btn" id="startLessonBtn" type="button">今日のレッスンを始める</button>
+        <button class="secondary-btn" id="startPlacementBtn" type="button">事前テスト</button>
         <button class="secondary-btn" id="startReviewBtn" type="button">復習するカード</button>
       </div>
       <div class="lesson-status" id="lessonStatus"></div>
+      <div class="lesson-status" id="lessonPlacementStatus"></div>
     </main>
   </section>
 
@@ -186,6 +188,7 @@
         <div class="results-pill pill-bad">✕ <span id="lessonResultWrong">0</span> 不正解</div>
       </div>
       <div class="results-accuracy" id="lessonResultAccuracy">正答率 0%</div>
+      <div class="results-stat" id="lessonResultNote" hidden></div>
       <button class="primary-btn" id="lessonResultsLessonsBtn" type="button">レッスンに戻る</button>
     </div>
   </section>

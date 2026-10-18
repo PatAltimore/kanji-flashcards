@@ -119,6 +119,9 @@
     lessonSubtitle: document.getElementById("lessonSubtitle"),
     lessonCalendar: document.getElementById("lessonCalendar"),
     startLessonBtn: document.getElementById("startLessonBtn"),
+    startPlacementBtn: document.getElementById("startPlacementBtn"),
+    lessonPlacementStatus: document.getElementById("lessonPlacementStatus"),
+    lessonResultNote: document.getElementById("lessonResultNote"),
     startReviewBtn: document.getElementById("startReviewBtn"),
     lessonStatus: document.getElementById("lessonStatus"),
     // type answer
@@ -217,7 +220,7 @@
   const DEFAULT_THEME = "dark";
 
   let settings = { stylizedFont: true, fontScale: 1, defaultDailyMinutes: DEFAULT_MINUTES, lessonQuestions: DEFAULT_QUESTIONS, reviewQuestions: DEFAULT_QUESTIONS, quizQuestions: DEFAULT_QUESTIONS, theme: DEFAULT_THEME };
-  let lessonHistory = { completed: {} };
+  let lessonHistory = { completed: {}, placement: {} };
   let lessonSession = null;
   let lessonQuestionTypes = [];
   let lessonTermState = new Map();
@@ -1812,12 +1815,19 @@
 
   // ---------- lessons ----------
 
+  // `placement` maps a kanji number to the preliminary test's verdict:
+  // "known" (answered everything right, kept out of lessons) or "learn".
+  function normalizeLessonHistory(raw) {
+    const history = raw && typeof raw === "object" && raw.completed ? raw : { completed: {} };
+    if (!history.placement || typeof history.placement !== "object") history.placement = {};
+    return history;
+  }
+
   function loadLessonHistory() {
     try {
-      const parsed = JSON.parse(localStorage.getItem(LESSONS_KEY) || "null");
-      return parsed && parsed.completed ? parsed : { completed: {} };
+      return normalizeLessonHistory(JSON.parse(localStorage.getItem(LESSONS_KEY) || "null"));
     } catch (err) {
-      return { completed: {} };
+      return normalizeLessonHistory(null);
     }
   }
 
@@ -1847,12 +1857,29 @@
     return new Date(y, m - 1, d);
   }
 
+  // Kanji the preliminary test marked as known are left out of lessons.
+  function lessonPool() {
+    return allKanji.filter((item) => lessonHistory.placement[item.num] !== "known");
+  }
+
   function lessonCardsForDate(date) {
-    const lessonCount = Math.ceil(allKanji.length / LESSON_SIZE);
+    const pool = lessonPool();
+    if (!pool.length) return [];
+    const lessonCount = Math.ceil(pool.length / LESSON_SIZE);
     const epoch = getLessonEpochDate();
     const index = ((dayDifference(date, epoch) % lessonCount) + lessonCount) % lessonCount;
-    return allKanji.slice(index * LESSON_SIZE, (index + 1) * LESSON_SIZE);
+    return pool.slice(index * LESSON_SIZE, (index + 1) * LESSON_SIZE);
   }
+
+  // Kanji not yet judged by the test and not already studied through lessons.
+  function unassessedKanji() {
+    return allKanji.filter((item) => {
+      if (lessonHistory.placement[item.num]) return false;
+      const entry = stats.perCard[String(item.num)];
+      return !(entry && (entry.right > 0 || entry.wrong > 0));
+    });
+  }
+
 
   // Spaced-repetition review queue: any previously-attempted kanji whose SRS
   // box has come due, weakest/most-overdue first. Brand-new kanji are
@@ -1876,11 +1903,16 @@
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     const todayKey = dateKey(today);
-    const lessonCount = Math.ceil(allKanji.length / LESSON_SIZE);
+    const pool = lessonPool();
+    const lessonCount = Math.max(1, Math.ceil(pool.length / LESSON_SIZE));
     const lessonNumber = (((dayDifference(today, getLessonEpochDate()) % lessonCount) + lessonCount) % lessonCount) + 1;
+    const todaysCards = lessonCardsForDate(today);
     els.lessonMonthLabel.textContent = today.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
-    els.lessonTitle.textContent = `レッスン${lessonNumber}`;
-    els.lessonSubtitle.textContent = `今日の重点漢字は${lessonCardsForDate(today).length}字。入力テストを完了すると日付に印が付きます。`;
+    els.lessonTitle.textContent = todaysCards.length ? `レッスン${lessonNumber}` : "すべて習得済み";
+    els.lessonSubtitle.textContent = todaysCards.length
+      ? `今日の重点漢字は${todaysCards.length}字。入力テストを完了すると日付に印が付きます。`
+      : "すべての漢字が既習です。復習で定着させましょう。";
+    els.startLessonBtn.disabled = todaysCards.length === 0;
     const headings = ["日", "月", "火", "水", "木", "金", "土"];
     let html = headings.map((day) => `<span class="calendar-heading">${day}</span>`).join("");
     for (let i = 0; i < firstDay.getDay(); i++) html += `<span class="calendar-day calendar-empty"></span>`;
@@ -1895,6 +1927,16 @@
     els.lessonStatus.textContent = reviewCount
       ? `${reviewCount}枚の復習カードがあります。`
       : "現在復習するカードはありません。お疲れさまです。";
+
+    const verdicts = allKanji.map((item) => lessonHistory.placement[item.num]);
+    const known = verdicts.filter((v) => v === "known").length;
+    const learn = verdicts.filter((v) => v === "learn").length;
+    const untested = unassessedKanji().length;
+    els.startPlacementBtn.disabled = untested === 0;
+    els.startPlacementBtn.textContent = untested
+      ? `事前テスト（次の${Math.min(settings.lessonQuestions, untested)}字）`
+      : "事前テスト完了";
+    els.lessonPlacementStatus.textContent = `事前テスト: 既習${known}字 · 要学習${learn}字 · 未判定${untested}字`;
   }
 
   // Lessons are typed: every kanji gets a question per available answer type
@@ -1919,6 +1961,7 @@
       seen: 0,
       right: 0,
       wrong: 0,
+      placed: { known: 0, learn: 0 },
     };
     // A kanji is graded once per lesson: wrong as soon as any of its
     // questions is missed, right after all of them are answered correctly.
@@ -1937,32 +1980,69 @@
     renderType();
   }
 
+  // Records the preliminary test's verdict for a kanji. Known kanji also get a
+  // starting spot in the review schedule so they come back for review later.
+  function markPlacement(kanjiNum, verdict) {
+    lessonHistory.placement[kanjiNum] = verdict;
+    lessonSession.placed[verdict]++;
+    saveLessonHistory();
+    if (verdict !== "known") return;
+    const today = dateKey(new Date());
+    const [y, m, d] = today.split("-").map(Number);
+    const key = String(kanjiNum);
+    const previous = stats.perCard[key] || { right: 0, wrong: 0 };
+    stats.perCard[key] = {
+      ...previous,
+      right: Math.max(previous.right, 1),
+      box: QUIZ_KNOWN_BOX,
+      due: dateKey(new Date(y, m - 1, d + BOX_INTERVALS_DAYS[QUIZ_KNOWN_BOX])),
+      lastSeen: today,
+      streak: 1,
+    };
+    saveStats();
+  }
+
   function gradeLessonTerm(item, correct) {
+    const placement = lessonSession.kind === "placement";
     const state = lessonTermState.get(item.num);
     state.left--;
     if (!correct) {
       state.wrongs++;
       if (!state.graded) {
-        gradeBuiltinSrs(item.num, false);
+        if (placement) markPlacement(item.num, "learn");
+        else gradeBuiltinSrs(item.num, false);
         state.graded = "wrong";
       }
     }
     if (state.left === 0 && state.wrongs === 0 && !state.graded) {
-      gradeBuiltinSrs(item.num, true);
+      if (placement) markPlacement(item.num, "known");
+      else gradeBuiltinSrs(item.num, true);
       state.graded = "right";
     }
   }
 
   function finishLesson() {
-    lessonHistory.completed[lessonSession.date] = lessonSession.cards.map((item) => item.num);
-    saveLessonHistory();
+    const placement = lessonSession.kind === "placement";
+    if (!placement) {
+      lessonHistory.completed[lessonSession.date] = lessonSession.cards.map((item) => item.num);
+      saveLessonHistory();
+    }
     if (savedMainSession) {
       queue = savedMainSession.queue;
       totalCount = savedMainSession.totalCount;
       masteredCount = savedMainSession.masteredCount;
     }
     savedMainSession = null;
-    els.lessonResultTitle.textContent = lessonSession.kind === "review" ? "復習完了" : "レッスン完了";
+    els.lessonResultTitle.textContent = placement
+      ? "事前テスト完了"
+      : lessonSession.kind === "review"
+      ? "復習完了"
+      : "レッスン完了";
+    els.lessonResultNote.hidden = !placement;
+    if (placement) {
+      els.lessonResultNote.textContent =
+        `既習 ${lessonSession.placed.known}字 · 要学習 ${lessonSession.placed.learn}字`;
+    }
     els.lessonResultSeen.textContent = String(lessonSession.seen);
     els.lessonResultRight.textContent = String(lessonSession.right);
     els.lessonResultWrong.textContent = String(lessonSession.wrong);
@@ -1982,7 +2062,11 @@
   });
   els.startLessonBtn.addEventListener("click", () => {
     const cards = lessonCardsForDate(new Date());
-    beginLesson(cards.slice(0, settings.lessonQuestions), "lesson");
+    if (cards.length) beginLesson(cards.slice(0, settings.lessonQuestions), "lesson");
+  });
+  els.startPlacementBtn.addEventListener("click", () => {
+    const untested = unassessedKanji();
+    if (untested.length) beginLesson(untested.slice(0, settings.lessonQuestions), "placement");
   });
   els.startReviewBtn.addEventListener("click", () => {
     const cards = getReviewCards();
@@ -2518,7 +2602,9 @@
     }
     if (mode === "lesson-type") {
       lessonQuestionTypes.shift();
-      recordResult(item.num, pendingTypeCorrect, false);
+      if (lessonSession.kind !== "placement") {
+        recordResult(item.num, pendingTypeCorrect, false);
+      }
       gradeLessonTerm(item, pendingTypeCorrect);
       lessonSession.seen++;
       if (pendingTypeCorrect) lessonSession.right++;
@@ -2596,7 +2682,7 @@
       saveStats();
     }
     if (profile.lessons) {
-      lessonHistory = profile.lessons;
+      lessonHistory = normalizeLessonHistory(profile.lessons);
       saveLessonHistory();
     }
     if (profile.deck && Array.isArray(profile.deck.queueNums)) {
@@ -2722,10 +2808,21 @@
           : incomingEpoch
         : localEpoch || incomingEpoch;
 
+    // A kanji either side wants to learn stays "learn"; otherwise known wins.
+    const placement = {};
+    new Set([
+      ...Object.keys((local.lessons && local.lessons.placement) || {}),
+      ...Object.keys((incoming.lessons && incoming.lessons.placement) || {}),
+    ]).forEach((key) => {
+      const a = local.lessons && local.lessons.placement && local.lessons.placement[key];
+      const b = incoming.lessons && incoming.lessons.placement && incoming.lessons.placement[key];
+      placement[key] = a === "learn" || b === "learn" ? "learn" : a || b;
+    });
+
     return {
       customAnswers: customAnswersMerged,
       stats: { daily, perCard },
-      lessons: { completed, epoch },
+      lessons: { completed, epoch, placement },
       settings: incoming.settings || local.settings,
       deck: incoming.deck || local.deck,
     };
