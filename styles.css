@@ -1609,6 +1609,25 @@ body {
   align-self: center;
 }
 
+/* A wrong answer turns the banner and response row red. */
+[data-theme="dark"] .type-card.answer-wrong .question-type-badge {
+  background: #f1b9b4;
+  color: #6f1d18;
+}
+
+[data-theme="dark"] .type-card.answer-wrong .type-form {
+  background: #fde6e3;
+}
+
+[data-theme="dark"] .type-card.answer-wrong .type-input {
+  color: #6f1d18;
+}
+
+[data-theme="dark"] .type-card.answer-wrong .type-submit-btn {
+  border-color: #d98b84;
+  color: #8f2a23;
+}
+
 /* A correct answer shows only the result line before moving on. */
 .type-feedback.quick > :not(.type-feedback-result) {
   display: none;
