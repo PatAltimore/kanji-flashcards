@@ -18,7 +18,6 @@
   const MIN_QUESTIONS = 5;
   const MAX_QUESTIONS = 30;
   const DEFAULT_QUESTIONS = 10;
-  const LESSON_SIZE = 10;
   // Leitner-box spaced repetition: box index -> days until next due date.
   // A correct answer advances a card to the next box (longer interval); a
   // miss drops it back a box and makes it due again immediately.
@@ -119,7 +118,6 @@
     lessonSubtitle: document.getElementById("lessonSubtitle"),
     lessonCalendar: document.getElementById("lessonCalendar"),
     startLessonBtn: document.getElementById("startLessonBtn"),
-    startPlacementBtn: document.getElementById("startPlacementBtn"),
     lessonPlacementStatus: document.getElementById("lessonPlacementStatus"),
     lessonResultNote: document.getElementById("lessonResultNote"),
     startReviewBtn: document.getElementById("startReviewBtn"),
@@ -220,7 +218,7 @@
   const DEFAULT_THEME = "dark";
 
   let settings = { stylizedFont: true, fontScale: 1, defaultDailyMinutes: DEFAULT_MINUTES, lessonQuestions: DEFAULT_QUESTIONS, reviewQuestions: DEFAULT_QUESTIONS, quizQuestions: DEFAULT_QUESTIONS, theme: DEFAULT_THEME };
-  let lessonHistory = { completed: {}, placement: {} };
+  let lessonHistory = { completed: {}, placement: {}, today: null };
   let lessonSession = null;
   let lessonQuestionTypes = [];
   let lessonTermState = new Map();
@@ -1817,9 +1815,15 @@
 
   // `placement` maps a kanji number to the preliminary test's verdict:
   // "known" (answered everything right, kept out of lessons) or "learn".
+  // `today` is the day's lesson: the kanji the test caught (see below).
   function normalizeLessonHistory(raw) {
     const history = raw && typeof raw === "object" && raw.completed ? raw : { completed: {} };
     if (!history.placement || typeof history.placement !== "object") history.placement = {};
+    const today = history.today;
+    history.today =
+      today && typeof today.date === "string" && Array.isArray(today.nums)
+        ? { date: today.date, nums: today.nums.filter((n) => Number.isFinite(n)) }
+        : null;
     return history;
   }
 
@@ -1839,45 +1843,40 @@
     }
   }
 
-  function dayDifference(a, b) {
-    const oneDay = 24 * 60 * 60 * 1000;
-    return Math.floor((Date.UTC(a.getFullYear(), a.getMonth(), a.getDate()) - Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())) / oneDay);
+  function isKanjiStudied(kanjiNum) {
+    const entry = stats.perCard[String(kanjiNum)];
+    return Boolean(entry && (entry.right > 0 || entry.wrong > 0));
   }
 
-  function ensureLessonEpoch() {
-    if (!lessonHistory.epoch) {
-      lessonHistory.epoch = dateKey(new Date());
+  // Today's lesson is the kanji the preliminary test caught: it keeps asking
+  // untested kanji until `settings.lessonQuestions` of them have been missed,
+  // and those become the lesson. A new day starts from any kanji caught earlier
+  // but never lessoned, then the test tops the list up.
+  function ensureTodaysLesson() {
+    const today = dateKey(new Date());
+    if (!lessonHistory.today || lessonHistory.today.date !== today) {
+      const carried = allKanji
+        .filter((item) => lessonHistory.placement[item.num] === "learn" && !isKanjiStudied(item.num))
+        .slice(0, settings.lessonQuestions)
+        .map((item) => item.num);
+      lessonHistory.today = { date: today, nums: carried };
       saveLessonHistory();
     }
-    return lessonHistory.epoch;
+    return lessonHistory.today;
   }
 
-  function getLessonEpochDate() {
-    const [y, m, d] = ensureLessonEpoch().split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  // Kanji the preliminary test marked as known are left out of lessons.
-  function lessonPool() {
-    return allKanji.filter((item) => lessonHistory.placement[item.num] !== "known");
-  }
-
-  function lessonCardsForDate(date) {
-    const pool = lessonPool();
-    if (!pool.length) return [];
-    const lessonCount = Math.ceil(pool.length / LESSON_SIZE);
-    const epoch = getLessonEpochDate();
-    const index = ((dayDifference(date, epoch) % lessonCount) + lessonCount) % lessonCount;
-    return pool.slice(index * LESSON_SIZE, (index + 1) * LESSON_SIZE);
+  function todaysLessonCards() {
+    return ensureTodaysLesson()
+      .nums.map((num) => kanjiByNum.get(num))
+      .filter(Boolean)
+      .slice(0, settings.lessonQuestions);
   }
 
   // Kanji not yet judged by the test and not already studied through lessons.
   function unassessedKanji() {
-    return allKanji.filter((item) => {
-      if (lessonHistory.placement[item.num]) return false;
-      const entry = stats.perCard[String(item.num)];
-      return !(entry && (entry.right > 0 || entry.wrong > 0));
-    });
+    return allKanji.filter(
+      (item) => !lessonHistory.placement[item.num] && !isKanjiStudied(item.num)
+    );
   }
 
 
@@ -1903,16 +1902,24 @@
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     const todayKey = dateKey(today);
-    const pool = lessonPool();
-    const lessonCount = Math.max(1, Math.ceil(pool.length / LESSON_SIZE));
-    const lessonNumber = (((dayDifference(today, getLessonEpochDate()) % lessonCount) + lessonCount) % lessonCount) + 1;
-    const todaysCards = lessonCardsForDate(today);
+    const todaysCards = todaysLessonCards();
+    const untestedCount = unassessedKanji().length;
+    const wanted = settings.lessonQuestions;
+    const testing = todaysCards.length < wanted && untestedCount > 0;
     els.lessonMonthLabel.textContent = today.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
-    els.lessonTitle.textContent = todaysCards.length ? `レッスン${lessonNumber}` : "すべて習得済み";
-    els.lessonSubtitle.textContent = todaysCards.length
+    els.lessonTitle.textContent =
+      todaysCards.length || testing ? "今日のレッスン" : "すべて習得済み";
+    els.lessonSubtitle.textContent = testing
+      ? `事前テストで間違えた漢字が今日のレッスンになります（${todaysCards.length} / ${wanted}字）。`
+      : todaysCards.length
       ? `今日の重点漢字は${todaysCards.length}字。入力テストを完了すると日付に印が付きます。`
       : "すべての漢字が既習です。復習で定着させましょう。";
-    els.startLessonBtn.disabled = todaysCards.length === 0;
+    els.startLessonBtn.textContent = testing
+      ? todaysCards.length
+        ? "事前テストを続ける"
+        : "事前テストを始める"
+      : "今日のレッスンを始める";
+    els.startLessonBtn.disabled = !testing && todaysCards.length === 0;
     const headings = ["日", "月", "火", "水", "木", "金", "土"];
     let html = headings.map((day) => `<span class="calendar-heading">${day}</span>`).join("");
     for (let i = 0; i < firstDay.getDay(); i++) html += `<span class="calendar-day calendar-empty"></span>`;
@@ -1931,12 +1938,7 @@
     const verdicts = allKanji.map((item) => lessonHistory.placement[item.num]);
     const known = verdicts.filter((v) => v === "known").length;
     const learn = verdicts.filter((v) => v === "learn").length;
-    const untested = unassessedKanji().length;
-    els.startPlacementBtn.disabled = untested === 0;
-    els.startPlacementBtn.textContent = untested
-      ? `事前テスト（次の${Math.min(settings.lessonQuestions, untested)}字）`
-      : "事前テスト完了";
-    els.lessonPlacementStatus.textContent = `事前テスト: 既習${known}字 · 要学習${learn}字 · 未判定${untested}字`;
+    els.lessonPlacementStatus.textContent = `事前テスト: 既習${known}字 · 要学習${learn}字 · 未判定${untestedCount}字`;
   }
 
   // Lessons are typed: every kanji gets a question per available answer type
@@ -1948,6 +1950,27 @@
       ),
       (q) => q.item
     );
+  }
+
+  // Placement runs until today's lesson is full: when the current batch is
+  // used up, the next batch of untested kanji is queued. A batch is never
+  // larger than the number of kanji still needed, so the lesson can't overshoot.
+  function refillPlacement() {
+    const needed = settings.lessonQuestions - ensureTodaysLesson().nums.length;
+    if (needed <= 0) return false;
+    const batch = unassessedKanji().slice(0, needed);
+    if (!batch.length) return false;
+    const questions = buildLessonQuestions(batch);
+    questions.forEach((q) => {
+      const state = lessonTermState.get(q.item.num);
+      if (state) state.left++;
+      else lessonTermState.set(q.item.num, { left: 1, wrongs: 0, graded: null });
+    });
+    queue = questions.map((q) => q.item);
+    lessonQuestionTypes = questions.map((q) => q.type);
+    lessonSession.total += questions.length;
+    lessonSession.cards = lessonSession.cards.concat(batch);
+    return true;
   }
 
   function beginLesson(cards, kind) {
@@ -1985,6 +2008,12 @@
   function markPlacement(kanjiNum, verdict) {
     lessonHistory.placement[kanjiNum] = verdict;
     lessonSession.placed[verdict]++;
+    if (verdict === "learn") {
+      const todays = ensureTodaysLesson();
+      if (!todays.nums.includes(kanjiNum) && todays.nums.length < settings.lessonQuestions) {
+        todays.nums.push(kanjiNum);
+      }
+    }
     saveLessonHistory();
     if (verdict !== "known") return;
     const today = dateKey(new Date());
@@ -2041,7 +2070,7 @@
     els.lessonResultNote.hidden = !placement;
     if (placement) {
       els.lessonResultNote.textContent =
-        `既習 ${lessonSession.placed.known}字 · 要学習 ${lessonSession.placed.learn}字`;
+        `既習 ${lessonSession.placed.known}字 · 要学習 ${lessonSession.placed.learn}字 · 今日のレッスン ${ensureTodaysLesson().nums.length} / ${settings.lessonQuestions}字`;
     }
     els.lessonResultSeen.textContent = String(lessonSession.seen);
     els.lessonResultRight.textContent = String(lessonSession.right);
@@ -2060,13 +2089,16 @@
     renderLessons();
     showScreen("lessons");
   });
+  // Starts the preliminary test while today's lesson still needs kanji;
+  // otherwise starts the lesson itself.
   els.startLessonBtn.addEventListener("click", () => {
-    const cards = lessonCardsForDate(new Date());
-    if (cards.length) beginLesson(cards.slice(0, settings.lessonQuestions), "lesson");
-  });
-  els.startPlacementBtn.addEventListener("click", () => {
+    const todays = todaysLessonCards();
     const untested = unassessedKanji();
-    if (untested.length) beginLesson(untested.slice(0, settings.lessonQuestions), "placement");
+    if (todays.length < settings.lessonQuestions && untested.length) {
+      beginLesson(untested.slice(0, settings.lessonQuestions - todays.length), "placement");
+    } else if (todays.length) {
+      beginLesson(todays, "lesson");
+    }
   });
   els.startReviewBtn.addEventListener("click", () => {
     const cards = getReviewCards();
@@ -2485,6 +2517,9 @@
     els.typeFeedback.hidden = true;
     els.typeSubmitBtn.textContent = "確認";
 
+    if (queue.length === 0 && mode === "lesson-type" && lessonSession.kind === "placement") {
+      refillPlacement();
+    }
     if (queue.length === 0) {
       if (mode === "lesson-type") {
         finishLesson();
@@ -2517,9 +2552,12 @@
     els.typeCongratsMsg.hidden = true;
     els.typeNewDeckBtn.hidden = true;
     els.typeKanji.textContent = item.kanji;
-    els.typeProgress.textContent = mode === "lesson-type"
-      ? `${lessonSession.seen} / ${lessonSession.total}`
-      : `${masteredCount} / ${totalCount} · 残り${queue.length}`;
+    els.typeProgress.textContent =
+      mode === "lesson-type" && lessonSession.kind === "placement"
+        ? `今日のレッスン ${ensureTodaysLesson().nums.length} / ${settings.lessonQuestions}字`
+        : mode === "lesson-type"
+        ? `${lessonSession.seen} / ${lessonSession.total}`
+        : `${masteredCount} / ${totalCount} · 残り${queue.length}`;
     els.typeInput.focus();
     if (mode === "type") saveState();
   }
@@ -2819,10 +2857,21 @@
       placement[key] = a === "learn" || b === "learn" ? "learn" : a || b;
     });
 
+    const todayA = local.lessons && local.lessons.today;
+    const todayB = incoming.lessons && incoming.lessons.today;
+    let today = todayA || todayB || null;
+    if (todayA && todayB) {
+      if (todayA.date === todayB.date) {
+        today = { date: todayA.date, nums: Array.from(new Set([...todayA.nums, ...todayB.nums])) };
+      } else {
+        today = todayA.date > todayB.date ? todayA : todayB;
+      }
+    }
+
     return {
       customAnswers: customAnswersMerged,
       stats: { daily, perCard },
-      lessons: { completed, epoch, placement },
+      lessons: { completed, epoch, placement, today },
       settings: incoming.settings || local.settings,
       deck: incoming.deck || local.deck,
     };
