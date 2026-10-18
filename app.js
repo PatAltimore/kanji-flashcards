@@ -228,8 +228,8 @@
   let customStudyCards = [];
   let customQuizKnown = 0;
   let customTypeCards = [];
-  let customTypeSections = null;
-  let customReviewState = new Map();
+  let customTypeAsked = [];
+  let customTermState = new Map();
   let customTypeMode = "type"; // "type" | "quiz" | "review"
   let customStudyMode = "cards"; // flashcards only; typed review runs through the custom type screen
   let customStudyIndex = 0;
@@ -1163,7 +1163,7 @@
     if (mode === "quiz") {
       const left = getUnreviewedCustomCards(deck).length;
       els.customCompleteStat.textContent =
-        `${shown}問中${customQuizKnown}問正解 · 未復習${left}枚`;
+        `${shown}枚中${customQuizKnown}枚正解 · 未復習${left}枚`;
     } else {
       els.customCompleteStat.textContent = `${shown}枚を復習しました`;
     }
@@ -1215,16 +1215,7 @@
       window.alert("このデッキには現在復習するカードがありません。");
       return;
     }
-    const questions = buildReviewQuestions(due);
-    customReviewState = new Map(
-      due.map((card) => [card.front, { left: card.sections.length, anyWrong: false }])
-    );
-    startCustomTypeSession(
-      deck,
-      questions.map((q) => q.card),
-      "review",
-      questions.map((q) => q.section)
-    );
+    startCustomTypeSession(deck, buildTypedQuestions(due), "review");
   }
 
   function renderCustomStudy() {
@@ -1292,30 +1283,12 @@
 
   // ---------- custom deck study: type answer (sequential, typo + plural tolerant) ----------
 
-  function pickCustomQuestionSection(card) {
-    if (!card.sections.length) return null;
-    return card.sections[Math.floor(Math.random() * card.sections.length)];
-  }
-
-  // `sections` (optional, parallel to `cards`) pins which section each
-  // question asks about; without it a random section is picked per card.
-  function startCustomTypeSession(deck, cards, mode, sections) {
-    customTypeDeck = deck;
-    customTypeCards = cards;
-    customTypeSections = sections || null;
-    customTypeMode = mode;
-    customTypeIndex = 0;
-    customQuizKnown = 0;
-    showScreen("customType");
-    renderCustomType();
-  }
-
-  // Review asks every section (reading, meaning, ...) of each due card as its
-  // own question. Questions are shuffled together, then picked one at a time,
-  // skipping any that belong to the same card as the previous question so a
-  // term's reading and meaning don't come back to back (unless only that
-  // card's questions are left).
-  function buildReviewQuestions(cards) {
+  // Typed modes (Type Answer, Quiz, Review) ask every section (reading,
+  // meaning, ...) of each card as its own question. Questions are shuffled
+  // together, then picked one at a time, skipping any that belong to the same
+  // card as the previous question so a term's questions don't come back to
+  // back (unless only that card's questions are left).
+  function buildTypedQuestions(cards) {
     const pool = shuffle(
       cards.flatMap((card) => card.sections.map((section) => ({ card, section })))
     );
@@ -1329,34 +1302,63 @@
     return ordered;
   }
 
+  function startCustomTypeSession(deck, questions, mode) {
+    customTypeDeck = deck;
+    customTypeCards = questions.map((q) => q.card);
+    customTypeAsked = questions.map((q) => q.section);
+    // A term is graded once per session however many questions it has.
+    customTermState = new Map();
+    questions.forEach((q) => {
+      const state = customTermState.get(q.card.front);
+      if (state) state.left++;
+      else customTermState.set(q.card.front, { left: 1, wrongs: 0, graded: null });
+    });
+    customTypeMode = mode;
+    customTypeIndex = 0;
+    customQuizKnown = 0;
+    showScreen("customType");
+    renderCustomType();
+  }
+
   function startCustomDeckType(deck) {
-    startCustomTypeSession(deck, deck.cards.filter((c) => c.sections.length), "type");
+    startCustomTypeSession(
+      deck,
+      buildTypedQuestions(deck.cards.filter((c) => c.sections.length)),
+      "type"
+    );
   }
 
   // Typed-answer placement quiz, played in fixed-size rounds (the Quiz
-  // Questions setting). Each round draws the next never-reviewed cards, and
-  // every answer is saved immediately, so quitting mid-round loses nothing
-  // and the next round continues with whatever is still unreviewed.
+  // Questions setting). Each round draws whole cards, never-reviewed ones
+  // first, until it has at least that many questions. Answers are saved as
+  // they happen (a miss immediately, a pass once all of a card's questions
+  // are right), so quitting mid-round loses nothing and the next round
+  // continues with whatever is still unreviewed.
   function startCustomDeckQuiz(deck) {
-    const cards = buildQuizQueue(deck).slice(0, settings.quizQuestions);
-    startCustomTypeSession(deck, cards, "quiz");
+    const cards = [];
+    let questionCount = 0;
+    for (const card of buildQuizQueue(deck)) {
+      if (questionCount >= settings.quizQuestions) break;
+      cards.push(card);
+      questionCount += card.sections.length;
+    }
+    startCustomTypeSession(deck, buildTypedQuestions(cards), "quiz");
+  }
+
+  function gradeCustomTerm(deck, card, correct) {
+    if (customTypeMode === "quiz") applyCustomQuizResult(deck, card, correct);
+    else applyCustomSrsResult(deck, card.front, correct);
   }
 
   function renderCustomType() {
     const deck = customTypeDeck;
     const idx = customTypeIndex;
     if (idx >= customTypeCards.length) {
-      const shown =
-        customTypeMode === "review"
-          ? new Set(customTypeCards.map((c) => c.front)).size
-          : customTypeCards.length;
-      showCustomDeckComplete(deck, customTypeMode, shown);
+      showCustomDeckComplete(deck, customTypeMode, customTermState.size);
       return;
     }
     const card = customTypeCards[idx];
-    customTypeCurrentSection = customTypeSections
-      ? customTypeSections[idx]
-      : pickCustomQuestionSection(card);
+    customTypeCurrentSection = customTypeAsked[idx];
     customTypeAnswering = true;
     els.customTypeCard.classList.remove("answer-wrong", "answer-right");
     els.customTypeInput.disabled = false;
@@ -1404,23 +1406,19 @@
     const extra = getCustomDeckAnswers(deck, card.front, section.label);
     const accepted = buildCustomAcceptedAnswers(section.value, extra);
     const { correct, fuzzy } = matchAnswer(raw, accepted, true);
-    if (customTypeMode === "quiz") {
-      applyCustomQuizResult(deck, card, correct);
-      if (correct) customQuizKnown++;
-    } else if (customTypeMode === "review") {
-      // A term is graded once: wrong as soon as any of its questions is missed,
-      // right only after all of its questions have been answered correctly.
-      const state = customReviewState.get(card.front);
-      state.left--;
-      if (!correct && !state.anyWrong) {
-        state.anyWrong = true;
-        applyCustomSrsResult(deck, card.front, false);
+    const state = customTermState.get(card.front);
+    state.left--;
+    if (!correct) {
+      state.wrongs++;
+      if (!state.graded) {
+        gradeCustomTerm(deck, card, false);
+        state.graded = "wrong";
       }
-      if (state.left === 0 && !state.anyWrong) {
-        applyCustomSrsResult(deck, card.front, true);
-      }
-    } else {
-      applyCustomSrsResult(deck, card.front, correct);
+    }
+    if (state.left === 0 && state.wrongs === 0 && !state.graded) {
+      gradeCustomTerm(deck, card, true);
+      state.graded = "right";
+      if (customTypeMode === "quiz") customQuizKnown++;
     }
 
     customTypeAnswering = false;
@@ -1467,12 +1465,19 @@
     const deck = customTypeDeck;
     const card = customTypeCards[customTypeIndex];
     addCustomDeckAnswer(deck, card.front, customTypeCurrentSection.label, pendingCustomTypeRawAnswer);
-    if (customTypeMode === "quiz") {
-      // The miss was already saved as this card's first placement; redo it as
-      // a correct answer now that the player's answer has been accepted.
+    const state = customTermState.get(card.front);
+    state.wrongs--;
+    if (customTypeMode === "quiz" && state.wrongs === 0 && state.graded === "wrong") {
+      // The miss was already saved as this card's first placement; now that
+      // the player's answer has been accepted, undo it and place the card as
+      // right once all of its questions are done.
       delete deck.srs[card.front];
-      applyCustomQuizResult(deck, card, true);
-      customQuizKnown++;
+      state.graded = null;
+      if (state.left === 0) {
+        applyCustomQuizResult(deck, card, true);
+        state.graded = "right";
+        customQuizKnown++;
+      }
     }
     pendingCustomTypeCorrect = true;
     updateCustomTypeFeedbackResult(true, pendingCustomTypeRawAnswer, false);
