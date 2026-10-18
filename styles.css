@@ -1491,11 +1491,28 @@ body {
   border-color: #ffffff;
 }
 
+/* Raised, key-like home buttons: lit top edge, solid dark lip below, soft
+   drop shadow; pressing sinks the button into its lip. */
 [data-theme="dark"] .mode-btn {
-  background: #383838;
-  border: 1px solid #4a4a4a;
-  border-radius: 14px;
-  box-shadow: none;
+  background: linear-gradient(180deg, #4f4f4f 0%, #3a3a3a 100%);
+  border: 1px solid #5e5e5e;
+  border-top-color: #7a7a7a;
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    inset 0 -2px 0 rgba(0,0,0,0.18),
+    0 6px 0 #171717,
+    0 12px 18px -4px rgba(0,0,0,0.6);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+[data-theme="dark"] .mode-btn:active {
+  transform: translateY(5px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    inset 0 -2px 0 rgba(0,0,0,0.18),
+    0 1px 0 #171717,
+    0 3px 6px -2px rgba(0,0,0,0.5);
 }
 
 [data-theme="dark"] .theme-option.active {
