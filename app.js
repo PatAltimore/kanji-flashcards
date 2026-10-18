@@ -12,8 +12,11 @@
   const AUTO_ADVANCE_MS = 700;
   const EXPORT_APP_ID = "kanji-flash";
   const EXPORT_VERSION = 1;
-  const SYNC_PAIR_KEY = "kanjiFlashN2.sync.v1";
-  const SYNC_BASE_KEY = "kanjiFlashN2.syncBase.v1";
+  const SYNC_GROUP_KEY = "kanjiFlashN2.syncGroup.v1";
+  const SYNC_COUNTS_KEY = "kanjiFlashN2.syncCounts.v1";
+  // Written by the earlier two-device version; read once to migrate.
+  const OLD_SYNC_PAIR_KEY = "kanjiFlashN2.sync.v1";
+  const OLD_SYNC_BASE_KEY = "kanjiFlashN2.syncBase.v1";
   const DEVICE_ID_KEY = "kanjiFlashN2.deviceId.v1";
   const DECK_TOMBSTONES_KEY = "kanjiFlashN2.deckTombstones.v1";
   const PEERJS_SRC = "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js";
@@ -106,6 +109,7 @@
     syncPaired: document.getElementById("syncPaired"),
     syncNowBtn: document.getElementById("syncNowBtn"),
     syncSasTitle: document.getElementById("syncSasTitle"),
+    syncGroupTitle: document.getElementById("syncGroupTitle"),
     syncSasHint: document.getElementById("syncSasHint"),
     syncStatus: document.getElementById("syncStatus"),
     syncTech: document.getElementById("syncTech"),
@@ -458,6 +462,67 @@
   // Records one answer in the daily and per-card counters. The review schedule
   // is updated here too unless `gradeSrs` is false (lessons grade each kanji
   // once, however many questions it had; see gradeLessonTerm).
+  // Each device counts its own answers separately (see sync.js): the totals the
+  // app shows are the sum over all devices in the sync group.
+  let syncCounts = null;
+
+  function ownCounts() {
+    const id = getDeviceId();
+    if (!syncCounts.devices[id]) syncCounts.devices[id] = { daily: {}, perCard: {} };
+    return syncCounts.devices[id];
+  }
+
+  function saveSyncCounts() {
+    saveJson(SYNC_COUNTS_KEY, syncCounts);
+  }
+
+  function bumpOwnCounts(day, cardKey, correct) {
+    const own = ownCounts();
+    const d = own.daily[day] || (own.daily[day] = { completed: 0, right: 0, wrong: 0 });
+    d.completed++;
+    d[correct ? "right" : "wrong"]++;
+    const c = own.perCard[cardKey] || (own.perCard[cardKey] = { right: 0, wrong: 0 });
+    c[correct ? "right" : "wrong"]++;
+    saveSyncCounts();
+  }
+
+  // Makes this device's own counters cover whatever the local statistics have
+  // beyond what other devices already account for (first run, or after a
+  // backup import). Only ever raises a counter, as counters must never go down.
+  function reconcileOwnWithStats() {
+    const id = getDeviceId();
+    const others = { epoch: syncCounts.epoch, devices: { ...syncCounts.devices } };
+    delete others.devices[id];
+    const otherTotals = KanjiFlashSync.totalCounts(others);
+    const own = ownCounts();
+    Object.keys(stats.daily || {}).forEach((day) => {
+      const mine = own.daily[day] || (own.daily[day] = { completed: 0, right: 0, wrong: 0 });
+      ["completed", "right", "wrong"].forEach((field) => {
+        const need = (stats.daily[day][field] || 0) - ((otherTotals.daily[day] && otherTotals.daily[day][field]) || 0);
+        if (need > mine[field]) mine[field] = need;
+      });
+    });
+    Object.keys(stats.perCard || {}).forEach((key) => {
+      const mine = own.perCard[key] || (own.perCard[key] = { right: 0, wrong: 0 });
+      ["right", "wrong"].forEach((field) => {
+        const need = (stats.perCard[key][field] || 0) - ((otherTotals.perCard[key] && otherTotals.perCard[key][field]) || 0);
+        if (need > mine[field]) mine[field] = need;
+      });
+    });
+    saveSyncCounts();
+  }
+
+  function initSyncCounts() {
+    migrateOldPairing();
+    const saved = loadJson(SYNC_COUNTS_KEY, null);
+    syncCounts =
+      saved && typeof saved === "object" && saved.devices && typeof saved.devices === "object"
+        ? { epoch: Number(saved.epoch) || 0, devices: saved.devices }
+        : { epoch: 0, devices: {} };
+    ownCounts();
+    reconcileOwnWithStats();
+  }
+
   function recordResult(kanjiNum, correct, gradeSrs = true) {
     const day = dateKey(new Date());
     if (!stats.daily[day]) {
@@ -483,6 +548,7 @@
       Object.assign(stats.perCard[cardKey], applySrsResult(stats.perCard[cardKey], correct, day));
     }
 
+    bumpOwnCounts(day, cardKey, correct);
     saveStats();
   }
 
@@ -2064,6 +2130,12 @@
     const [y, m, d] = today.split("-").map(Number);
     const key = String(kanjiNum);
     const previous = stats.perCard[key] || { right: 0, wrong: 0 };
+    if (previous.right < 1) {
+      const own = ownCounts();
+      const c = own.perCard[key] || (own.perCard[key] = { right: 0, wrong: 0 });
+      c.right++;
+      saveSyncCounts();
+    }
     stats.perCard[key] = {
       ...previous,
       right: Math.max(previous.right, 1),
@@ -2384,6 +2456,11 @@
     if (!ok) return;
     stats = { daily: {}, perCard: {} };
     saveStats();
+    // A higher epoch makes every synced device drop its counts and schedules
+    // from before the reset when it next syncs.
+    syncCounts = { epoch: Date.now(), devices: {} };
+    ownCounts();
+    saveSyncCounts();
     renderStats();
   });
 
@@ -2923,8 +3000,8 @@
 
   // ---------- device sync ----------
 
-  let syncPairing = null; // pairing in progress (host or guest handle)
-  let syncSession = null; // running sync session
+  let syncPairing = null; // room watcher that joins new devices to the group
+  let syncSession = null; // running group sync
   let peerLoadPromise = null;
   let syncVerify = null; // resolver for the open "same number on both?" question
   let syncStages = [];
@@ -2950,15 +3027,23 @@
     }
   }
 
-  function askToVerifyNumber(number) {
+  const VERIFY_QUESTION = "もう一方の画面にも同じ番号が表示されていますか？";
+
+  function askToVerifyNumber(number, info) {
+    const hasMine = Boolean(info && info.hasMine);
+    const hasTheirs = Boolean(info && info.hasTheirs);
     els.syncSas.textContent = number;
-    if (loadSyncPair()) {
+    if (hasMine && hasTheirs) {
+      els.syncSasTitle.textContent = "別のグループのデバイスが見つかりました";
+      els.syncSasHint.textContent = `${VERIFY_QUESTION}「同じ」を押すと、2つのグループが1つに統合されます。`;
+    } else if (hasMine) {
       els.syncSasTitle.textContent = "新しいデバイスが見つかりました";
-      els.syncSasHint.textContent =
-        "もう一方の画面にも同じ番号が表示されていますか？「同じ」を押すと、このデバイスは新しいデバイスとペアリングされ、今のペアリングは置き換えられます。";
+      els.syncSasHint.textContent = `${VERIFY_QUESTION}「同じ」を押すと、そのデバイスがグループに追加されます。`;
     } else {
       els.syncSasTitle.textContent = "近くのデバイスが見つかりました";
-      els.syncSasHint.textContent = "もう一方の画面にも同じ番号が表示されていますか？";
+      els.syncSasHint.textContent = hasTheirs
+        ? `${VERIFY_QUESTION}「同じ」を押すと、そのデバイスのグループに参加します。`
+        : `${VERIFY_QUESTION}「同じ」を押すと、2台でグループを作成します。`;
       setNearbyStatus("近くのデバイスが見つかりました。");
     }
     els.syncSasBox.hidden = false;
@@ -2967,31 +3052,30 @@
     });
   }
 
-  // Finds a device on the same network and pairs after both people confirm
-  // the same number; the code buttons below are the fallback.
+  // Finds devices on the same network. A device that is not in a group yet
+  // joins (or starts) one after both people confirm the same number; a device
+  // that is in a group keeps watching quietly so it can add newcomers.
   function startNearby() {
-    const pair = loadSyncPair();
+    const group = loadSyncGroup();
     if (syncPairing) {
       syncPairing.cancel();
       syncPairing = null;
     }
     resolveSyncVerify(false);
-    if (!pair) {
+    if (!group) {
       setSyncTech(null);
       setSyncStatus("");
       setNearbyStatus("近くのデバイスを探しています…");
     }
     ensurePeerLoaded()
       .then(() => {
-        const current = loadSyncPair();
-        if (els.screenSync.hidden || Boolean(current) !== Boolean(pair)) return;
+        if (els.screenSync.hidden || Boolean(loadSyncGroup()) !== Boolean(group)) return;
         syncPairing = KanjiFlashSync.nearbyPairing(
           {
-            // A paired device only watches quietly; its screen shows the sync.
-            onStage: pair ? undefined : setSyncTech,
+            onStage: group ? undefined : setSyncTech,
             onWaiting: () => {
               resolveSyncVerify(false);
-              if (!pair) {
+              if (!group) {
                 setNearbyStatus("近くのデバイスを探しています…もう一方のデバイスでもこの画面を開いてください。");
               }
             },
@@ -2999,15 +3083,15 @@
             onVerifyCancelled: () => resolveSyncVerify(false),
             onRejected: (who) =>
               setSyncStatus(
-                pair
+                group
                   ? "キャンセルしました。"
                   : who === "remote"
                   ? "相手のデバイスがキャンセルしました。もう一度探しています…"
                   : "キャンセルしました。もう一度探しています…"
               ),
-            onPaired: (key, role) => savePairAndSync(key, role),
+            onJoined: ({ key, members }) => joinGroup(key, members),
             onError: (err) => {
-              if (pair) return;
+              if (group) return;
               const type = typeof err === "string" ? err : err && err.type;
               setNearbyStatus(
                 type === "no-network-id"
@@ -3016,11 +3100,18 @@
               );
             },
           },
-          { key: pair ? pair.key : undefined }
+          {
+            key: group ? group.key : undefined,
+            deviceId: getDeviceId(),
+            getMembers: () => {
+              const current = loadSyncGroup();
+              return current ? current.members : {};
+            },
+          }
         );
       })
       .catch(() => {
-        if (!pair) setNearbyStatus("同期の準備に失敗しました。ネットワークを確認してください。");
+        if (!group) setNearbyStatus("同期の準備に失敗しました。ネットワークを確認してください。");
       });
   }
 
@@ -3047,9 +3138,35 @@
     return peerLoadPromise;
   }
 
-  function loadSyncPair() {
-    const pair = loadJson(SYNC_PAIR_KEY, null);
-    return pair && typeof pair.key === "string" && (pair.role === "a" || pair.role === "b") ? pair : null;
+  // The group this device belongs to: a shared secret key and the ids of its
+  // devices (including this one), or null if not in a group yet.
+  function loadSyncGroup() {
+    const group = loadJson(SYNC_GROUP_KEY, null);
+    if (!group || typeof group.key !== "string") return null;
+    return { key: group.key, members: isPlainObject(group.members) ? group.members : {} };
+  }
+
+  function saveSyncGroup(group) {
+    saveJson(SYNC_GROUP_KEY, group);
+  }
+
+  // Devices paired with the earlier two-device version keep working: its pair
+  // key becomes the group key, and the partner (if known) becomes a member.
+  function migrateOldPairing() {
+    if (loadSyncGroup()) return;
+    const old = loadJson(OLD_SYNC_PAIR_KEY, null);
+    if (!old || typeof old.key !== "string") return;
+    const base = loadJson(OLD_SYNC_BASE_KEY, null);
+    const now = new Date().toISOString();
+    const members = { [getDeviceId()]: now };
+    if (base && typeof base.with === "string") members[base.with] = now;
+    saveSyncGroup({ key: old.key, members });
+    try {
+      localStorage.removeItem(OLD_SYNC_PAIR_KEY);
+      localStorage.removeItem(OLD_SYNC_BASE_KEY);
+    } catch (err) {
+      /* ignore */
+    }
   }
 
   function stopSyncActivity() {
@@ -3065,10 +3182,13 @@
   }
 
   function refreshSyncUI() {
-    const paired = Boolean(loadSyncPair());
-    els.syncUnpaired.hidden = paired;
-    els.syncPaired.hidden = !paired;
+    const group = loadSyncGroup();
+    els.syncUnpaired.hidden = Boolean(group);
+    els.syncPaired.hidden = !group;
     els.syncSasBox.hidden = true;
+    if (group) {
+      els.syncGroupTitle.textContent = `同期グループ（${Math.max(Object.keys(group.members).length, 1)}台）`;
+    }
   }
 
   function describeSyncError(err) {
@@ -3085,8 +3205,7 @@
     return "接続できませんでした。同じWi-Fiに接続して、もう一度お試しください。";
   }
 
-  // A random id for this browser, sent with each sync so the other device can
-  // tell whether it is the same device it synced with before.
+  // A random id for this browser; it names this device within a group.
   function getDeviceId() {
     let id = loadJson(DEVICE_ID_KEY, null);
     if (typeof id !== "string" || id.length < 16) {
@@ -3098,10 +3217,24 @@
     return id;
   }
 
+  const SRS_FIELD_NAMES = ["box", "due", "lastSeen", "streak"];
+
   function buildSyncState() {
+    const group = loadSyncGroup();
+    const srs = {};
+    Object.keys(stats.perCard || {}).forEach((key) => {
+      const entry = stats.perCard[key];
+      const fields = {};
+      SRS_FIELD_NAMES.forEach((name) => {
+        if (entry[name] !== undefined) fields[name] = entry[name];
+      });
+      if (Object.keys(fields).length) srs[key] = fields;
+    });
     return {
       deviceId: getDeviceId(),
-      stats: { daily: stats.daily || {}, perCard: stats.perCard || {} },
+      members: group ? group.members : {},
+      counts: syncCounts,
+      srs,
       customAnswers,
       lessons: {
         completed: lessonHistory.completed,
@@ -3114,18 +3247,53 @@
     };
   }
 
-  // Merges the other device's state into this one. Both devices run this, so
-  // the merge is symmetric; `base` (what both had after the last sync) keeps
-  // counters from being added twice.
+  // Same content regardless of key order, to tell whether a merge changed
+  // anything (so changes are only passed on when there is something new).
+  function canonicalJson(value) {
+    if (Array.isArray(value)) return "[" + value.map(canonicalJson).join(",") + "]";
+    if (value && typeof value === "object") {
+      return (
+        "{" +
+        Object.keys(value)
+          .sort()
+          .filter((key) => value[key] !== undefined)
+          .map((key) => JSON.stringify(key) + ":" + canonicalJson(value[key]))
+          .join(",") +
+        "}"
+      );
+    }
+    return JSON.stringify(value);
+  }
+
+  // Shows the summed counters, with each kanji's review schedule alongside.
+  function applyCountsToStats(srs) {
+    const total = KanjiFlashSync.totalCounts(syncCounts);
+    const perCard = {};
+    new Set([...Object.keys(total.perCard), ...Object.keys(srs || {})]).forEach((key) => {
+      perCard[key] = {
+        right: (total.perCard[key] && total.perCard[key].right) || 0,
+        wrong: (total.perCard[key] && total.perCard[key].wrong) || 0,
+        ...((srs && srs[key]) || {}),
+      };
+    });
+    stats = { daily: total.daily, perCard };
+    saveStats();
+  }
+
+  // Merges another device's state into this one. Returns true if anything here
+  // changed (the sync layer then passes the news on to other devices).
   function applySyncState(remote) {
     if (!remote || typeof remote !== "object" || JSON.stringify(remote).includes('"__proto__"')) {
       throw new Error("Invalid sync data");
     }
-    const partnerId = typeof remote.deviceId === "string" ? remote.deviceId : null;
-    const base = KanjiFlashSync.selectBase(loadJson(SYNC_BASE_KEY, null), partnerId);
-    const merged = KanjiFlashSync.mergeState(buildSyncState(), remote, base);
-    stats = { daily: merged.stats.daily, perCard: merged.stats.perCard };
-    saveStats();
+    const before = buildSyncState();
+    const merged = KanjiFlashSync.mergeState(before, remote);
+    if (canonicalJson(before) === canonicalJson(merged)) return false;
+
+    syncCounts = { epoch: merged.counts.epoch, devices: merged.counts.devices };
+    ownCounts(); // recreated if a reset elsewhere dropped it
+    saveSyncCounts();
+    applyCountsToStats(merged.srs);
     customAnswers = normalizeCustomAnswersShape(merged.customAnswers);
     saveCustomAnswers();
     lessonHistory = normalizeLessonHistory({ ...merged.lessons });
@@ -3133,12 +3301,18 @@
     customDecks = merged.customDecks;
     saveCustomDecks();
     saveJson(DECK_TOMBSTONES_KEY, merged.deletedDecks);
-    saveJson(SYNC_BASE_KEY, { with: partnerId, stats: merged.stats });
+    const group = loadSyncGroup();
+    if (group) {
+      group.members = merged.members;
+      saveSyncGroup(group);
+      refreshSyncUI();
+    }
+    return true;
   }
 
   function startSyncSession() {
-    const pair = loadSyncPair();
-    if (!pair) return;
+    const group = loadSyncGroup();
+    if (!group) return;
     if (syncSession) {
       syncSession.stop();
       syncSession = null;
@@ -3147,19 +3321,23 @@
     setSyncStatus("準備中…");
     ensurePeerLoaded()
       .then(() =>
-        KanjiFlashSync.startSync({
-          key: pair.key,
-          role: pair.role,
+        KanjiFlashSync.startGroupSync({
+          key: group.key,
+          deviceId: getDeviceId(),
+          getMembers: () => {
+            const current = loadSyncGroup();
+            return current ? current.members : group.members;
+          },
           getState: buildSyncState,
-          onStage: setSyncTech,
           onRemoteState: applySyncState,
-          onStatus: (status) =>
+          onStage: setSyncTech,
+          onStatus: ({ connected }) =>
             setSyncStatus(
-              status === "connected"
-                ? "接続しました。同期中…"
-                : "もう一方のデバイスでこの画面を開いてください…（待機中）"
+              connected
+                ? `${connected}台のデバイスと接続中…`
+                : "同じグループの他のデバイスを待っています…（待機中）"
             ),
-          onDone: () => setSyncStatus("同期が完了しました。", "ok"),
+          onSynced: ({ connected }) => setSyncStatus(`同期が完了しました。（接続中: ${connected}台）`, "ok"),
           onError: (err) => setSyncStatus(describeSyncError(err), "bad"),
         })
       )
@@ -3170,26 +3348,34 @@
       .catch(() => setSyncStatus("同期の準備に失敗しました。ネットワークを確認してください。", "bad"));
   }
 
-  function savePairAndSync(key, role) {
-    saveJson(SYNC_PAIR_KEY, { key, role });
+  // Called when this device has been added to a group (or two groups merged).
+  function joinGroup(key, members) {
+    const current = loadSyncGroup();
+    const merged = { ...(current ? current.members : {}), ...members };
+    const id = getDeviceId();
+    if (!merged[id]) merged[id] = new Date().toISOString();
+    saveSyncGroup({ key, members: merged });
     refreshSyncUI();
-    setSyncStatus("ペアリングが完了しました。", "ok");
+    setSyncStatus("グループに参加しました。", "ok");
     startSyncSession();
-    startNearby(); // keep watching for a new device, now with the new pair key
+    startNearby(); // keep watching for new devices, now with the group's key
   }
 
   els.openSyncBtn.addEventListener("click", () => {
     showScreen("sync");
     refreshSyncUI();
     setSyncStatus("");
-    if (loadSyncPair()) startSyncSession();
-    startNearby(); // paired or not: finds a new device or, if unpaired, a partner
+    if (loadSyncGroup()) startSyncSession();
+    startNearby(); // in a group: admits newcomers; otherwise finds a device to join
   });
 
   els.syncSasYesBtn.addEventListener("click", () => resolveSyncVerify(true));
   els.syncSasNoBtn.addEventListener("click", () => resolveSyncVerify(false));
 
-  els.syncNowBtn.addEventListener("click", startSyncSession);
+  els.syncNowBtn.addEventListener("click", () => {
+    if (syncSession) syncSession.syncNow();
+    else startSyncSession();
+  });
 
   // ---------- export / import ----------
 
@@ -3251,6 +3437,7 @@
 
   function finishImport(profile, decks) {
     applyProfileSnapshot(profile);
+    reconcileOwnWithStats();
     customDecks = decks;
     saveCustomDecks();
     pendingImport = null;
@@ -3301,6 +3488,7 @@
   // ---------- boot ----------
 
   stats = loadStats();
+  initSyncCounts();
   settings = loadSettings() || settings;
   lessonHistory = loadLessonHistory();
   customAnswers = normalizeCustomAnswersShape(loadCustomAnswers());

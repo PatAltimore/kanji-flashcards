@@ -393,7 +393,7 @@
       <div class="settings-row">
         <div class="settings-label-group">
           <div class="settings-label">デバイス同期</div>
-          <div class="settings-sub">スマホとPCを直接つないで進捗を同期</div>
+          <div class="settings-sub">複数のデバイスを直接つないで進捗を同期</div>
         </div>
         <button class="secondary-btn" id="openSyncBtn" type="button">開く</button>
       </div>
@@ -513,7 +513,7 @@
       <span class="icon-btn-spacer"></span>
     </header>
     <div class="sync-body">
-      <p class="sync-intro">スマホとPCを直接つないで進捗を同期します。データはサーバーに保存されず、2台の間だけでやり取りされます。</p>
+      <p class="sync-intro">スマホやPCなど複数のデバイスを直接つないで進捗を同期します。データはサーバーに保存されず、デバイス同士でやり取りされます。</p>
 
       <div class="sync-card sync-sas" id="syncSasBox" hidden>
         <div class="sync-card-title" id="syncSasTitle">近くのデバイスが見つかりました</div>
@@ -536,8 +536,8 @@
 
       <div id="syncPaired" hidden>
         <div class="sync-card">
-          <div class="sync-card-title">ペアリング済み</div>
-          <div class="sync-hint">両方のデバイスでこの画面を開くと、自動的に同期されます。新しいスマホやPCを使うときは、そのデバイスでもこの画面を開くと、ペアリングし直すか確認が表示されます。</div>
+          <div class="sync-card-title" id="syncGroupTitle">同期グループ</div>
+          <div class="sync-hint">同じグループのデバイスでこの画面を開くと、自動的に同期されます。スマホやPCを追加するときは、そのデバイスでもこの画面を開くと、グループに追加するか確認が表示されます。</div>
           <button class="primary-btn" id="syncNowBtn" type="button">今すぐ同期</button>
         </div>
       </div>
