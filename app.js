@@ -219,6 +219,8 @@
   let settings = { stylizedFont: true, fontScale: 1, defaultDailyMinutes: DEFAULT_MINUTES, lessonQuestions: DEFAULT_QUESTIONS, reviewQuestions: DEFAULT_QUESTIONS, quizQuestions: DEFAULT_QUESTIONS, theme: DEFAULT_THEME };
   let lessonHistory = { completed: {} };
   let lessonSession = null;
+  let lessonQuestionTypes = [];
+  let lessonTermState = new Map();
   let savedMainSession = null;
   let customAnswers = {};
   let customDecks = [];
@@ -244,7 +246,7 @@
   let customCompleteMode = "cards";
   let pendingImport = null;
 
-  let mode = null; // "marathon" | "daily" | "type" | "lesson-cards" | "lesson-type"
+  let mode = null; // "marathon" | "daily" | "type" | "lesson-type"
   let dailyMinutes = DEFAULT_MINUTES;
   let dailyTimeLeft = 0;
   let dailyIntervalId = null;
@@ -256,6 +258,21 @@
   let pendingTypeCorrect = false;
   let pendingTypeRawAnswer = "";
   let currentQuestionType = "meaning";
+
+  // Shuffles questions, then picks them one at a time, skipping any whose
+  // group (the term it asks about) matches the previous pick, so a term's
+  // questions don't come back to back unless only that term's are left.
+  function spreadQuestions(questions, groupOf) {
+    const pool = shuffle(questions);
+    const ordered = [];
+    while (pool.length) {
+      const last = ordered.length ? groupOf(ordered[ordered.length - 1]) : null;
+      let k = pool.findIndex((q) => groupOf(q) !== last);
+      if (k === -1) k = 0;
+      ordered.push(pool.splice(k, 1)[0]);
+    }
+    return ordered;
+  }
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -415,7 +432,10 @@
     };
   }
 
-  function recordResult(kanjiNum, correct) {
+  // Records one answer in the daily and per-card counters. The review schedule
+  // is updated here too unless `gradeSrs` is false (lessons grade each kanji
+  // once, however many questions it had; see gradeLessonTerm).
+  function recordResult(kanjiNum, correct, gradeSrs = true) {
     const day = dateKey(new Date());
     if (!stats.daily[day]) {
       stats.daily[day] = { completed: 0, right: 0, wrong: 0 };
@@ -436,8 +456,22 @@
     } else {
       stats.perCard[cardKey].wrong++;
     }
-    Object.assign(stats.perCard[cardKey], applySrsResult(stats.perCard[cardKey], correct, day));
+    if (gradeSrs) {
+      Object.assign(stats.perCard[cardKey], applySrsResult(stats.perCard[cardKey], correct, day));
+    }
 
+    saveStats();
+  }
+
+  function gradeBuiltinSrs(kanjiNum, correct) {
+    const cardKey = String(kanjiNum);
+    if (!stats.perCard[cardKey]) {
+      stats.perCard[cardKey] = { right: 0, wrong: 0 };
+    }
+    Object.assign(
+      stats.perCard[cardKey],
+      applySrsResult(stats.perCard[cardKey], correct, dateKey(new Date()))
+    );
     saveStats();
   }
 
@@ -1284,22 +1318,13 @@
   // ---------- custom deck study: type answer (sequential, typo + plural tolerant) ----------
 
   // Typed modes (Type Answer, Quiz, Review) ask every section (reading,
-  // meaning, ...) of each card as its own question. Questions are shuffled
-  // together, then picked one at a time, skipping any that belong to the same
-  // card as the previous question so a term's questions don't come back to
-  // back (unless only that card's questions are left).
+  // meaning, ...) of each card as its own question, shuffled with a term's
+  // questions kept apart where possible.
   function buildTypedQuestions(cards) {
-    const pool = shuffle(
-      cards.flatMap((card) => card.sections.map((section) => ({ card, section })))
+    return spreadQuestions(
+      cards.flatMap((card) => card.sections.map((section) => ({ card, section }))),
+      (q) => q.card
     );
-    const ordered = [];
-    while (pool.length) {
-      const last = ordered.length ? ordered[ordered.length - 1].card : null;
-      let k = pool.findIndex((q) => q.card !== last);
-      if (k === -1) k = 0;
-      ordered.push(pool.splice(k, 1)[0]);
-    }
-    return ordered;
   }
 
   function startCustomTypeSession(deck, questions, mode) {
@@ -1646,10 +1671,6 @@
         endDailyChallenge();
         return;
       }
-      if (mode === "lesson-cards") {
-        startLessonTyping();
-        return;
-      }
       els.kanji.textContent = "完";
       els.frontHint.hidden = true;
       els.congratsMsg.hidden = false;
@@ -1683,10 +1704,8 @@
     } else {
       els.cardCustomAnswers.hidden = true;
     }
-    if (mode === "marathon" || mode === "lesson-cards") {
-      els.progress.textContent = mode === "lesson-cards"
-        ? `${lessonSession.seen} / ${lessonSession.cards.length}`
-        : `${masteredCount} / ${totalCount} · 残り${queue.length}`;
+    if (mode === "marathon") {
+      els.progress.textContent = `${masteredCount} / ${totalCount} · 残り${queue.length}`;
     }
     els.card.classList.toggle("flipped", flipped);
     els.againBtn.disabled = !flipped;
@@ -1714,11 +1733,6 @@
         dailyTally.seen++;
         if (correct) dailyTally.right++;
         else dailyTally.wrong++;
-      }
-      if (mode === "lesson-cards") {
-        lessonSession.seen++;
-        if (correct) lessonSession.right++;
-        else lessonSession.wrong++;
       }
       flipped = false;
       els.card.style.transition = "none";
@@ -1866,7 +1880,7 @@
     const lessonNumber = (((dayDifference(today, getLessonEpochDate()) % lessonCount) + lessonCount) % lessonCount) + 1;
     els.lessonMonthLabel.textContent = today.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
     els.lessonTitle.textContent = `レッスン${lessonNumber}`;
-    els.lessonSubtitle.textContent = `今日の重点漢字は${lessonCardsForDate(today).length}字。2つの練習ラウンドを完了すると日付に印が付きます。`;
+    els.lessonSubtitle.textContent = `今日の重点漢字は${lessonCardsForDate(today).length}字。入力テストを完了すると日付に印が付きます。`;
     const headings = ["日", "月", "火", "水", "木", "金", "土"];
     let html = headings.map((day) => `<span class="calendar-heading">${day}</span>`).join("");
     for (let i = 0; i < firstDay.getDay(); i++) html += `<span class="calendar-day calendar-empty"></span>`;
@@ -1883,37 +1897,60 @@
       : "現在復習するカードはありません。お疲れさまです。";
   }
 
+  // Lessons are typed: every kanji gets a question per available answer type
+  // (meaning and onyomi reading), all shuffled together.
+  function buildLessonQuestions(cards) {
+    return spreadQuestions(
+      cards.flatMap((item) =>
+        availableQuestionTypes(item).map((type) => ({ item, type }))
+      ),
+      (q) => q.item
+    );
+  }
+
   function beginLesson(cards, kind) {
     savedMainSession = { queue, totalCount, masteredCount };
-    const flashCount = Math.ceil(cards.length / 2);
+    const questions = buildLessonQuestions(cards);
     lessonSession = {
       date: dateKey(new Date()),
       kind,
       cards,
-      flashCards: cards.slice(0, flashCount),
-      typeCards: cards.slice(flashCount),
+      total: questions.length,
       seen: 0,
       right: 0,
       wrong: 0,
     };
-    queue = shuffle(lessonSession.flashCards);
-    totalCount = cards.length;
-    masteredCount = 0;
-    flipped = false;
-    mode = "lesson-cards";
-    els.progress.hidden = false;
-    els.timerDisplay.hidden = true;
-    showScreen("play");
-    render();
-  }
-
-  function startLessonTyping() {
-    queue = shuffle(lessonSession.typeCards);
-    totalCount = queue.length;
+    // A kanji is graded once per lesson: wrong as soon as any of its
+    // questions is missed, right after all of them are answered correctly.
+    lessonTermState = new Map();
+    questions.forEach((q) => {
+      const state = lessonTermState.get(q.item.num);
+      if (state) state.left++;
+      else lessonTermState.set(q.item.num, { left: 1, wrongs: 0, graded: null });
+    });
+    queue = questions.map((q) => q.item);
+    lessonQuestionTypes = questions.map((q) => q.type);
+    totalCount = questions.length;
     masteredCount = 0;
     mode = "lesson-type";
     showScreen("type");
     renderType();
+  }
+
+  function gradeLessonTerm(item, correct) {
+    const state = lessonTermState.get(item.num);
+    state.left--;
+    if (!correct) {
+      state.wrongs++;
+      if (!state.graded) {
+        gradeBuiltinSrs(item.num, false);
+        state.graded = "wrong";
+      }
+    }
+    if (state.left === 0 && state.wrongs === 0 && !state.graded) {
+      gradeBuiltinSrs(item.num, true);
+      state.graded = "right";
+    }
   }
 
   function finishLesson() {
@@ -2381,7 +2418,8 @@
     }
 
     const item = queue[0];
-    currentQuestionType = pickQuestionType(item);
+    currentQuestionType =
+      mode === "lesson-type" ? lessonQuestionTypes[0] : pickQuestionType(item);
     const config = QUESTION_TYPES[currentQuestionType];
 
     els.questionTypeBadge.hidden = false;
@@ -2396,7 +2434,7 @@
     els.typeNewDeckBtn.hidden = true;
     els.typeKanji.textContent = item.kanji;
     els.typeProgress.textContent = mode === "lesson-type"
-      ? `${lessonSession.seen} / ${lessonSession.cards.length}`
+      ? `${lessonSession.seen} / ${lessonSession.total}`
       : `${masteredCount} / ${totalCount} · 残り${queue.length}`;
     els.typeInput.focus();
     if (mode === "type") saveState();
@@ -2478,11 +2516,15 @@
     if (pendingTypeCorrect) {
       masteredCount++;
     }
-    recordResult(item.num, pendingTypeCorrect);
     if (mode === "lesson-type") {
+      lessonQuestionTypes.shift();
+      recordResult(item.num, pendingTypeCorrect, false);
+      gradeLessonTerm(item, pendingTypeCorrect);
       lessonSession.seen++;
       if (pendingTypeCorrect) lessonSession.right++;
       else lessonSession.wrong++;
+    } else {
+      recordResult(item.num, pendingTypeCorrect);
     }
     renderType();
   }
