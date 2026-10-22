@@ -473,23 +473,25 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 16px;
-  padding: 16px 24px;
+  padding: 12px 24px 20px;
 }
 
 .mode-btn {
+  flex: 1;
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 18px;
-  background: linear-gradient(160deg, var(--surface), var(--surface-2));
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--gold);
-  border-radius: 16px;
-  padding: 22px 22px;
-  color: var(--text);
+  justify-content: center;
+  gap: 6px;
+  background: var(--mode-color, var(--gold));
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 20px;
+  padding: 12px;
+  color: #1c1c1c;
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   box-shadow: 0 12px 30px -18px rgba(0,0,0,0.5);
 }
 
@@ -497,27 +499,32 @@ body {
   transform: scale(0.98);
 }
 
-#modeCustomDecksBtn { --mode-color: #b28cff; }
-#modeMarathonBtn { --mode-color: #ff8a5b; }
-#modeDailyBtn { --mode-color: #ffd166; }
-#modeTypeBtn { --mode-color: #4fd1b5; }
-#modeLessonsBtn { --mode-color: #6ea8ff; }
-#modeStatsBtn { --mode-color: #8bd96b; }
+#modeLessonsBtn { --mode-color: #c4c4c4; }
+#modeCustomDecksBtn { --mode-color: #c4c4c4; }
+#modeMarathonBtn { --mode-color: #c4c4c4; }
+#modeStatsBtn { --mode-color: #9a9a9a; }
+#uploadCsvBtn { --mode-color: #9a9a9a; }
 
-.mode-btn {
-  border-left: 6px solid var(--mode-color, var(--gold));
+.home-small-row {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 16px;
 }
 
-.mode-btn-featured {
-  justify-content: space-between;
-  padding: 30px 24px;
+.mode-btn-small {
+  flex: 1;
+  padding: 14px;
 }
 
-.mode-btn-featured .mode-label {
+.mode-btn-small .mode-label {
   font-size: 1.5rem;
 }
 
 .mode-due {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -525,13 +532,13 @@ body {
   min-width: 64px;
   padding: 8px 12px;
   border-radius: 14px;
-  background: rgba(0,0,0,0.22);
-  color: var(--text-dim);
+  background: rgba(0,0,0,0.18);
+  color: #1c1c1c;
 }
 
 .mode-due.has-due {
-  background: var(--mode-color);
-  color: #1c1c1c;
+  background: #1c1c1c;
+  color: #fff;
 }
 
 .mode-due-num {
@@ -546,20 +553,16 @@ body {
   font-weight: 700;
 }
 
-.mode-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .mode-label {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 2.3rem;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .mode-sub {
-  font-size: 0.85rem;
-  color: var(--text-dim);
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.75;
 }
 
 /* ---------- daily challenge setup ---------- */
@@ -663,13 +666,107 @@ body {
 
 .lessons-body {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 20px calc(16px + var(--safe-bottom));
+}
+
+.lesson-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 12px 20px calc(28px + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 -8px;
+  padding: 4px 8px 12px;
+}
+
+.term-chart {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 10px;
+}
+
+.term-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+  min-width: 0;
+  padding: 10px 6px 9px;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.term-reading,
+.term-meaning {
+  width: 100%;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.term-reading {
+  white-space: nowrap;
+  min-height: 0.85rem;
+}
+
+.term-meaning {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  min-height: 1.7rem;
+}
+
+.term-word {
+  width: 100%;
+  font-size: 2.6rem;
+  line-height: 1.15;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.term-tile.studied::after {
+  content: "✓";
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  font-size: 0.7rem;
+  color: var(--success);
+}
+
+/* A selected term lights up. */
+.term-tile.selected {
+  background: linear-gradient(180deg, #ffffff 0%, #eaf6fd 100%);
+  border-color: #5cb8ec;
+  box-shadow: 0 0 0 2px rgba(92,184,236,0.55), 0 0 16px 2px rgba(92,184,236,0.55);
+  color: #5b5f63;
+}
+
+.term-tile.selected .term-word {
+  color: #2b2f33;
+}
+
+.term-tile.selected.studied::after {
+  color: #2f9e6b;
 }
 
 .lesson-heading {
+  width: 100%;
   max-width: 520px;
-  margin: 0 auto 20px;
+  margin: 0 auto 12px;
 }
 
 .lesson-kicker {
@@ -745,12 +842,16 @@ body {
 }
 
 .lesson-actions {
+  width: 100%;
   max-width: 520px;
-  margin: 22px auto 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
+  margin: 8px auto 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.lesson-actions .primary-btn {
+  grid-column: 1 / -1;
 }
 
 .lesson-actions .primary-btn,
@@ -1543,15 +1644,14 @@ body {
 /* Raised, key-like home buttons: lit top edge, solid dark lip below, soft
    drop shadow; pressing sinks the button into its lip. */
 [data-theme="dark"] .mode-btn {
-  background: linear-gradient(180deg, #4f4f4f 0%, #3a3a3a 100%);
-  border: 1px solid #5e5e5e;
-  border-top-color: #7a7a7a;
-  border-left: 6px solid var(--mode-color, #5e5e5e);
-  border-radius: 16px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mode-color) 88%, #fff) 0%, var(--mode-color) 100%);
+  border: 1px solid color-mix(in srgb, var(--mode-color) 70%, #000);
+  border-top-color: color-mix(in srgb, var(--mode-color) 60%, #fff);
+  border-radius: 20px;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.22),
-    inset 0 -2px 0 rgba(0,0,0,0.18),
-    0 6px 0 #171717,
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    inset 0 -2px 0 rgba(0,0,0,0.12),
+    0 6px 0 color-mix(in srgb, var(--mode-color) 45%, #000),
     0 12px 18px -4px rgba(0,0,0,0.6);
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
@@ -1559,9 +1659,9 @@ body {
 [data-theme="dark"] .mode-btn:active {
   transform: translateY(5px);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.14),
-    inset 0 -2px 0 rgba(0,0,0,0.18),
-    0 1px 0 #171717,
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    inset 0 -2px 0 rgba(0,0,0,0.12),
+    0 1px 0 color-mix(in srgb, var(--mode-color) 45%, #000),
     0 3px 6px -2px rgba(0,0,0,0.5);
 }
 
@@ -1813,4 +1913,152 @@ body {
   font-weight: 700;
   letter-spacing: 0.15em;
   user-select: all;
+}
+
+/* ---------- deck picker ---------- */
+
+.rows-wrap {
+  display: contents;
+}
+
+.rows-wrap[hidden] {
+  display: none;
+}
+
+.deck-pick-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  overflow-y: auto;
+}
+
+.deck-pick-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.deck-pick-item.selected {
+  border-color: var(--mode-color, var(--gold));
+}
+
+.deck-pick-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.deck-pick-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.deck-pick-meta {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.deck-chip {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deck-review-btn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 4px;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.deck-review-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Home buttons styled like a console system menu: glossy white pills with a
+   light-blue rim and an inner white ring. */
+[data-theme="dark"] .mode-btn {
+  background: linear-gradient(180deg, #ffffff 0%, #f3f6f8 55%, #e3e9ee 100%);
+  border: 3px solid #8fcdf0;
+  border-radius: 22px;
+  color: #5b5f63;
+  box-shadow:
+    inset 0 0 0 3px #ffffff,
+    inset 0 -8px 12px -6px rgba(140,160,180,0.35),
+    0 0 0 1px #4a9fd0,
+    0 8px 16px -6px rgba(0,0,0,0.65);
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
+}
+
+[data-theme="dark"] .mode-btn:active {
+  transform: scale(0.98);
+  border-color: #5cb8ec;
+  box-shadow:
+    inset 0 0 0 3px #ffffff,
+    inset 0 -8px 12px -6px rgba(140,160,180,0.35),
+    0 0 0 1px #2f8fcb,
+    0 0 14px 2px rgba(92,184,236,0.6);
+}
+
+[data-theme="dark"] .mode-btn .mode-label {
+  font-weight: 600;
+}
+
+[data-theme="dark"] .mode-due.has-due {
+  background: #3b9be0;
+  color: #ffffff;
+}
+
+/* Title in a plain white rounded plate (no outline) with a white rule under
+   the header, like a console menu header. */
+[data-theme="dark"] .brand {
+  font-size: 1.9rem;
+  letter-spacing: 0.04em;
+  color: #4a4d50;
+  padding: 6px 28px;
+  background: #ffffff;
+  border: none;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+#screen-home .topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  border-bottom: 3px solid #ffffff;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+}
+
+#screen-home .topbar .icon-btn {
+  justify-self: end;
 }

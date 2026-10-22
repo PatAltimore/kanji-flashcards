@@ -50,6 +50,14 @@
     screenLessons: document.getElementById("screen-lessons"),
     // home
     modeMarathonBtn: document.getElementById("modeMarathonBtn"),
+    screenDeckPick: document.getElementById("screen-deck-pick"),
+    deckPickTitle: document.getElementById("deckPickTitle"),
+    deckPickList: document.getElementById("deckPickList"),
+    lessonDeckBtn: document.getElementById("lessonDeckBtn"),
+    cardLegacyRows: document.getElementById("cardLegacyRows"),
+    cardSections: document.getElementById("cardSections"),
+    typeLegacyRows: document.getElementById("typeLegacyRows"),
+    typeSections: document.getElementById("typeSections"),
     modeDailyBtn: document.getElementById("modeDailyBtn"),
     modeStatsBtn: document.getElementById("modeStatsBtn"),
     modeLessonsBtn: document.getElementById("modeLessonsBtn"),
@@ -73,6 +81,7 @@
     frontHint: document.getElementById("frontHint"),
     congratsMsg: document.getElementById("congratsMsg"),
     newDeckBtn: document.getElementById("newDeckBtn"),
+    cardStats: document.getElementById("cardStats"),
     cardStatsRight: document.getElementById("cardStatsRight"),
     cardStatsWrong: document.getElementById("cardStatsWrong"),
     cardCustomAnswers: document.getElementById("cardCustomAnswers"),
@@ -119,7 +128,6 @@
     syncSas: document.getElementById("syncSas"),
     syncSasYesBtn: document.getElementById("syncSasYesBtn"),
     syncSasNoBtn: document.getElementById("syncSasNoBtn"),
-    customDecksSub: document.getElementById("customDecksSub"),
     customDecksDue: document.getElementById("customDecksDue"),
     customDecksDueNum: document.getElementById("customDecksDueNum"),
     exportDataBtn: document.getElementById("exportDataBtn"),
@@ -129,9 +137,6 @@
     importMergeBtn: document.getElementById("importMergeBtn"),
     importReplaceBtn: document.getElementById("importReplaceBtn"),
     importCancelBtn: document.getElementById("importCancelBtn"),
-    lessonQuestionsDownBtn: document.getElementById("lessonQuestionsDownBtn"),
-    lessonQuestionsUpBtn: document.getElementById("lessonQuestionsUpBtn"),
-    lessonQuestionsValue: document.getElementById("lessonQuestionsValue"),
     reviewQuestionsDownBtn: document.getElementById("reviewQuestionsDownBtn"),
     reviewQuestionsUpBtn: document.getElementById("reviewQuestionsUpBtn"),
     reviewQuestionsValue: document.getElementById("reviewQuestionsValue"),
@@ -143,7 +148,8 @@
     lessonSubtitle: document.getElementById("lessonSubtitle"),
     lessonCalendar: document.getElementById("lessonCalendar"),
     startLessonBtn: document.getElementById("startLessonBtn"),
-    lessonPlacementStatus: document.getElementById("lessonPlacementStatus"),
+    termChart: document.getElementById("termChart"),
+    clearSelectionBtn: document.getElementById("clearSelectionBtn"),
     lessonResultNote: document.getElementById("lessonResultNote"),
     startReviewBtn: document.getElementById("startReviewBtn"),
     lessonStatus: document.getElementById("lessonStatus"),
@@ -164,6 +170,7 @@
     typeMeaning: document.getElementById("typeMeaning"),
     typeCongratsMsg: document.getElementById("typeCongratsMsg"),
     typeNewDeckBtn: document.getElementById("typeNewDeckBtn"),
+    typeCardStats: document.getElementById("typeCardStats"),
     typeCardStatsRight: document.getElementById("typeCardStatsRight"),
     typeCardStatsWrong: document.getElementById("typeCardStatsWrong"),
     addAnswerBtn: document.getElementById("addAnswerBtn"),
@@ -223,6 +230,7 @@
     type: els.screenType,
     settings: els.screenSettings,
     lessons: els.screenLessons,
+    deckPick: els.screenDeckPick,
     importChoice: els.screenImportChoice,
     sync: els.screenSync,
     customDecks: els.screenCustomDecks,
@@ -243,7 +251,7 @@
   const THEMES = ["dark", "hanafuda", "hyakunin"];
   const DEFAULT_THEME = "dark";
 
-  let settings = { stylizedFont: true, fontScale: 1, defaultDailyMinutes: DEFAULT_MINUTES, lessonQuestions: DEFAULT_QUESTIONS, reviewQuestions: DEFAULT_QUESTIONS, quizQuestions: DEFAULT_QUESTIONS, theme: DEFAULT_THEME };
+  let settings = { stylizedFont: true, fontScale: 1, defaultDailyMinutes: DEFAULT_MINUTES, reviewQuestions: DEFAULT_QUESTIONS, quizQuestions: DEFAULT_QUESTIONS, theme: DEFAULT_THEME, lessonDeck: "n2-kanji", marathonDeck: "n2-kanji" };
   let lessonHistory = { completed: {}, placement: {}, today: null };
   let lessonSession = null;
   let lessonQuestionTypes = [];
@@ -327,29 +335,112 @@
   // The Custom Decks tile on the home screen shows how many reviews are due
   // across all of the player's decks.
   function updateHomeInfo() {
-    let due = 0;
+    let due = getReviewCards(n2Kanji).length;
     customDecks.forEach((deck) => {
       due += getDueCustomCards(deck).length;
     });
-    els.customDecksSub.textContent = customDecks.length
-      ? `${customDecks.length}個のデッキ`
-      : "自分のカードで学習";
     els.customDecksDueNum.textContent = String(due);
     els.customDecksDue.classList.toggle("has-due", due > 0);
+  }
+
+  // ---------- decks (Lessons and Ultimate Challenge can use any of them) ----------
+  // The built-in N2 kanji deck, or one of the player's custom decks (id
+  // "custom:<deck id>"). The active deck's cards are `allKanji`; a custom
+  // deck's cards are turned into items that carry their own `sections`.
+
+  const KANJI_DECK_ID = "n2-kanji";
+  const CUSTOM_ITEM_BASE = 2000000000;
+  const DECK_STATES_KEY = "kanjiFlashN2.deckStates.v1";
+  let n2Kanji = [];
+  let activeDeckId = KANJI_DECK_ID;
+
+  function hashString(text) {
+    let h = 0x811c9dc5;
+    for (const ch of text) {
+      h ^= ch.codePointAt(0);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h;
+  }
+
+  function customDeckById(id) {
+    return customDecks.find((deck) => deck.id === id) || null;
+  }
+
+  function buildCustomItems(deck) {
+    return deck.cards
+      .filter((card) => card.sections.length)
+      .map((card) => ({
+        num: CUSTOM_ITEM_BASE + hashString(`${deck.id}|${card.front}`),
+        kanji: card.front,
+        front: card.front,
+        deckId: deck.id,
+        sections: card.sections,
+      }));
+  }
+
+  function deckItems(deckId) {
+    if (deckId === KANJI_DECK_ID) return n2Kanji;
+    const deck = customDeckById(deckId.replace(/^custom:/, ""));
+    return deck ? buildCustomItems(deck) : [];
+  }
+
+  function resolveDeckId(deckId) {
+    return deckItems(deckId).length ? deckId : KANJI_DECK_ID;
+  }
+
+  function deckName(deckId) {
+    if (deckId === KANJI_DECK_ID) return "N2漢字";
+    const deck = customDeckById(deckId.replace(/^custom:/, ""));
+    return deck ? deck.name : "N2漢字";
+  }
+
+  const isKanjiDeck = () => activeDeckId === KANJI_DECK_ID;
+  const deckNoun = () => (isKanjiDeck() ? "漢字" : "カード");
+  const deckUnit = () => (isKanjiDeck() ? "字" : "枚");
+
+  // Switches the active deck. The marathon stack of the deck being left is
+  // saved first, and the new deck's own saved stack (or a fresh shuffle) is
+  // loaded, so each deck keeps its place.
+  function activateDeck(deckId) {
+    const next = resolveDeckId(deckId);
+    if (next !== activeDeckId && allKanji.length) saveState();
+    activeDeckId = next;
+    allKanji = deckItems(next);
+    kanjiByNum = new Map(allKanji.map((item) => [item.num, item]));
+    applyDeckState();
+  }
+
+  function applyDeckState() {
+    const saved = loadState();
+    if (saved && saved.totalCount === allKanji.length && saved.queueNums.every((n) => kanjiByNum.has(n))) {
+      queue = saved.queueNums.map((n) => kanjiByNum.get(n));
+      totalCount = saved.totalCount;
+      masteredCount = saved.masteredCount;
+    } else {
+      queue = shuffle(allKanji);
+      totalCount = allKanji.length;
+      masteredCount = 0;
+      saveState();
+    }
   }
 
   // ---------- shared deck persistence (all modes) ----------
 
   function saveState() {
+    const state = {
+      queueNums: queue.map((item) => item.num),
+      masteredCount,
+      totalCount,
+    };
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          queueNums: queue.map((item) => item.num),
-          masteredCount,
-          totalCount,
-        })
-      );
+      if (activeDeckId === KANJI_DECK_ID) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } else {
+        const all = loadJson(DECK_STATES_KEY, {});
+        all[activeDeckId] = state;
+        saveJson(DECK_STATES_KEY, all);
+      }
     } catch (err) {
       /* localStorage unavailable (private mode, quota, etc.) */
     }
@@ -357,9 +448,10 @@
 
   function loadState() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
+      const parsed =
+        activeDeckId === KANJI_DECK_ID
+          ? JSON.parse(localStorage.getItem(STORAGE_KEY) || "null")
+          : (loadJson(DECK_STATES_KEY, {}) || {})[activeDeckId];
       if (!parsed || !Array.isArray(parsed.queueNums)) return null;
       return parsed;
     } catch (err) {
@@ -564,6 +656,41 @@
       applySrsResult(stats.perCard[cardKey], correct, dateKey(new Date()))
     );
     saveStats();
+  }
+
+  // Progress for an item lives in stats.perCard for the built-in deck and in
+  // the deck's own srs (keyed by card front) for a custom deck, so Lessons and
+  // Ultimate Challenge share progress with that deck's other study modes.
+  function srsOf(item) {
+    if (item.deckId) {
+      const deck = customDeckById(item.deckId);
+      return (deck && deck.srs && deck.srs[item.front]) || null;
+    }
+    return stats.perCard[String(item.num)] || null;
+  }
+
+  function isItemStudied(item) {
+    const entry = srsOf(item);
+    if (!entry) return false;
+    return item.deckId ? Boolean(entry.lastSeen) : entry.right > 0 || entry.wrong > 0;
+  }
+
+  function recordItemResult(item, correct, gradeSrs = true) {
+    if (!item.deckId) {
+      recordResult(item.num, correct, gradeSrs);
+      return;
+    }
+    const deck = customDeckById(item.deckId);
+    if (deck && gradeSrs) applyCustomSrsResult(deck, item.front, correct);
+  }
+
+  function gradeItemSrs(item, correct) {
+    if (!item.deckId) {
+      gradeBuiltinSrs(item.num, correct);
+      return;
+    }
+    const deck = customDeckById(item.deckId);
+    if (deck) applyCustomSrsResult(deck, item.front, correct);
   }
 
   function getCardStats(kanjiNum) {
@@ -958,35 +1085,33 @@
     saveJson(DECK_TOMBSTONES_KEY, tombstones);
   }
 
+  // One button per deck: tapping it starts that deck's review right away.
+  function deckReviewButton(name, count, dueCount) {
+    return `
+          <button class="deck-review-btn" data-action="review" type="button"${dueCount ? "" : " disabled"}>
+            <span class="custom-deck-name">${escapeHtml(name)}</span>
+            <span class="custom-deck-meta">${count}枚 · ${dueCount ? `復習 ${dueCount}` : "復習するカードはありません"}</span>
+          </button>`;
+  }
+
   function renderCustomDecksList() {
     els.customDecksEmpty.hidden = customDecks.length > 0;
-    if (!customDecks.length) {
-      els.customDecksList.innerHTML = "";
-      return;
-    }
-    els.customDecksList.innerHTML = customDecks
+    const n2Row = `
+      <div class="custom-deck-row" data-deck-id="${KANJI_DECK_ID}">
+        <div class="custom-deck-header">${deckReviewButton("N2漢字", n2Kanji.length, getReviewCards(n2Kanji).length)}
+        </div>
+      </div>`;
+    els.customDecksList.innerHTML = n2Row + customDecks
       .map((deck) => {
         const safeName = escapeHtml(deck.name);
-        const dueCount = getDueCustomCards(deck).length;
-        const unreviewedCount = getUnreviewedCustomCards(deck).length;
         return `
       <div class="custom-deck-row" data-deck-id="${escapeHtml(deck.id)}">
-        <div class="custom-deck-header">
-          <div class="custom-deck-info">
-            <span class="custom-deck-name">${safeName}</span>
-            <span class="custom-deck-meta">${deck.cards.length}枚</span>
-          </div>
+        <div class="custom-deck-header">${deckReviewButton(deck.name, deck.cards.length, getDueCustomCards(deck).length)}
           <div class="custom-deck-actions">
             <button class="custom-deck-action-btn" data-action="download" type="button" aria-label="${safeName}をCSVでダウンロード">↓</button>
             <button class="custom-deck-action-btn" data-action="replace" type="button" aria-label="${safeName}を置き換え">↻</button>
             <button class="custom-deck-action-btn custom-deck-action-delete" data-action="delete" type="button" aria-label="${safeName}を削除">✕</button>
           </div>
-        </div>
-        <div class="custom-deck-modes">
-          <button class="custom-deck-mode-btn" data-action="study-cards" type="button">フラッシュカード</button>
-          <button class="custom-deck-mode-btn" data-action="study-type" type="button">入力テスト</button>
-          <button class="custom-deck-mode-btn" data-action="study-review" type="button"${dueCount ? "" : " disabled"}>復習${dueCount ? ` (${dueCount})` : ""}</button>
-          <button class="custom-deck-mode-btn" data-action="study-quiz" type="button">クイズ${unreviewedCount ? ` (新規${unreviewedCount})` : ""}</button>
         </div>
       </div>`;
       })
@@ -998,24 +1123,16 @@
     if (!actionBtn) return;
     const row = actionBtn.closest(".custom-deck-row");
     const deckId = row && row.dataset.deckId;
+    if (deckId === KANJI_DECK_ID) {
+      activateDeck(KANJI_DECK_ID);
+      const cards = getReviewCards();
+      if (cards.length) beginLesson(cards.slice(0, settings.reviewQuestions), "review");
+      return;
+    }
     const deck = customDecks.find((d) => d.id === deckId);
     if (!deck) return;
     const action = actionBtn.dataset.action;
-    if (action === "study-cards") {
-      startCustomDeckStudy(deck);
-    } else if (action === "study-type" || action === "study-quiz") {
-      if (!deck.cards.some((c) => c.sections.length)) {
-        window.alert(
-          "このデッキには入力で答えられるデータがなく、表面の内容のみです。代わりにフラッシュカードをお試しください。"
-        );
-        return;
-      }
-      if (action === "study-quiz") {
-        startCustomDeckQuiz(deck);
-      } else {
-        startCustomDeckType(deck);
-      }
-    } else if (action === "study-review") {
+    if (action === "review") {
       startCustomDeckReview(deck);
     } else if (action === "download") {
       downloadTextFile(`${sanitizeFilename(deck.name)}.csv`, deckToCsvText(deck), "text/csv;charset=utf-8");
@@ -1370,6 +1487,7 @@
     const card = cards[customStudyIndex];
     els.customStudyProgress.textContent = `${customStudyIndex + 1} / ${cards.length}`;
     els.customStudyFront.textContent = card.front;
+    fitFront(els.customStudyFront, card.front);
     els.customStudyBackSections.innerHTML = sectionsToHtml(card.sections);
     els.customStudyCard.classList.toggle("flipped", customStudyFlipped);
     els.customFlashAgainBtn.disabled = !customStudyFlipped;
@@ -1507,6 +1625,7 @@
     const badgeClass = badgeClassForLabel(customTypeCurrentSection.label);
     els.customTypeBadge.className = "question-type-badge" + (badgeClass ? ` ${badgeClass}` : "");
     els.customTypeFront.textContent = card.front;
+    fitFront(els.customTypeFront, card.front);
     els.customTypeProgress.textContent =
       customTypeMode === "quiz"
         ? `${idx + 1} / ${customTypeCards.length} · 新規${getUnreviewedCustomCards(deck).length}`
@@ -1651,9 +1770,6 @@
           parsed.defaultDailyMinutes <= MAX_MINUTES
             ? parsed.defaultDailyMinutes
             : DEFAULT_MINUTES,
-        lessonQuestions: Number.isFinite(parsed.lessonQuestions)
-          ? Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, parsed.lessonQuestions))
-          : DEFAULT_QUESTIONS,
         reviewQuestions: Number.isFinite(parsed.reviewQuestions)
           ? Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, parsed.reviewQuestions))
           : DEFAULT_QUESTIONS,
@@ -1661,6 +1777,8 @@
           ? Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, parsed.quizQuestions))
           : DEFAULT_QUESTIONS,
         theme: THEMES.includes(parsed.theme) ? parsed.theme : DEFAULT_THEME,
+        lessonDeck: typeof parsed.lessonDeck === "string" ? parsed.lessonDeck : "n2-kanji",
+        marathonDeck: typeof parsed.marathonDeck === "string" ? parsed.marathonDeck : "n2-kanji",
       };
     } catch (err) {
       return null;
@@ -1690,7 +1808,6 @@
     els.fontSizeSlider.value = String(pct);
     els.fontSizeValue.textContent = `${pct}%`;
     els.defaultMinutesValue.textContent = String(settings.defaultDailyMinutes);
-    els.lessonQuestionsValue.textContent = String(settings.lessonQuestions);
     els.reviewQuestionsValue.textContent = String(settings.reviewQuestions);
     els.quizQuestionsValue.textContent = String(settings.quizQuestions);
     if (els.themeOptions) {
@@ -1758,8 +1875,6 @@
     saveSettings();
   }
 
-  els.lessonQuestionsDownBtn.addEventListener("click", () => changeQuestionSetting("lessonQuestions", -1));
-  els.lessonQuestionsUpBtn.addEventListener("click", () => changeQuestionSetting("lessonQuestions", 1));
   els.reviewQuestionsDownBtn.addEventListener("click", () => changeQuestionSetting("reviewQuestions", -1));
   els.reviewQuestionsUpBtn.addEventListener("click", () => changeQuestionSetting("reviewQuestions", 1));
   els.quizQuestionsDownBtn.addEventListener("click", () => changeQuestionSetting("quizQuestions", -1));
@@ -1768,7 +1883,7 @@
   els.reshuffleDeckBtn.addEventListener("click", () => {
     reshuffleDeck();
     const original = els.reshuffleDeckBtn.textContent;
-    els.reshuffleDeckBtn.textContent = "リセットしました ✓";
+    els.reshuffleDeckBtn.textContent = "Reshuffled";
     els.reshuffleDeckBtn.disabled = true;
     window.setTimeout(() => {
       els.reshuffleDeckBtn.textContent = original;
@@ -1804,9 +1919,17 @@
     els.newDeckBtn.hidden = true;
     els.card.classList.remove("complete");
     els.kanjiBack.textContent = item.kanji;
-    els.onyomi.textContent = item.onyomi || "—";
-    els.kunyomi.textContent = item.kunyomi || "—";
-    els.meaning.textContent = item.meaning || "—";
+    fitFront(els.kanji, item.kanji);
+    els.cardLegacyRows.hidden = Boolean(item.sections);
+    els.cardSections.hidden = !item.sections;
+    if (item.sections) {
+      els.cardSections.innerHTML = sectionsToHtml(item.sections);
+    } else {
+      els.onyomi.textContent = item.onyomi || "—";
+      els.kunyomi.textContent = item.kunyomi || "—";
+      els.meaning.textContent = item.meaning || "—";
+    }
+    els.cardStats.hidden = Boolean(item.sections);
     const cardStats = getCardStats(item.num);
     els.cardStatsRight.textContent = String(cardStats.right);
     els.cardStatsWrong.textContent = String(cardStats.wrong);
@@ -1841,7 +1964,7 @@
       if (correct) {
         masteredCount++;
       }
-      recordResult(item.num, correct);
+      recordItemResult(item, correct);
       if (mode === "daily") {
         dailyTally.seen++;
         if (correct) dailyTally.right++;
@@ -1918,10 +2041,63 @@
     render();
   }
 
-  els.modeMarathonBtn.addEventListener("click", () => {
-    if (!allKanji.length) return;
-    startMarathon();
+  // ---------- deck picker ----------
+
+  let deckPickFor = "lesson"; // "lesson" | "marathon"
+
+  function deckPickEntries() {
+    const entries = [{ id: KANJI_DECK_ID, name: "N2漢字", count: n2Kanji.length }];
+    customDecks.forEach((deck) => {
+      entries.push({
+        id: `custom:${deck.id}`,
+        name: deck.name,
+        count: deck.cards.filter((card) => card.sections.length).length,
+      });
+    });
+    return entries;
+  }
+
+  function openDeckPicker(forMode) {
+    deckPickFor = forMode;
+    const current = resolveDeckId(forMode === "lesson" ? settings.lessonDeck : settings.marathonDeck);
+    els.deckPickTitle.textContent = forMode === "lesson" ? "レッスンのデッキ" : "すべて復習のデッキ";
+    els.deckPickList.innerHTML = deckPickEntries()
+      .map((entry) => {
+        const usable = entry.count > 0;
+        return `
+      <button class="deck-pick-item${entry.id === current ? " selected" : ""}" type="button" data-deck="${escapeHtml(entry.id)}"${usable ? "" : " disabled"}>
+        <span class="deck-pick-name">${escapeHtml(entry.name)}</span>
+        <span class="deck-pick-meta">${usable ? `${entry.count}枚` : "出題できるカードがありません"}</span>
+      </button>`;
+      })
+      .join("");
+    els.deckPickList.style.setProperty("--mode-color", forMode === "lesson" ? "#ff5a5a" : "#4d8dff");
+    showScreen("deckPick");
+  }
+
+  function chooseDeck(forMode, deckId) {
+    settings[forMode === "lesson" ? "lessonDeck" : "marathonDeck"] = deckId;
+    saveSettings();
+    activateDeck(deckId);
+    if (forMode === "lesson") {
+      renderLessons();
+      showScreen("lessons");
+    } else {
+      startMarathon();
+    }
+  }
+
+  els.deckPickList.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-deck]");
+    if (btn && !btn.disabled) chooseDeck(deckPickFor, btn.dataset.deck);
   });
+
+  els.modeMarathonBtn.addEventListener("click", () => {
+    if (!n2Kanji.length) return;
+    openDeckPicker("marathon");
+  });
+
+  els.lessonDeckBtn.addEventListener("click", () => openDeckPicker("lesson"));
 
   // ---------- lessons ----------
 
@@ -1955,58 +2131,77 @@
     }
   }
 
-  function isKanjiStudied(kanjiNum) {
-    const entry = stats.perCard[String(kanjiNum)];
-    return Boolean(entry && (entry.right > 0 || entry.wrong > 0));
+  // Calendar marks are per deck; the built-in deck keeps the plain date key.
+  function completedKey(date) {
+    return isKanjiDeck() ? date : `${date}|${activeDeckId}`;
   }
 
-  // Today's lesson is the kanji the preliminary test caught: it keeps asking
-  // untested kanji until `settings.lessonQuestions` of them have been missed,
-  // and those become the lesson. A new day starts from any kanji caught earlier
-  // but never lessoned, then the test tops the list up.
+  // Today's lesson is the terms the player has selected on the chart.
+  // `today.nums` holds the selection for every deck; the active deck's part is
+  // whichever of them belong to it. A new day keeps selected terms that were
+  // never studied.
   function ensureTodaysLesson() {
     const today = dateKey(new Date());
     if (!lessonHistory.today || lessonHistory.today.date !== today) {
-      const carried = allKanji
-        .filter((item) => lessonHistory.placement[item.num] === "learn" && !isKanjiStudied(item.num))
-        .slice(0, settings.lessonQuestions)
-        .map((item) => item.num);
+      const previous = lessonHistory.today ? lessonHistory.today.nums : [];
+      const carried = previous.filter((num) => {
+        const item = kanjiByNum.get(num);
+        return item && !isItemStudied(item);
+      });
       lessonHistory.today = { date: today, nums: carried };
       saveLessonHistory();
     }
     return lessonHistory.today;
   }
 
+  function todaysNums() {
+    const today = ensureTodaysLesson();
+    return today.nums.filter((n) => kanjiByNum.has(n));
+  }
+
   function todaysLessonCards() {
-    return ensureTodaysLesson()
-      .nums.map((num) => kanjiByNum.get(num))
-      .filter(Boolean)
-      .slice(0, settings.lessonQuestions);
+    return todaysNums().map((num) => kanjiByNum.get(num));
   }
 
-  // Kanji not yet judged by the test and not already studied through lessons.
-  function unassessedKanji() {
-    return allKanji.filter(
-      (item) => !lessonHistory.placement[item.num] && !isKanjiStudied(item.num)
-    );
+  function toggleLessonSelection(num) {
+    const today = ensureTodaysLesson();
+    const at = today.nums.indexOf(num);
+    if (at === -1) today.nums.push(num);
+    else today.nums.splice(at, 1);
+    saveLessonHistory();
+    return at === -1;
   }
-
 
   // Spaced-repetition review queue: any previously-attempted kanji whose SRS
   // box has come due, weakest/most-overdue first. Brand-new kanji are
   // introduced via Lessons instead, not here.
-  function getReviewCards() {
+  function getReviewCards(items = allKanji) {
     const today = dateKey(new Date());
     const due = [];
-    Object.keys(stats.perCard).forEach((key) => {
-      const entry = stats.perCard[key];
-      if (!entry || (entry.right === 0 && entry.wrong === 0)) return;
-      if (!isDue(entry, today)) return;
-      const item = kanjiByNum.get(Number(key));
-      if (item) due.push({ item, box: entry.box || 0, dueDate: entry.due || "" });
+    items.forEach((item) => {
+      const entry = srsOf(item);
+      if (!entry || !isItemStudied(item) || !isDue(entry, today)) return;
+      due.push({ item, box: entry.box || 0, dueDate: entry.due || "" });
     });
     due.sort((a, b) => a.box - b.box || (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0));
     return due.map((d) => d.item);
+  }
+
+  // What a chart tile shows above and below the term: for kanji the reading
+  // and meaning; for a custom card its first and last columns.
+  function chartParts(item) {
+    if (item.sections) {
+      const s = item.sections;
+      return { above: s.length > 1 ? s[0].value : "", below: s[s.length - 1].value };
+    }
+    return { above: item.onyomi || item.kunyomi || "", below: item.meaning || "" };
+  }
+
+  function updateLessonSelection() {
+    const count = todaysNums().length;
+    els.startLessonBtn.textContent = count ? `レッスンを始める（${count}${deckUnit()}）` : "学習する項目を選択";
+    els.startLessonBtn.disabled = count === 0;
+    els.clearSelectionBtn.disabled = count === 0;
   }
 
   function renderLessons() {
@@ -2014,30 +2209,36 @@
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     const todayKey = dateKey(today);
-    const todaysCards = todaysLessonCards();
-    const untestedCount = unassessedKanji().length;
-    const wanted = settings.lessonQuestions;
-    const testing = todaysCards.length < wanted && untestedCount > 0;
+    ensureTodaysLesson();
+    const selected = new Set(todaysNums());
+    els.lessonDeckBtn.textContent = `デッキ: ${deckName(activeDeckId)}`;
     els.lessonMonthLabel.textContent = today.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
-    els.lessonTitle.textContent =
-      todaysCards.length || testing ? "今日のレッスン" : "すべて習得済み";
-    els.lessonSubtitle.textContent = testing
-      ? `事前テストで間違えた漢字が今日のレッスンになります（${todaysCards.length} / ${wanted}字）。`
-      : todaysCards.length
-      ? `今日の重点漢字は${todaysCards.length}字。入力テストを完了すると日付に印が付きます。`
-      : "すべての漢字が既習です。復習で定着させましょう。";
-    els.startLessonBtn.textContent = testing
-      ? todaysCards.length
-        ? "事前テストを続ける"
-        : "事前テストを始める"
-      : "今日のレッスンを始める";
-    els.startLessonBtn.disabled = !testing && todaysCards.length === 0;
+    els.lessonTitle.textContent = "今日のレッスン";
+    els.lessonSubtitle.textContent = `学習したい${deckNoun()}をタップして選択してください。`;
+
+    els.termChart.innerHTML = allKanji
+      .map((item) => {
+        const parts = chartParts(item);
+        const classes = `term-tile${selected.has(item.num) ? " selected" : ""}${isItemStudied(item) ? " studied" : ""}`;
+        return `<button class="${classes}" type="button" data-num="${item.num}">
+          <span class="term-reading">${escapeHtml(parts.above)}</span>
+          <span class="term-word">${escapeHtml(item.kanji)}</span>
+          <span class="term-meaning">${escapeHtml(parts.below)}</span>
+        </button>`;
+      })
+      .join("");
+    // Long words shrink to one line once the screen is visible.
+    window.requestAnimationFrame(() => {
+      els.termChart.querySelectorAll(".term-word").forEach((el) => fitFront(el, el.textContent));
+    });
+    updateLessonSelection();
+
     const headings = ["日", "月", "火", "水", "木", "金", "土"];
     let html = headings.map((day) => `<span class="calendar-heading">${day}</span>`).join("");
     for (let i = 0; i < firstDay.getDay(); i++) html += `<span class="calendar-day calendar-empty"></span>`;
     for (let day = 1; day <= daysInMonth; day++) {
       const key = dateKey(new Date(today.getFullYear(), today.getMonth(), day));
-      const completed = Boolean(lessonHistory.completed[key]);
+      const completed = Boolean(lessonHistory.completed[completedKey(key)]);
       html += `<span class="calendar-day${key === todayKey ? " calendar-today" : ""}${completed ? " calendar-complete" : ""}">${day}${completed ? `<span class="calendar-check" aria-label="レッスン完了">✓</span>` : ""}</span>`;
     }
     els.lessonCalendar.innerHTML = html;
@@ -2046,11 +2247,6 @@
     els.lessonStatus.textContent = reviewCount
       ? `${reviewCount}枚の復習カードがあります。`
       : "現在復習するカードはありません。お疲れさまです。";
-
-    const verdicts = allKanji.map((item) => lessonHistory.placement[item.num]);
-    const known = verdicts.filter((v) => v === "known").length;
-    const learn = verdicts.filter((v) => v === "learn").length;
-    els.lessonPlacementStatus.textContent = `事前テスト: 既習${known}字 · 要学習${learn}字 · 未判定${untestedCount}字`;
   }
 
   // Lessons are typed: every kanji gets a question per available answer type
@@ -2064,27 +2260,6 @@
     );
   }
 
-  // Placement runs until today's lesson is full: when the current batch is
-  // used up, the next batch of untested kanji is queued. A batch is never
-  // larger than the number of kanji still needed, so the lesson can't overshoot.
-  function refillPlacement() {
-    const needed = settings.lessonQuestions - ensureTodaysLesson().nums.length;
-    if (needed <= 0) return false;
-    const batch = unassessedKanji().slice(0, needed);
-    if (!batch.length) return false;
-    const questions = buildLessonQuestions(batch);
-    questions.forEach((q) => {
-      const state = lessonTermState.get(q.item.num);
-      if (state) state.left++;
-      else lessonTermState.set(q.item.num, { left: 1, wrongs: 0, graded: null });
-    });
-    queue = questions.map((q) => q.item);
-    lessonQuestionTypes = questions.map((q) => q.type);
-    lessonSession.total += questions.length;
-    lessonSession.cards = lessonSession.cards.concat(batch);
-    return true;
-  }
-
   function beginLesson(cards, kind) {
     savedMainSession = { queue, totalCount, masteredCount };
     const questions = buildLessonQuestions(cards);
@@ -2096,7 +2271,6 @@
       seen: 0,
       right: 0,
       wrong: 0,
-      placed: { known: 0, learn: 0 },
     };
     // A kanji is graded once per lesson: wrong as soon as any of its
     // questions is missed, right after all of them are answered correctly.
@@ -2115,63 +2289,25 @@
     renderType();
   }
 
-  // Records the preliminary test's verdict for a kanji. Known kanji also get a
-  // starting spot in the review schedule so they come back for review later.
-  function markPlacement(kanjiNum, verdict) {
-    lessonHistory.placement[kanjiNum] = verdict;
-    lessonSession.placed[verdict]++;
-    if (verdict === "learn") {
-      const todays = ensureTodaysLesson();
-      if (!todays.nums.includes(kanjiNum) && todays.nums.length < settings.lessonQuestions) {
-        todays.nums.push(kanjiNum);
-      }
-    }
-    saveLessonHistory();
-    if (verdict !== "known") return;
-    const today = dateKey(new Date());
-    const [y, m, d] = today.split("-").map(Number);
-    const key = String(kanjiNum);
-    const previous = stats.perCard[key] || { right: 0, wrong: 0 };
-    if (previous.right < 1) {
-      const own = ownCounts();
-      const c = own.perCard[key] || (own.perCard[key] = { right: 0, wrong: 0 });
-      c.right++;
-      saveSyncCounts();
-    }
-    stats.perCard[key] = {
-      ...previous,
-      right: Math.max(previous.right, 1),
-      box: QUIZ_KNOWN_BOX,
-      due: dateKey(new Date(y, m - 1, d + BOX_INTERVALS_DAYS[QUIZ_KNOWN_BOX])),
-      lastSeen: today,
-      streak: 1,
-    };
-    saveStats();
-  }
-
   function gradeLessonTerm(item, correct) {
-    const placement = lessonSession.kind === "placement";
     const state = lessonTermState.get(item.num);
     state.left--;
     if (!correct) {
       state.wrongs++;
       if (!state.graded) {
-        if (placement) markPlacement(item.num, "learn");
-        else gradeBuiltinSrs(item.num, false);
+        gradeItemSrs(item, false);
         state.graded = "wrong";
       }
     }
     if (state.left === 0 && state.wrongs === 0 && !state.graded) {
-      if (placement) markPlacement(item.num, "known");
-      else gradeBuiltinSrs(item.num, true);
+      gradeItemSrs(item, true);
       state.graded = "right";
     }
   }
 
   function finishLesson() {
-    const placement = lessonSession.kind === "placement";
-    if (!placement) {
-      lessonHistory.completed[lessonSession.date] = lessonSession.cards.map((item) => item.num);
+    if (lessonSession.kind === "lesson") {
+      lessonHistory.completed[completedKey(lessonSession.date)] = lessonSession.cards.map((item) => item.num);
       saveLessonHistory();
     }
     if (savedMainSession) {
@@ -2180,16 +2316,8 @@
       masteredCount = savedMainSession.masteredCount;
     }
     savedMainSession = null;
-    els.lessonResultTitle.textContent = placement
-      ? "事前テスト完了"
-      : lessonSession.kind === "review"
-      ? "復習完了"
-      : "レッスン完了";
-    els.lessonResultNote.hidden = !placement;
-    if (placement) {
-      els.lessonResultNote.textContent =
-        `既習 ${lessonSession.placed.known}字 · 要学習 ${lessonSession.placed.learn}字 · 今日のレッスン ${ensureTodaysLesson().nums.length} / ${settings.lessonQuestions}字`;
-    }
+    els.lessonResultTitle.textContent = lessonSession.kind === "review" ? "復習完了" : "レッスン完了";
+    els.lessonResultNote.hidden = true;
     els.lessonResultSeen.textContent = String(lessonSession.seen);
     els.lessonResultRight.textContent = String(lessonSession.right);
     els.lessonResultWrong.textContent = String(lessonSession.wrong);
@@ -2203,20 +2331,27 @@
   }
 
   els.modeLessonsBtn.addEventListener("click", () => {
-    if (!allKanji.length) return;
-    renderLessons();
-    showScreen("lessons");
+    if (!n2Kanji.length) return;
+    openDeckPicker("lesson");
   });
-  // Starts the preliminary test while today's lesson still needs kanji;
-  // otherwise starts the lesson itself.
+  // Starts a lesson on the terms selected on the chart.
   els.startLessonBtn.addEventListener("click", () => {
-    const todays = todaysLessonCards();
-    const untested = unassessedKanji();
-    if (todays.length < settings.lessonQuestions && untested.length) {
-      beginLesson(untested.slice(0, settings.lessonQuestions - todays.length), "placement");
-    } else if (todays.length) {
-      beginLesson(todays, "lesson");
-    }
+    const cards = todaysLessonCards();
+    if (cards.length) beginLesson(cards, "lesson");
+  });
+  els.clearSelectionBtn.addEventListener("click", () => {
+    const today = ensureTodaysLesson();
+    today.nums = today.nums.filter((n) => !kanjiByNum.has(n));
+    saveLessonHistory();
+    els.termChart.querySelectorAll(".term-tile.selected").forEach((tile) => tile.classList.remove("selected"));
+    updateLessonSelection();
+  });
+  els.termChart.addEventListener("click", (event) => {
+    const tile = event.target.closest(".term-tile");
+    if (!tile) return;
+    const on = toggleLessonSelection(Number(tile.dataset.num));
+    tile.classList.toggle("selected", on);
+    updateLessonSelection();
   });
   els.startReviewBtn.addEventListener("click", () => {
     const cards = getReviewCards();
@@ -2251,7 +2386,7 @@
     updateTimeValue();
   });
 
-  els.modeDailyBtn.addEventListener("click", () => {
+  if (els.modeDailyBtn) els.modeDailyBtn.addEventListener("click", () => {
     if (!allKanji.length) return;
     updateTimeValue();
     showScreen("dailySetup");
@@ -2383,7 +2518,7 @@
       if (srsTier(stats.perCard[key]) === "known") known++;
       else learning++;
     });
-    const totalKanji = allKanji.length || 367;
+    const totalKanji = n2Kanji.length || 367;
     const newCount = Math.max(totalKanji - cardsAttempted, 0);
     const dueCount = getReviewCards().length;
 
@@ -2447,13 +2582,15 @@
   });
 
   els.modeStatsBtn.addEventListener("click", () => {
+    // "Review now" on this screen reviews the Lessons deck.
+    activateDeck(settings.lessonDeck);
     renderStats();
     showScreen("stats");
   });
 
   els.resetStatsBtn.addEventListener("click", () => {
     const ok = window.confirm(
-      "すべての統計をリセットしますか？日ごとの履歴とカードごとの正解・不正解数が消去されます。この操作は元に戻せません。"
+      "Reset all statistics? Daily history and per-card right/wrong counts will be erased. This cannot be undone."
     );
     if (!ok) return;
     stats = { daily: {}, perCard: {} };
@@ -2575,7 +2712,53 @@
     },
   };
 
+  // Custom-deck items ask one question per section (type ids "s0", "s1", ...).
+  const sectionIndex = (type) => Number(type.slice(1));
+
+  function typeConfig(item, type) {
+    if (!item.sections) return QUESTION_TYPES[type];
+    const section = item.sections[sectionIndex(type)];
+    return {
+      label: section.label,
+      badgeClass: badgeClassForLabel(section.label),
+      placeholder: isKanaOrKanji(section.value) ? "答え" : "Answer",
+    };
+  }
+
+  // One- and two-character fronts keep their normal size. Longer ones stay on
+  // a single line and shrink just enough to fit the width of their container.
+  function fitFront(el, text) {
+    el.style.fontSize = "";
+    el.style.whiteSpace = "";
+    if (Array.from(text).length <= 2) return;
+    el.style.whiteSpace = "nowrap";
+    const available = el.clientWidth * 0.94;
+    if (!available) return;
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const needed = range.getBoundingClientRect().width;
+    if (needed > available) {
+      const current = parseFloat(getComputedStyle(el).fontSize);
+      el.style.fontSize = `${Math.floor((current * available) / needed)}px`;
+    }
+  }
+
+  // Re-fit the visible front when the window changes size.
+  window.addEventListener("resize", () => {
+    if (!els.screenPlay.hidden && queue[0]) fitFront(els.kanji, queue[0].kanji);
+    if (!els.screenType.hidden && queue[0]) fitFront(els.typeKanji, queue[0].kanji);
+    if (!els.screenCustomType.hidden && customTypeCards[customTypeIndex]) {
+      fitFront(els.customTypeFront, customTypeCards[customTypeIndex].front);
+    }
+    if (!els.screenCustomStudy.hidden && customStudyCards[customStudyIndex]) {
+      fitFront(els.customStudyFront, customStudyCards[customStudyIndex].front);
+    }
+  });
+
   function availableQuestionTypes(item) {
+    if (item.sections) {
+      return item.sections.map((s, i) => (s.value ? `s${i}` : null)).filter(Boolean);
+    }
     const types = ["meaning"];
     if (item.onyomi) types.push("onyomi");
     return types;
@@ -2586,19 +2769,36 @@
     return types[Math.floor(Math.random() * types.length)];
   }
 
-  function setTypeInputMode(type) {
+  function setTypeInputMode(type, item) {
     if (typeof wanakana === "undefined") return;
     try {
       wanakana.unbind(els.typeInput);
     } catch (err) {
       /* wasn't bound; ignore */
     }
-    if (type === "onyomi") {
+    if (item && item.sections) {
+      const value = item.sections[sectionIndex(type)].value;
+      if (wanakana.isKatakana(value)) wanakana.bind(els.typeInput, { IMEMode: "toKatakana" });
+      else if (wanakana.isHiragana(value)) wanakana.bind(els.typeInput, { IMEMode: "toHiragana" });
+    } else if (type === "onyomi") {
       wanakana.bind(els.typeInput, { IMEMode: "toKatakana" });
     }
   }
 
   function buildAnswersForType(item, type) {
+    if (item.sections) {
+      const section = item.sections[sectionIndex(type)];
+      const deck = customDeckById(item.deckId);
+      const set = buildCustomAcceptedAnswers(
+        section.value,
+        deck ? getCustomDeckAnswers(deck, item.front, section.label) : []
+      );
+      if (typeof wanakana !== "undefined" && wanakana.isKana(section.value)) {
+        set.add(wanakana.toHiragana(section.value));
+        set.add(wanakana.toKatakana(section.value));
+      }
+      return set;
+    }
     const set = new Set();
     if (type === "meaning") {
       item.meaning.split(/[;,]/).forEach((part) => {
@@ -2640,9 +2840,6 @@
     els.typeFeedback.hidden = true;
     els.typeSubmitBtn.textContent = "確認";
 
-    if (queue.length === 0 && mode === "lesson-type" && lessonSession.kind === "placement") {
-      refillPlacement();
-    }
     if (queue.length === 0) {
       if (mode === "lesson-type") {
         finishLesson();
@@ -2662,23 +2859,22 @@
     const item = queue[0];
     currentQuestionType =
       mode === "lesson-type" ? lessonQuestionTypes[0] : pickQuestionType(item);
-    const config = QUESTION_TYPES[currentQuestionType];
+    const config = typeConfig(item, currentQuestionType);
 
     els.questionTypeBadge.hidden = false;
     els.questionTypeBadge.textContent = config.label;
     els.questionTypeBadge.className =
       "question-type-badge" + (config.badgeClass ? ` ${config.badgeClass}` : "");
     els.typeInput.placeholder = config.placeholder;
-    setTypeInputMode(currentQuestionType);
+    setTypeInputMode(currentQuestionType, item);
 
     els.typeForm.hidden = false;
     els.typeCongratsMsg.hidden = true;
     els.typeNewDeckBtn.hidden = true;
     els.typeKanji.textContent = item.kanji;
+    fitFront(els.typeKanji, item.kanji);
     els.typeProgress.textContent =
-      mode === "lesson-type" && lessonSession.kind === "placement"
-        ? `今日のレッスン ${ensureTodaysLesson().nums.length} / ${settings.lessonQuestions}字`
-        : mode === "lesson-type"
+      mode === "lesson-type"
         ? `${lessonSession.seen} / ${lessonSession.total}`
         : `${masteredCount} / ${totalCount} · 残り${queue.length}`;
     els.typeInput.focus();
@@ -2699,8 +2895,14 @@
       "type-feedback-result " + (correct ? "feedback-good" : "feedback-bad");
   }
 
-  function renderTypeCustomAnswers(kanjiNum, type) {
-    const list = getCustomAnswers(kanjiNum, type);
+  function renderTypeCustomAnswers(item, type) {
+    let list;
+    if (item.sections) {
+      const deck = customDeckById(item.deckId);
+      list = deck ? getCustomDeckAnswers(deck, item.front, item.sections[sectionIndex(type)].label) : [];
+    } else {
+      list = getCustomAnswers(item.num, type);
+    }
     if (list.length) {
       els.typeCustomAnswersList.textContent = list.join(", ");
       els.typeCustomAnswers.hidden = false;
@@ -2713,7 +2915,7 @@
     const canAdd = !pendingTypeCorrect && Boolean(pendingTypeRawAnswer);
     els.addAnswerBtn.hidden = !canAdd;
     if (canAdd) {
-      const label = QUESTION_TYPES[currentQuestionType].label;
+      const label = typeConfig(queue[0], currentQuestionType).label;
       els.addAnswerBtnText.textContent = `「${pendingTypeRawAnswer}」を${label}として追加`;
     }
   }
@@ -2723,7 +2925,7 @@
     const item = queue[0];
     const raw = els.typeInput.value;
     const accepted = buildAnswersForType(item, currentQuestionType);
-    const { correct, fuzzy } = matchAnswer(raw, accepted, currentQuestionType === "meaning");
+    const { correct, fuzzy } = matchAnswer(raw, accepted, item.sections ? true : currentQuestionType === "meaning");
 
     typeAnswering = false;
     pendingTypeCorrect = correct;
@@ -2734,10 +2936,17 @@
     els.typeFeedback.hidden = false;
     els.typeFeedback.classList.toggle("quick", correct);
     updateTypeFeedbackResult(correct, pendingTypeRawAnswer, fuzzy);
-    els.typeOnyomi.textContent = item.onyomi || "—";
-    els.typeKunyomi.textContent = item.kunyomi || "—";
-    els.typeMeaning.textContent = item.meaning || "—";
-    renderTypeCustomAnswers(item.num, currentQuestionType);
+    els.typeLegacyRows.hidden = Boolean(item.sections);
+    els.typeSections.hidden = !item.sections;
+    els.typeCardStats.hidden = Boolean(item.sections);
+    if (item.sections) {
+      els.typeSections.innerHTML = sectionsToHtml(item.sections);
+    } else {
+      els.typeOnyomi.textContent = item.onyomi || "—";
+      els.typeKunyomi.textContent = item.kunyomi || "—";
+      els.typeMeaning.textContent = item.meaning || "—";
+    }
+    renderTypeCustomAnswers(item, currentQuestionType);
     updateAddAnswerButton();
     const cardStats = getCardStats(item.num);
     els.typeCardStatsRight.textContent = String(cardStats.right);
@@ -2763,15 +2972,13 @@
     }
     if (mode === "lesson-type") {
       lessonQuestionTypes.shift();
-      if (lessonSession.kind !== "placement") {
-        recordResult(item.num, pendingTypeCorrect, false);
-      }
+      recordItemResult(item, pendingTypeCorrect, false);
       gradeLessonTerm(item, pendingTypeCorrect);
       lessonSession.seen++;
       if (pendingTypeCorrect) lessonSession.right++;
       else lessonSession.wrong++;
     } else {
-      recordResult(item.num, pendingTypeCorrect);
+      recordItemResult(item, pendingTypeCorrect);
     }
     renderType();
   }
@@ -2790,10 +2997,15 @@
     e.stopPropagation();
     if (queue.length === 0 || typeAnswering || !pendingTypeRawAnswer) return;
     const item = queue[0];
-    addCustomAnswer(item.num, currentQuestionType, pendingTypeRawAnswer);
+    if (item.sections) {
+      const deck = customDeckById(item.deckId);
+      if (deck) addCustomDeckAnswer(deck, item.front, item.sections[sectionIndex(currentQuestionType)].label, pendingTypeRawAnswer);
+    } else {
+      addCustomAnswer(item.num, currentQuestionType, pendingTypeRawAnswer);
+    }
     pendingTypeCorrect = true;
     updateTypeFeedbackResult(true, pendingTypeRawAnswer);
-    renderTypeCustomAnswers(item.num, currentQuestionType);
+    renderTypeCustomAnswers(item, currentQuestionType);
     els.addAnswerBtn.hidden = true;
   });
 
@@ -2802,7 +3014,7 @@
     renderType();
   });
 
-  els.modeTypeBtn.addEventListener("click", () => {
+  if (els.modeTypeBtn) els.modeTypeBtn.addEventListener("click", () => {
     if (!allKanji.length) return;
     startTypeMode();
   });
@@ -3441,7 +3653,7 @@
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setDataStatus("バックアップファイルをダウンロードしました。");
+    setDataStatus("Backup file downloaded.");
   }
 
   function isPlainObject(value) {
@@ -3477,7 +3689,7 @@
     customDecks = decks;
     saveCustomDecks();
     pendingImport = null;
-    setDataStatus("バックアップをインポートしました。");
+    setDataStatus("Backup imported.");
     showScreen("home");
   }
 
@@ -3493,13 +3705,13 @@
       .then((text) => {
         const parsed = parseImportText(text);
         if (!parsed) {
-          setDataStatus("このファイルは有効な漢字フラッシュのバックアップではありません。");
+          setDataStatus("This file is not a valid Kanji Flash backup.");
           return;
         }
         pendingImport = parsed;
         showScreen("importChoice");
       })
-      .catch(() => setDataStatus("ファイルを読み込めませんでした。"));
+      .catch(() => setDataStatus("Could not read the file."));
   });
 
   els.importMergeBtn.addEventListener("click", () => {
@@ -3536,24 +3748,10 @@
   fetch("data/n2-kanji.json")
     .then((res) => res.json())
     .then((data) => {
+      n2Kanji = data;
       allKanji = data;
       kanjiByNum = new Map(data.map((item) => [item.num, item]));
-
-      const saved = loadState();
-      if (
-        saved &&
-        saved.totalCount === allKanji.length &&
-        saved.queueNums.every((n) => kanjiByNum.has(n))
-      ) {
-        queue = saved.queueNums.map((n) => kanjiByNum.get(n));
-        totalCount = saved.totalCount;
-        masteredCount = saved.masteredCount;
-      } else {
-        queue = shuffle(allKanji);
-        totalCount = allKanji.length;
-        masteredCount = 0;
-        saveState();
-      }
+      applyDeckState();
 
       showScreen("home");
     })

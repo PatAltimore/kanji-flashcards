@@ -7,10 +7,10 @@ A dependency-free, mobile-friendly flashcard app for studying the 367 kanji in t
 - **Marathon**: work through the complete deck, marking cards as `Got it` or `Again`.
 - **Daily Challenge**: review as many cards as possible before the selected time limit expires.
 - **Type Answer**: enter an onyomi reading or English meaning and receive immediate feedback.
-- **Lessons**: today's lesson is built by a preliminary test (事前テスト). It keeps quizzing kanji you have not studied yet (meaning and reading for each) until you have missed as many as the lesson size (10 by default); those missed kanji become the lesson, and kanji you answer fully correctly are marked known and skipped. The lesson itself is typed questions on those kanji; completion is tracked on a monthly calendar, and due kanji can be reviewed the same way.
+- **Lessons**: pick a deck (the N2 kanji or any custom deck) and choose the terms to study from a chart of every term, with the reading above and the meaning below; selected terms light up. The lesson itself is typed questions on those terms (every reading and meaning, shuffled); completion is tracked on a monthly calendar, and due terms can be reviewed the same way.
 - **Custom Decks Quiz**: a typed-answer placement quiz for an uploaded deck, played in fixed-size rounds (Quiz Questions setting). Unreviewed cards come first (shuffled), each answer is saved immediately so you can stop at any time, and correct cards are placed ahead in the review schedule.
 - **Statistics**: view a seven-day activity summary, overall accuracy, and per-card results.
-- **Settings**: change kanji typography, scale the interface text, set Daily Challenge and lesson question counts, reshuffle the main deck, or reset statistics.
+- **Settings**: change kanji typography, scale the interface text, set the review and quiz question counts, reshuffle the main deck, or reset statistics.
 - Persistent progress, statistics, and settings stored locally in the browser, with Export/Import (Settings > Backup) to move them to another device.
 - Automatic light and dark color schemes with mobile safe-area support.
 
