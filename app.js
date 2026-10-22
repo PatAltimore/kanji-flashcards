@@ -328,7 +328,10 @@
     Object.keys(screens).forEach((key) => {
       screens[key].hidden = key !== name;
     });
-    if (name === "home") updateHomeInfo();
+    if (name === "home") {
+      updateHomeInfo();
+      fitBrand();
+    }
     if (name !== "sync") stopSyncActivity();
   }
 
@@ -3732,6 +3735,24 @@
     pendingImport = null;
     showScreen("settings");
   });
+
+  // The title plate keeps one line: its font shrinks until it fits between
+  // the corner button and the matching empty space on the other side.
+  function fitBrand() {
+    const brand = document.querySelector("#screen-home .brand");
+    if (!brand || els.screenHome.hidden) return;
+    brand.style.fontSize = "";
+    const bar = brand.parentElement;
+    const side = bar.querySelector(".icon-btn");
+    const available = bar.clientWidth - 2 * (side ? side.offsetWidth : 0) - 16;
+    const needed = brand.getBoundingClientRect().width;
+    if (available > 0 && needed > available) {
+      const current = parseFloat(getComputedStyle(brand).fontSize);
+      brand.style.fontSize = `${Math.floor((current * available) / needed)}px`;
+    }
+  }
+  window.addEventListener("resize", fitBrand);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBrand);
 
   // ---------- boot ----------
 
