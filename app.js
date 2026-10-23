@@ -2344,6 +2344,7 @@
     els.lessonSubtitle.textContent = pending.length
       ? `学習したい${deckNoun()}をタップして選択してください。`
       : `すべての${deckNoun()}のレッスンが完了しました。復習で定着させましょう。`;
+    els.termChart.parentElement.scrollTop = 0;
     els.termChart.innerHTML = pending
       .map((item) => {
         const parts = chartParts(item);

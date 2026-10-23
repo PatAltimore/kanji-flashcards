@@ -826,10 +826,10 @@ body {
   width: 100%;
   max-width: 340px;
   margin: 0 auto;
-  padding: 14px;
+  padding: 10px 12px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 4px;
   background: linear-gradient(145deg, var(--surface), var(--surface-2));
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -843,7 +843,7 @@ body {
 }
 
 .calendar-day {
-  aspect-ratio: 1;
+  aspect-ratio: 1.45;
   min-width: 0;
   position: relative;
   display: flex;
