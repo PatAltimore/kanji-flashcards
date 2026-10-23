@@ -742,13 +742,69 @@ body {
   white-space: nowrap;
 }
 
-.term-tile.studied::after {
-  content: "✓";
+/* Colour by progress: covered in a lesson (amber), and memorized, meaning every
+   scheduled review has been completed (green). */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #8a9099;
+  vertical-align: middle;
+}
+
+.status-dot.status-learning {
+  background: #e8b04b;
+  border-color: #e8b04b;
+}
+
+.status-dot.status-memorized {
+  background: #4cc38a;
+  border-color: #4cc38a;
+}
+
+.status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 10px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.term-tile::before {
+  content: "";
   position: absolute;
-  top: 5px;
-  right: 8px;
-  font-size: 0.7rem;
-  color: var(--success);
+  top: 8px;
+  left: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.term-tile.status-learning {
+  border-color: rgba(232,176,75,0.75);
+  background: linear-gradient(180deg, rgba(232,176,75,0.2), rgba(232,176,75,0.06)), var(--surface);
+}
+
+.term-tile.status-learning::before {
+  background: #e8b04b;
+}
+
+.term-tile.status-memorized {
+  border-color: rgba(76,195,138,0.8);
+  background: linear-gradient(180deg, rgba(76,195,138,0.22), rgba(76,195,138,0.07)), var(--surface);
+}
+
+.term-tile.status-memorized::before {
+  background: #4cc38a;
 }
 
 /* A selected term lights up. */
@@ -761,10 +817,6 @@ body {
 
 .term-tile.selected .term-word {
   color: #2b2f33;
-}
-
-.term-tile.selected.studied::after {
-  color: #2f9e6b;
 }
 
 .lesson-heading {
@@ -2068,9 +2120,128 @@ body {
   justify-self: end;
 }
 
+#screen-home .topbar .icon-btn:first-child {
+  justify-self: start;
+}
+
 /* On wide screens the header content lines up with the centred buttons; the
    white rule still spans the full width. */
 #screen-home .topbar {
   padding-left: max(20px, calc((100% - 520px) / 2 + 24px));
   padding-right: max(20px, calc((100% - 520px) / 2 + 24px));
+}
+
+/* ---------- deck editor ---------- */
+
+.deck-edit-body {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 20px calc(16px + var(--safe-bottom));
+}
+
+.deck-edit-body .status-legend {
+  margin-top: 0;
+}
+
+.deck-edit-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.deck-edit-toolbar .secondary-btn,
+.deck-edit-toolbar .danger-btn {
+  flex: 1;
+  padding: 10px 6px;
+  font-size: 0.85rem;
+}
+
+.deck-edit-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+button.edit-row {
+  cursor: pointer;
+  width: 100%;
+}
+
+.edit-row.status-learning {
+  border-color: rgba(232,176,75,0.75);
+  background: linear-gradient(90deg, rgba(232,176,75,0.2), rgba(232,176,75,0.05)), var(--surface);
+}
+
+.edit-row.status-memorized {
+  border-color: rgba(76,195,138,0.8);
+  background: linear-gradient(90deg, rgba(76,195,138,0.22), rgba(76,195,138,0.06)), var(--surface);
+}
+
+.edit-front {
+  flex: 0 0 auto;
+  max-width: 45%;
+  font-size: 1.4rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-sub {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-delete {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--danger, #ff8f86);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.deck-edit-undo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 0.85rem;
+}
+
+.deck-edit-undo .secondary-btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
 }

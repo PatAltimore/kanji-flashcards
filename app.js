@@ -53,6 +53,16 @@
     screenDeckPick: document.getElementById("screen-deck-pick"),
     deckPickTitle: document.getElementById("deckPickTitle"),
     deckPickList: document.getElementById("deckPickList"),
+    screenDeckEdit: document.getElementById("screen-deck-edit"),
+    editDecksBtn: document.getElementById("editDecksBtn"),
+    deckEditBackBtn: document.getElementById("deckEditBackBtn"),
+    deckEditTitle: document.getElementById("deckEditTitle"),
+    deckEditLegend: document.getElementById("deckEditLegend"),
+    deckEditToolbar: document.getElementById("deckEditToolbar"),
+    deckEditList: document.getElementById("deckEditList"),
+    deckEditUndo: document.getElementById("deckEditUndo"),
+    deckEditUndoText: document.getElementById("deckEditUndoText"),
+    deckEditUndoBtn: document.getElementById("deckEditUndoBtn"),
     lessonDeckBtn: document.getElementById("lessonDeckBtn"),
     cardLegacyRows: document.getElementById("cardLegacyRows"),
     cardWordBlock: document.getElementById("cardWordBlock"),
@@ -231,6 +241,7 @@
     settings: els.screenSettings,
     lessons: els.screenLessons,
     deckPick: els.screenDeckPick,
+    deckEdit: els.screenDeckEdit,
     importChoice: els.screenImportChoice,
     sync: els.screenSync,
     customDecks: els.screenCustomDecks,
@@ -672,6 +683,18 @@
     return stats.perCard[String(item.num)] || null;
   }
 
+  // Progress shown by colour: "new" (not covered in a lesson yet), "learning"
+  // (covered, reviews still to come) and "memorized" (covered, and every
+  // scheduled review step completed, i.e. the review schedule's last box).
+  function statusOfEntry(entry, studied) {
+    if (!studied || !entry) return "new";
+    return (entry.box || 0) >= MAX_BOX ? "memorized" : "learning";
+  }
+
+  function itemStatus(item) {
+    return statusOfEntry(srsOf(item), isItemStudied(item));
+  }
+
   function isItemStudied(item) {
     const entry = srsOf(item);
     if (!entry) return false;
@@ -1107,15 +1130,9 @@
       </div>`;
     els.customDecksList.innerHTML = n2Row + customDecks
       .map((deck) => {
-        const safeName = escapeHtml(deck.name);
         return `
       <div class="custom-deck-row" data-deck-id="${escapeHtml(deck.id)}">
         <div class="custom-deck-header">${deckReviewButton(deck.name, deck.cards.length, getDueCustomCards(deck).length)}
-          <div class="custom-deck-actions">
-            <button class="custom-deck-action-btn" data-action="download" type="button" aria-label="${safeName}をCSVでダウンロード">↓</button>
-            <button class="custom-deck-action-btn" data-action="replace" type="button" aria-label="${safeName}を置き換え">↻</button>
-            <button class="custom-deck-action-btn custom-deck-action-delete" data-action="delete" type="button" aria-label="${safeName}を削除">✕</button>
-          </div>
         </div>
       </div>`;
       })
@@ -1138,17 +1155,145 @@
     const action = actionBtn.dataset.action;
     if (action === "review") {
       startCustomDeckReview(deck);
-    } else if (action === "download") {
+    }
+  });
+
+  // ---------- deck editor ----------
+  // Changes here are saved straight to the deck, so Lessons, 復習 and すべて復習
+  // (which read the deck when they open) pick them up.
+
+  let editingDeckId = null;
+  let lastDeletedCard = null;
+  let undoTimer = null;
+
+  function hideEditUndo() {
+    window.clearTimeout(undoTimer);
+    els.deckEditUndo.hidden = true;
+    lastDeletedCard = null;
+  }
+
+  function cardSummary(card) {
+    return card.sections.map((s) => s.value).join(" · ");
+  }
+
+  function renderDeckEdit() {
+    const deck = editingDeckId ? customDeckById(editingDeckId) : null;
+    if (editingDeckId && !deck) editingDeckId = null;
+    els.deckEditLegend.hidden = !deck;
+    els.deckEditToolbar.hidden = !deck;
+    if (!deck) {
+      els.deckEditTitle.textContent = "デッキを編集";
+      els.deckEditList.innerHTML = customDecks.length
+        ? customDecks
+            .map(
+              (d) => `
+        <button class="edit-row" type="button" data-edit-deck="${escapeHtml(d.id)}">
+          <span class="edit-front">${escapeHtml(d.name)}</span>
+          <span class="edit-sub">${d.cards.length}枚</span>
+        </button>`
+            )
+            .join("")
+        : `<p class="stats-footnote">編集できるデッキがありません。ホーム画面の「デッキ追加」からアップロードしてください。</p>`;
+      return;
+    }
+    els.deckEditTitle.textContent = deck.name;
+    els.deckEditList.innerHTML = deck.cards.length
+      ? deck.cards
+          .map((card, index) => {
+            const entry = deck.srs && deck.srs[card.front];
+            const status = statusOfEntry(entry, Boolean(entry && entry.lastSeen));
+            return `
+        <div class="edit-row status-${status}" data-index="${index}">
+          <span class="edit-front">${escapeHtml(card.front)}</span>
+          <span class="edit-sub">${escapeHtml(cardSummary(card))}</span>
+          <button class="edit-delete" data-action="delete-card" type="button" aria-label="${escapeHtml(card.front)}を削除">✕</button>
+        </div>`;
+          })
+          .join("")
+      : `<p class="stats-footnote">このデッキにはカードがありません。</p>`;
+  }
+
+  function openDeckEdit() {
+    editingDeckId = null;
+    hideEditUndo();
+    renderDeckEdit();
+    showScreen("deckEdit");
+  }
+
+  function deleteDeckCard(deck, index) {
+    const [card] = deck.cards.splice(index, 1);
+    if (!card) return;
+    const srsEntry = deck.srs && deck.srs[card.front];
+    if (deck.srs) delete deck.srs[card.front];
+    deck.updatedAt = new Date().toISOString();
+    saveCustomDecks();
+    lastDeletedCard = { deckId: deck.id, card, index, srsEntry };
+    els.deckEditUndoText.textContent = `「${card.front}」を削除しました`;
+    els.deckEditUndo.hidden = false;
+    window.clearTimeout(undoTimer);
+    undoTimer = window.setTimeout(hideEditUndo, 8000);
+    renderDeckEdit();
+  }
+
+  els.editDecksBtn.addEventListener("click", openDeckEdit);
+
+  els.deckEditBackBtn.addEventListener("click", () => {
+    hideEditUndo();
+    if (editingDeckId) {
+      editingDeckId = null;
+      renderDeckEdit();
+    } else {
+      showScreen("home");
+    }
+  });
+
+  els.deckEditList.addEventListener("click", (event) => {
+    const open = event.target.closest("[data-edit-deck]");
+    if (open) {
+      editingDeckId = open.dataset.editDeck;
+      hideEditUndo();
+      renderDeckEdit();
+      return;
+    }
+    const del = event.target.closest("[data-action='delete-card']");
+    const deck = editingDeckId && customDeckById(editingDeckId);
+    if (!del || !deck) return;
+    deleteDeckCard(deck, Number(del.closest(".edit-row").dataset.index));
+  });
+
+  els.deckEditUndoBtn.addEventListener("click", () => {
+    const last = lastDeletedCard;
+    const deck = last && customDeckById(last.deckId);
+    if (!deck) return;
+    deck.cards.splice(Math.min(last.index, deck.cards.length), 0, last.card);
+    if (last.srsEntry) {
+      deck.srs = deck.srs || {};
+      deck.srs[last.card.front] = last.srsEntry;
+    }
+    deck.updatedAt = new Date().toISOString();
+    saveCustomDecks();
+    hideEditUndo();
+    renderDeckEdit();
+  });
+
+  els.deckEditToolbar.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-action]");
+    const deck = btn && editingDeckId && customDeckById(editingDeckId);
+    if (!deck) return;
+    const action = btn.dataset.action;
+    if (action === "download") {
       downloadTextFile(`${sanitizeFilename(deck.name)}.csv`, deckToCsvText(deck), "text/csv;charset=utf-8");
     } else if (action === "replace") {
       pendingReplaceId = deck.id;
       els.csvFileInput.value = "";
       els.csvFileInput.click();
-    } else if (action === "delete") {
+    } else if (action === "delete-deck") {
       const ok = window.confirm(`「${deck.name}」を削除しますか？この操作は元に戻せません。`);
       if (!ok) return;
       deleteCustomDeckById(deck.id);
-      renderCustomDecksList();
+      hideEditUndo();
+      editingDeckId = null;
+      renderDeckEdit();
     }
   });
 
@@ -2193,7 +2338,7 @@
     els.termChart.innerHTML = allKanji
       .map((item) => {
         const parts = chartParts(item);
-        const classes = `term-tile${selected.has(item.num) ? " selected" : ""}${isItemStudied(item) ? " studied" : ""}`;
+        const classes = `term-tile status-${itemStatus(item)}${selected.has(item.num) ? " selected" : ""}`;
         return `<button class="${classes}" type="button" data-num="${item.num}">
           <span class="term-reading">${escapeHtml(parts.above)}</span>
           <span class="term-word">${escapeHtml(item.kanji)}</span>
@@ -3749,8 +3894,8 @@
     if (!brand || els.screenHome.hidden) return;
     brand.style.fontSize = "";
     const bar = brand.parentElement;
-    const side = bar.querySelector(".icon-btn");
-    const available = bar.clientWidth - 2 * (side ? side.offsetWidth : 0) - 16;
+    const sideWidth = Math.max(0, ...Array.from(bar.querySelectorAll(".icon-btn")).map((el) => el.offsetWidth));
+    const available = bar.clientWidth - 2 * sideWidth - 16;
     const needed = brand.getBoundingClientRect().width;
     if (available > 0 && needed > available) {
       const current = parseFloat(getComputedStyle(brand).fontSize);
