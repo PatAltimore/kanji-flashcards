@@ -30,7 +30,7 @@
   // Leitner-box spaced repetition: box index -> days until next due date.
   // A correct answer advances a card to the next box (longer interval); a
   // miss drops it back a box and makes it due again immediately.
-  const BOX_INTERVALS_DAYS = [0, 1, 3, 7, 14, 30, 90];
+  const BOX_INTERVALS_DAYS = [0, 1, 3, 7, 14, 30, 90, 90];
   const MAX_BOX = BOX_INTERVALS_DAYS.length - 1;
   const KNOWN_BOX_THRESHOLD = 4;
   // Placement quiz: a never-reviewed card the player says they know starts in
@@ -683,16 +683,16 @@
     return stats.perCard[String(item.num)] || null;
   }
 
-  // Progress shown by colour: "new" (not covered in a lesson yet), "learning"
-  // (covered, reviews still to come) and "memorized" (covered, and every
-  // scheduled review step completed, i.e. the review schedule's last box).
+  // Progress shown by colour. A correct answer moves a card up one box: the
+  // lesson takes it to box 1 and each review one higher, so box 4 means three
+  // reviews are done (green), 5 four (pink), 6 five (purple), 7 six (light
+  // blue). Before that a studied card is "learning"; one never studied is "new".
+  const REVIEW_STATUS_BY_BOX = { 4: "r3", 5: "r4", 6: "r5", 7: "r6" };
+
   function statusOfEntry(entry, studied) {
     if (!studied || !entry) return "new";
-    return (entry.box || 0) >= MAX_BOX ? "memorized" : "learning";
-  }
-
-  function itemStatus(item) {
-    return statusOfEntry(srsOf(item), isItemStudied(item));
+    const box = Math.min(entry.box || 0, MAX_BOX);
+    return REVIEW_STATUS_BY_BOX[box] || "learning";
   }
 
   function isItemStudied(item) {
@@ -2273,9 +2273,15 @@
     return lessonHistory.today;
   }
 
+  // Terms whose lesson is already done leave the chart; what is left to pick
+  // from (and what counts as selected) is the terms never studied.
+  function lessonPending(item) {
+    return !isItemStudied(item);
+  }
+
   function todaysNums() {
     const today = ensureTodaysLesson();
-    return today.nums.filter((n) => kanjiByNum.has(n));
+    return today.nums.filter((n) => kanjiByNum.has(n) && lessonPending(kanjiByNum.get(n)));
   }
 
   function todaysLessonCards() {
@@ -2333,12 +2339,15 @@
     els.lessonDeckBtn.textContent = `デッキ: ${deckName(activeDeckId)}`;
     els.lessonMonthLabel.textContent = today.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
     els.lessonTitle.textContent = "今日のレッスン";
-    els.lessonSubtitle.textContent = `学習したい${deckNoun()}をタップして選択してください。`;
 
-    els.termChart.innerHTML = allKanji
+    const pending = allKanji.filter(lessonPending);
+    els.lessonSubtitle.textContent = pending.length
+      ? `学習したい${deckNoun()}をタップして選択してください。`
+      : `すべての${deckNoun()}のレッスンが完了しました。復習で定着させましょう。`;
+    els.termChart.innerHTML = pending
       .map((item) => {
         const parts = chartParts(item);
-        const classes = `term-tile status-${itemStatus(item)}${selected.has(item.num) ? " selected" : ""}`;
+        const classes = `term-tile${selected.has(item.num) ? " selected" : ""}`;
         return `<button class="${classes}" type="button" data-num="${item.num}">
           <span class="term-reading">${escapeHtml(parts.above)}</span>
           <span class="term-word">${escapeHtml(item.kanji)}</span>
@@ -2358,7 +2367,7 @@
     for (let day = 1; day <= daysInMonth; day++) {
       const key = dateKey(new Date(today.getFullYear(), today.getMonth(), day));
       const completed = Boolean(lessonHistory.completed[completedKey(key)]);
-      html += `<span class="calendar-day${key === todayKey ? " calendar-today" : ""}${completed ? " calendar-complete" : ""}">${day}${completed ? `<span class="calendar-check" aria-label="レッスン完了">✓</span>` : ""}</span>`;
+      html += `<span class="calendar-day${key === todayKey ? " calendar-today" : ""}${completed ? " calendar-complete" : ""}">${day}</span>`;
     }
     els.lessonCalendar.innerHTML = html;
     const reviewCount = getReviewCards().length;
@@ -2594,6 +2603,48 @@
     return d.toLocaleDateString("ja-JP", { weekday: "short" });
   }
 
+  // Terms per progress colour, one chart per deck.
+  const STATUS_LABELS = [
+    ["new", "未学習"],
+    ["learning", "学習済み"],
+    ["r3", "復習3"],
+    ["r4", "復習4"],
+    ["r5", "復習5"],
+    ["r6", "復習6"],
+  ];
+
+  function progressChartsHtml() {
+    const decks = [{ id: KANJI_DECK_ID, name: "N2漢字" }].concat(
+      customDecks.map((deck) => ({ id: `custom:${deck.id}`, name: deck.name }))
+    );
+    return decks
+      .map(({ id, name }) => {
+        const items = deckItems(id);
+        if (!items.length) return "";
+        const counts = {};
+        items.forEach((item) => {
+          const status = statusOfEntry(srsOf(item), isItemStudied(item));
+          counts[status] = (counts[status] || 0) + 1;
+        });
+        const rows = STATUS_LABELS.map(([status, label]) => {
+          const count = counts[status] || 0;
+          const pct = Math.round((count / items.length) * 100);
+          return `
+        <div class="progress-row">
+          <i class="status-dot status-${status}"></i>
+          <span class="progress-label">${label}</span>
+          <span class="progress-bar"><span class="progress-fill status-${status}" style="width:${count && pct < 2 ? 2 : pct}%"></span></span>
+          <span class="progress-count">${count}</span>
+        </div>`;
+        }).join("");
+        return `
+      <div class="stats-section-title">進捗の内訳 · ${escapeHtml(name)}（${items.length}）</div>
+      <div class="progress-chart">${rows}
+      </div>`;
+      })
+      .join("");
+  }
+
   function renderStats() {
     const rows = [];
     const today = new Date();
@@ -2686,6 +2737,7 @@
           <div class="overall-label">習得済み</div>
         </div>
       </div>
+      ${progressChartsHtml()}
       ${
         dueCount
           ? `<button class="secondary-btn stats-review-btn" type="button" data-action="review-now">${dueCount}枚が復習待ち — 今すぐ復習</button>`

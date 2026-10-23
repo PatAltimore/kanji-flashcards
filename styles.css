@@ -742,8 +742,14 @@ body {
   white-space: nowrap;
 }
 
-/* Colour by progress: covered in a lesson (amber), and memorized, meaning every
-   scheduled review has been completed (green). */
+/* Colour by progress: covered in a lesson (amber), then green, pink, purple
+   and light blue after the 3rd, 4th, 5th and 6th review. */
+.status-learning { --status-rgb: 232, 176, 75; }
+.status-r3 { --status-rgb: 76, 195, 138; }
+.status-r4 { --status-rgb: 240, 111, 168; }
+.status-r5 { --status-rgb: 167, 123, 240; }
+.status-r6 { --status-rgb: 92, 200, 240; }
+
 .status-dot {
   display: inline-block;
   width: 10px;
@@ -753,14 +759,13 @@ body {
   vertical-align: middle;
 }
 
-.status-dot.status-learning {
-  background: #e8b04b;
-  border-color: #e8b04b;
-}
-
-.status-dot.status-memorized {
-  background: #4cc38a;
-  border-color: #4cc38a;
+.status-dot.status-learning,
+.status-dot.status-r3,
+.status-dot.status-r4,
+.status-dot.status-r5,
+.status-dot.status-r6 {
+  background: rgb(var(--status-rgb));
+  border-color: rgb(var(--status-rgb));
 }
 
 .status-legend {
@@ -776,35 +781,6 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-}
-
-.term-tile::before {
-  content: "";
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: transparent;
-}
-
-.term-tile.status-learning {
-  border-color: rgba(232,176,75,0.75);
-  background: linear-gradient(180deg, rgba(232,176,75,0.2), rgba(232,176,75,0.06)), var(--surface);
-}
-
-.term-tile.status-learning::before {
-  background: #e8b04b;
-}
-
-.term-tile.status-memorized {
-  border-color: rgba(76,195,138,0.8);
-  background: linear-gradient(180deg, rgba(76,195,138,0.22), rgba(76,195,138,0.07)), var(--surface);
-}
-
-.term-tile.status-memorized::before {
-  background: #4cc38a;
 }
 
 /* A selected term lights up. */
@@ -847,7 +823,8 @@ body {
 }
 
 .calendar {
-  max-width: 520px;
+  width: 100%;
+  max-width: 340px;
   margin: 0 auto;
   padding: 14px;
   display: grid;
@@ -873,7 +850,7 @@ body {
   align-items: center;
   justify-content: center;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text-dim);
   font-size: 0.85rem;
 }
@@ -885,17 +862,10 @@ body {
 }
 
 .calendar-complete {
-  background: rgba(82, 183, 136, 0.16);
+  background: rgba(82, 183, 136, 0.3);
   color: var(--success);
 }
 
-.calendar-check {
-  position: absolute;
-  right: 3px;
-  top: 1px;
-  font-size: 0.65rem;
-  font-weight: 800;
-}
 
 .lesson-actions {
   width: 100%;
@@ -2188,14 +2158,13 @@ button.edit-row {
   width: 100%;
 }
 
-.edit-row.status-learning {
-  border-color: rgba(232,176,75,0.75);
-  background: linear-gradient(90deg, rgba(232,176,75,0.2), rgba(232,176,75,0.05)), var(--surface);
-}
-
-.edit-row.status-memorized {
-  border-color: rgba(76,195,138,0.8);
-  background: linear-gradient(90deg, rgba(76,195,138,0.22), rgba(76,195,138,0.06)), var(--surface);
+.edit-row.status-learning,
+.edit-row.status-r3,
+.edit-row.status-r4,
+.edit-row.status-r5,
+.edit-row.status-r6 {
+  border-color: rgba(var(--status-rgb), 0.8);
+  background: linear-gradient(90deg, rgba(var(--status-rgb), 0.22), rgba(var(--status-rgb), 0.06)), var(--surface);
 }
 
 .edit-front {
@@ -2244,4 +2213,50 @@ button.edit-row {
 .deck-edit-undo .secondary-btn {
   padding: 6px 12px;
   font-size: 0.8rem;
+}
+
+/* ---------- progress chart (statistics) ---------- */
+
+.progress-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: linear-gradient(145deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.progress-row {
+  display: grid;
+  grid-template-columns: 12px 4.6em 1fr 3em;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.progress-label {
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.progress-bar {
+  height: 12px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: 6px;
+  background: rgb(var(--status-rgb, 138, 144, 153));
+}
+
+.progress-count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }
