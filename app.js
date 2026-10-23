@@ -111,10 +111,6 @@
     stylizedFontToggle: document.getElementById("stylizedFontToggle"),
     fontSizeSlider: document.getElementById("fontSizeSlider"),
     fontSizeValue: document.getElementById("fontSizeValue"),
-    defaultMinutesDownBtn: document.getElementById("defaultMinutesDownBtn"),
-    defaultMinutesUpBtn: document.getElementById("defaultMinutesUpBtn"),
-    defaultMinutesValue: document.getElementById("defaultMinutesValue"),
-    reshuffleDeckBtn: document.getElementById("reshuffleDeckBtn"),
     dataStatus: document.getElementById("dataStatus"),
     openSyncBtn: document.getElementById("openSyncBtn"),
     screenSync: document.getElementById("screen-sync"),
@@ -1815,7 +1811,6 @@
     const pct = Math.round(settings.fontScale * 100);
     els.fontSizeSlider.value = String(pct);
     els.fontSizeValue.textContent = `${pct}%`;
-    els.defaultMinutesValue.textContent = String(settings.defaultDailyMinutes);
     els.reviewQuestionsValue.textContent = String(settings.reviewQuestions);
     els.quizQuestionsValue.textContent = String(settings.quizQuestions);
     if (els.themeOptions) {
@@ -1857,26 +1852,6 @@
     saveSettings();
   });
 
-  els.defaultMinutesDownBtn.addEventListener("click", () => {
-    settings.defaultDailyMinutes = Math.max(
-      MIN_MINUTES,
-      settings.defaultDailyMinutes - 1
-    );
-    dailyMinutes = settings.defaultDailyMinutes;
-    els.defaultMinutesValue.textContent = String(settings.defaultDailyMinutes);
-    saveSettings();
-  });
-
-  els.defaultMinutesUpBtn.addEventListener("click", () => {
-    settings.defaultDailyMinutes = Math.min(
-      MAX_MINUTES,
-      settings.defaultDailyMinutes + 1
-    );
-    dailyMinutes = settings.defaultDailyMinutes;
-    els.defaultMinutesValue.textContent = String(settings.defaultDailyMinutes);
-    saveSettings();
-  });
-
   function changeQuestionSetting(name, amount) {
     settings[name] = Math.min(MAX_QUESTIONS, Math.max(MIN_QUESTIONS, settings[name] + amount));
     refreshSettingsUI();
@@ -1887,17 +1862,6 @@
   els.reviewQuestionsUpBtn.addEventListener("click", () => changeQuestionSetting("reviewQuestions", 1));
   els.quizQuestionsDownBtn.addEventListener("click", () => changeQuestionSetting("quizQuestions", -1));
   els.quizQuestionsUpBtn.addEventListener("click", () => changeQuestionSetting("quizQuestions", 1));
-
-  els.reshuffleDeckBtn.addEventListener("click", () => {
-    reshuffleDeck();
-    const original = els.reshuffleDeckBtn.textContent;
-    els.reshuffleDeckBtn.textContent = "Reshuffled";
-    els.reshuffleDeckBtn.disabled = true;
-    window.setTimeout(() => {
-      els.reshuffleDeckBtn.textContent = original;
-      els.reshuffleDeckBtn.disabled = false;
-    }, 1400);
-  });
 
   // ---------- shared flashcard engine ----------
 

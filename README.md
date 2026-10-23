@@ -10,7 +10,7 @@ A dependency-free, mobile-friendly flashcard app for studying the 367 kanji in t
 - **Lessons**: pick a deck (the N2 kanji or any custom deck) and choose the terms to study from a chart of every term, with the reading above and the meaning below; selected terms light up. The lesson itself is typed questions on those terms (every reading and meaning, shuffled; for N2 kanji with a verb or adjective, also that word's reading and meaning); completion is tracked on a monthly calendar, and due terms can be reviewed the same way.
 - **Custom Decks Quiz**: a typed-answer placement quiz for an uploaded deck, played in fixed-size rounds (Quiz Questions setting). Unreviewed cards come first (shuffled), each answer is saved immediately so you can stop at any time, and correct cards are placed ahead in the review schedule.
 - **Statistics**: view a seven-day activity summary, overall accuracy, and per-card results.
-- **Settings**: change kanji typography, scale the interface text, set the review and quiz question counts, reshuffle the main deck, or reset statistics.
+- **Settings**: change kanji typography, scale the interface text, set the review and quiz question counts, or reset statistics.
 - Persistent progress, statistics, and settings stored locally in the browser, with Export/Import (Settings > Backup) to move them to another device.
 - Automatic light and dark color schemes with mobile safe-area support.
 
