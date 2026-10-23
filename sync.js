@@ -169,6 +169,7 @@
         meaning: sortedUnion(a.meaning, b.meaning),
         onyomi: sortedUnion(a.onyomi, b.onyomi),
         kunyomi: sortedUnion(a.kunyomi, b.kunyomi),
+        wordMeaning: sortedUnion(a.wordMeaning, b.wordMeaning),
       };
     });
     return out;

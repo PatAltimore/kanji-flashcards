@@ -60,7 +60,10 @@
     "onyomiRomaji": "setsu",
     "kunyomi": "もう(ける)",
     "kunyomiRomaji": "mou(keru)",
-    "meaning": "establishment, provision, prepare"
+    "meaning": "establishment, provision, prepare",
+    "word": "設ける",
+    "wordReading": "もうける",
+    "wordMeaning": "to prepare, to provide, to set up"
   },
   {
     "num": 25913,
@@ -69,7 +72,10 @@
     "onyomiRomaji": "kai",
     "kunyomi": "あらた(める)、 あらた(まる)",
     "kunyomiRomaji": "arata(meru), arata(maru)",
-    "meaning": "reformation, change, modify, mend, renew"
+    "meaning": "reformation, change, modify, mend, renew",
+    "word": "改める",
+    "wordReading": "あらためる",
+    "wordMeaning": "to change, to alter, to revise"
   },
   {
     "num": 24220,
@@ -96,7 +102,10 @@
     "onyomiRomaji": "i",
     "kunyomi": "ゆだ(ねる)",
     "kunyomiRomaji": "yuda(neru)",
-    "meaning": "committee, entrust to, leave to, devote, discard"
+    "meaning": "committee, entrust to, leave to, devote, discard",
+    "word": "委ねる",
+    "wordReading": "ゆだねる",
+    "wordMeaning": "to entrust (a matter) to, to leave to, to abandon oneself to (e.g. pleasure)"
   },
   {
     "num": 36557,
@@ -168,7 +177,10 @@
     "onyomiRomaji": "gen",
     "kunyomi": "へ(る)、 へ(らす)",
     "kunyomiRomaji": "he(ru), he(rasu)",
-    "meaning": "dwindle, decrease, reduce, decline, curtail"
+    "meaning": "dwindle, decrease, reduce, decline, curtail",
+    "word": "減る",
+    "wordReading": "へる",
+    "wordMeaning": "to decrease (in size or number), to diminish, to abate"
   },
   {
     "num": 20877,
@@ -195,7 +207,10 @@
     "onyomiRomaji": "ei",
     "kunyomi": "いとな(む)、 いとな(み)",
     "kunyomiRomaji": "itona(mu), itona(mi)",
-    "meaning": "camp, perform, build, conduct (business)"
+    "meaning": "camp, perform, build, conduct (business)",
+    "word": "営む",
+    "wordReading": "いとなむ",
+    "wordMeaning": "to run (a business), to operate, to conduct"
   },
   {
     "num": 27604,
@@ -204,7 +219,10 @@
     "onyomiRomaji": "hi",
     "kunyomi": "くら(べる)",
     "kunyomiRomaji": "kura(beru)",
-    "meaning": "compare, race, ratio, Philippines"
+    "meaning": "compare, race, ratio, Philippines",
+    "word": "比べる",
+    "wordReading": "くらべる",
+    "wordMeaning": "to compare, to make a comparison (between), to compete (on)"
   },
   {
     "num": 38450,
@@ -213,7 +231,10 @@
     "onyomiRomaji": "bou",
     "kunyomi": "ふせ(ぐ)",
     "kunyomiRomaji": "fuse(gu)",
-    "meaning": "ward off, defend, protect, resist"
+    "meaning": "ward off, defend, protect, resist",
+    "word": "防ぐ",
+    "wordReading": "ふせぐ",
+    "wordMeaning": "to defend against, to protect against, to prevent"
   },
   {
     "num": 35036,
@@ -222,7 +243,10 @@
     "onyomiRomaji": "ho",
     "kunyomi": "おぎな(う)",
     "kunyomiRomaji": "ogina(u)",
-    "meaning": "supplement, supply, make good, offset, compensate"
+    "meaning": "supplement, supply, make good, offset, compensate",
+    "word": "補う",
+    "wordReading": "おぎなう",
+    "wordMeaning": "to supplement, to make up for, to compensate for"
   },
   {
     "num": 22659,
@@ -240,7 +264,10 @@
     "onyomiRomaji": "dou",
     "kunyomi": "みちび(く)",
     "kunyomiRomaji": "michibi(ku)",
-    "meaning": "guidance, leading, conduct, usher"
+    "meaning": "guidance, leading, conduct, usher",
+    "word": "導く",
+    "wordReading": "みちびく",
+    "wordMeaning": "to guide, to lead, to show the way"
   },
   {
     "num": 21103,
@@ -276,7 +303,10 @@
     "onyomiRomaji": "jutsu",
     "kunyomi": "の(べる)",
     "kunyomiRomaji": "no(beru)",
-    "meaning": "mention, state, speak, relate"
+    "meaning": "mention, state, speak, relate",
+    "word": "述べる",
+    "wordReading": "のべる",
+    "wordMeaning": "to state, to express, to say"
   },
   {
     "num": 32218,
@@ -321,7 +351,10 @@
     "onyomiRomaji": "shou, zou",
     "kunyomi": "かたど(る)",
     "kunyomiRomaji": "katado(ru)",
-    "meaning": "elephant, pattern after, imitate, image, shape"
+    "meaning": "elephant, pattern after, imitate, image, shape",
+    "word": "象る",
+    "wordReading": "かたどる",
+    "wordMeaning": "to model (something) on, to be modelled on, to be made in the shape of"
   },
   {
     "num": 22495,
@@ -357,7 +390,10 @@
     "onyomiRomaji": "tan",
     "kunyomi": "かつ(ぐ)、 にな(う)",
     "kunyomiRomaji": "katsu(gu), nina(u)",
-    "meaning": "shouldering, carry, raise, bear"
+    "meaning": "shouldering, carry, raise, bear",
+    "word": "担ぐ",
+    "wordReading": "かつぐ",
+    "wordMeaning": "to shoulder, to carry on one's shoulder, to nominate for a position"
   },
   {
     "num": 28310,
@@ -366,7 +402,10 @@
     "onyomiRomaji": "jun",
     "kunyomi": "じゅん(じる)、 じゅん(ずる)、 なぞら(える)、 のり、 ひと(しい)、 みずもり",
     "kunyomiRomaji": "jun(jiru), jun(zuru), nazora(eru), nori, hito(shii), mizumori",
-    "meaning": "semi-, correspond to, proportionate to, conform, imitate"
+    "meaning": "semi-, correspond to, proportionate to, conform, imitate",
+    "word": "準じる",
+    "wordReading": "じゅんじる",
+    "wordMeaning": "to follow (a rule / precedent / etc.), to be based on, to apply correspondingly"
   },
   {
     "num": 36062,
@@ -375,7 +414,10 @@
     "onyomiRomaji": "shou",
     "kunyomi": "ほ(める)",
     "kunyomiRomaji": "ho(meru)",
-    "meaning": "prize, reward, praise"
+    "meaning": "prize, reward, praise",
+    "word": "賞める",
+    "wordReading": "ほめる",
+    "wordMeaning": "to praise, to commend, to compliment"
   },
   {
     "num": 36794,
@@ -393,7 +435,10 @@
     "onyomiRomaji": "zou",
     "kunyomi": "つく(る)、 つく(り)、 づく(り)",
     "kunyomiRomaji": "tsuku(ru), tsuku(ri), zuku(ri)",
-    "meaning": "create, make, structure, physique"
+    "meaning": "create, make, structure, physique",
+    "word": "造る",
+    "wordReading": "つくる",
+    "wordMeaning": "to make, to produce, to manufacture"
   },
   {
     "num": 34987,
@@ -402,7 +447,10 @@
     "onyomiRomaji": "hi",
     "kunyomi": "こうむ(る)、 おお(う)、 かぶ(る)、 かぶ(せる)",
     "kunyomiRomaji": "koumu(ru), oo(u), kabu(ru), kabu(seru)",
-    "meaning": "incur, cover, veil, brood over, shelter"
+    "meaning": "incur, cover, veil, brood over, shelter",
+    "word": "被る",
+    "wordReading": "こうむる",
+    "wordMeaning": "to suffer, to receive (kindness / rebuke / support), to sustain (damage)"
   },
   {
     "num": 25216,
@@ -420,7 +468,10 @@
     "onyomiRomaji": "tei",
     "kunyomi": "ひく(い)、 ひく(める)、 ひく(まる)",
     "kunyomiRomaji": "hiku(i), hiku(meru), hiku(maru)",
-    "meaning": "lower, short, humble"
+    "meaning": "lower, short, humble",
+    "word": "低い",
+    "wordReading": "ひくい",
+    "wordMeaning": "low (rank / degree / value / content / quality / etc.), low (position), close to the ground"
   },
   {
     "num": 24489,
@@ -438,7 +489,10 @@
     "onyomiRomaji": "i",
     "kunyomi": "うつ(る)、 うつ(す)",
     "kunyomiRomaji": "utsu(ru), utsu(su)",
-    "meaning": "shift, move, change, drift, catch (cold, fire)"
+    "meaning": "shift, move, change, drift, catch (cold, fire)",
+    "word": "移る",
+    "wordReading": "うつる",
+    "wordMeaning": "to move (to another place or state), to be transferred, to spread (of a fire / smell / etc.)"
   },
   {
     "num": 20491,
@@ -483,7 +537,10 @@
     "onyomiRomaji": "kyoku, goku",
     "kunyomi": "きわ(める)、 きわ(まる)、 きわ(まり)、 きわ(み)、 き(める)、 ぎ(め)、 き(まる)",
     "kunyomiRomaji": "kiwa(meru), kiwa(maru), kiwa(mari), kiwa(mi), ki(meru), gi(me), ki(maru)",
-    "meaning": "extreme, pole, extremely, very, highly"
+    "meaning": "extreme, pole, extremely, very, highly",
+    "word": "極める",
+    "wordReading": "きわめる",
+    "wordMeaning": "to carry to extremes, to go to the end of something, to reach the limits of something"
   },
   {
     "num": 21547,
@@ -492,7 +549,10 @@
     "onyomiRomaji": "gan",
     "kunyomi": "ふく(む)、 ふく(める)",
     "kunyomiRomaji": "fuku(mu), fuku(meru)",
-    "meaning": "contain, include, hold in the mouth, bear in mind, understand"
+    "meaning": "contain, include, hold in the mouth, bear in mind, understand",
+    "word": "含む",
+    "wordReading": "ふくむ",
+    "wordMeaning": "to contain, to comprise, to have"
   },
   {
     "num": 34101,
@@ -510,7 +570,10 @@
     "onyomiRomaji": "ryou",
     "kunyomi": "はか(る)",
     "kunyomiRomaji": "haka(ru)",
-    "meaning": "quantity, measure, weight, amount, consider"
+    "meaning": "quantity, measure, weight, amount, consider",
+    "word": "量る",
+    "wordReading": "はかる",
+    "wordMeaning": "to measure, to weigh, to survey"
   },
   {
     "num": 22411,
@@ -555,7 +618,10 @@
     "onyomiRomaji": "koku",
     "kunyomi": "たに、 きわ(まる)",
     "kunyomiRomaji": "tani, kiwa(maru)",
-    "meaning": "valley"
+    "meaning": "valley",
+    "word": "谷まる",
+    "wordReading": "きわまる",
+    "wordMeaning": "to reach an extreme, to reach a limit, to terminate"
   },
   {
     "num": 21490,
@@ -600,7 +666,10 @@
     "onyomiRomaji": "setsu, shou",
     "kunyomi": "つ(ぐ)",
     "kunyomiRomaji": "tsu(gu)",
-    "meaning": "touch, contact, adjoin, piece together"
+    "meaning": "touch, contact, adjoin, piece together",
+    "word": "接ぐ",
+    "wordReading": "つぐ",
+    "wordMeaning": "to join, to piece together, to set (bones)"
   },
   {
     "num": 32048,
@@ -609,7 +678,10 @@
     "onyomiRomaji": "sai",
     "kunyomi": "ほそ(い)、 ほそ(る)、 こま(か)、 こま(かい)",
     "kunyomiRomaji": "hoso(i), hoso(ru), koma(ka), koma(kai)",
-    "meaning": "dainty, get thin, taper, slender, narrow"
+    "meaning": "dainty, get thin, taper, slender, narrow",
+    "word": "細い",
+    "wordReading": "ほそい",
+    "wordMeaning": "thin, slender, fine"
   },
   {
     "num": 21177,
@@ -618,7 +690,10 @@
     "onyomiRomaji": "kou",
     "kunyomi": "き(く)、 ききめ、 なら(う)",
     "kunyomiRomaji": "ki(ku), kikime, nara(u)",
-    "meaning": "merit, efficacy, efficiency, benefit"
+    "meaning": "merit, efficacy, efficiency, benefit",
+    "word": "効く",
+    "wordReading": "きく",
+    "wordMeaning": "to be effective, to take effect, to be good (for)"
   },
   {
     "num": 20024,
@@ -627,7 +702,10 @@
     "onyomiRomaji": "gan",
     "kunyomi": "まる、 まる(める)、 まる(い)",
     "kunyomiRomaji": "maru, maru(meru), maru(i)",
-    "meaning": "round, full (month), perfection, -ship, pills"
+    "meaning": "round, full (month), perfection, -ship, pills",
+    "word": "丸める",
+    "wordReading": "まるめる",
+    "wordMeaning": "to make round, to roll up, to curl up"
   },
   {
     "num": 28286,
@@ -645,7 +723,10 @@
     "onyomiRomaji": "roku",
     "kunyomi": "しる(す)、 と(る)",
     "kunyomiRomaji": "shiru(su), to(ru)",
-    "meaning": "record"
+    "meaning": "record",
+    "word": "録る",
+    "wordReading": "とる",
+    "wordMeaning": "to take (a photograph), to record (audio or video), to film"
   },
   {
     "num": 30465,
@@ -654,7 +735,10 @@
     "onyomiRomaji": "sei, shou",
     "kunyomi": "かえり(みる)、 はぶ(く)",
     "kunyomiRomaji": "kaeri(miru), habu(ku)",
-    "meaning": "government ministry, conserve, omit"
+    "meaning": "government ministry, conserve, omit",
+    "word": "省みる",
+    "wordReading": "かえりみる",
+    "wordMeaning": "to reflect on (oneself / past conduct / etc.), to contemplate, to examine"
   },
   {
     "num": 26087,
@@ -663,7 +747,10 @@
     "onyomiRomaji": "kyuu",
     "kunyomi": "ふる(い)、 もと",
     "kunyomiRomaji": "furu(i), moto",
-    "meaning": "old times, old things, old friend, former, ex-"
+    "meaning": "old times, old things, old friend, former, ex-",
+    "word": "旧い",
+    "wordReading": "ふるい",
+    "wordMeaning": "old, aged, ancient"
   },
   {
     "num": 27211,
@@ -735,7 +822,10 @@
     "onyomiRomaji": "hen",
     "kunyomi": "あ(む)、 あ(み)",
     "kunyomiRomaji": "a(mu), a(mi)",
-    "meaning": "compilation, knit, plait, braid, twist"
+    "meaning": "compilation, knit, plait, braid, twist",
+    "word": "編む",
+    "wordReading": "あむ",
+    "wordMeaning": "to knit, to plait, to braid"
   },
   {
     "num": 25436,
@@ -744,7 +834,10 @@
     "onyomiRomaji": "sou, shu, shuu",
     "kunyomi": "さが(す)",
     "kunyomiRomaji": "saga(su)",
-    "meaning": "search, look for, locate"
+    "meaning": "search, look for, locate",
+    "word": "捜す",
+    "wordReading": "さがす",
+    "wordMeaning": "to search for, to look for, to hunt for"
   },
   {
     "num": 31481,
@@ -762,7 +855,10 @@
     "onyomiRomaji": "chou",
     "kunyomi": "こ(える)、 こ(す)",
     "kunyomiRomaji": "ko(eru), ko(su)",
-    "meaning": "transcend, super-, ultra-"
+    "meaning": "transcend, super-, ultra-",
+    "word": "超える",
+    "wordReading": "こえる",
+    "wordMeaning": "to cross over, to cross, to pass through"
   },
   {
     "num": 20006,
@@ -771,7 +867,10 @@
     "onyomiRomaji": "hei, hou",
     "kunyomi": "な(み)、 なみ、 なら(べる)、 なら(ぶ)、 なら(びに)",
     "kunyomiRomaji": "na(mi), nami, nara(beru), nara(bu), nara(bini)",
-    "meaning": "row, and, besides, as well as, line up"
+    "meaning": "row, and, besides, as well as, line up",
+    "word": "並べる",
+    "wordReading": "ならべる",
+    "wordMeaning": "to line up, to set up, to arrange in a line"
   },
   {
     "num": 30274,
@@ -789,7 +888,10 @@
     "onyomiRomaji": "sai",
     "kunyomi": "と(る)",
     "kunyomiRomaji": "to(ru)",
-    "meaning": "pick, take, fetch, take up"
+    "meaning": "pick, take, fetch, take up",
+    "word": "採る",
+    "wordReading": "とる",
+    "wordMeaning": "to adopt (a method / proposal / etc.), to decide on, to pick (e.g. flowers)"
   },
   {
     "num": 26862,
@@ -807,7 +909,10 @@
     "onyomiRomaji": "kyou, kei",
     "kunyomi": "きそ(う)、 せ(る)、 くら(べる)",
     "kunyomiRomaji": "kiso(u), se(ru), kura(beru)",
-    "meaning": "emulate, compete with, bid, sell at auction, bout"
+    "meaning": "emulate, compete with, bid, sell at auction, bout",
+    "word": "競う",
+    "wordReading": "きそう",
+    "wordMeaning": "to compete, to contend, to vie"
   },
   {
     "num": 20171,
@@ -906,7 +1011,10 @@
     "onyomiRomaji": "sou, shou",
     "kunyomi": "よそお(う)、 よそお(い)",
     "kunyomiRomaji": "yosoo(u), yosoo(i)",
-    "meaning": "attire, dress, pretend, disguise, profess"
+    "meaning": "attire, dress, pretend, disguise, profess",
+    "word": "装う",
+    "wordReading": "よそおう",
+    "wordMeaning": "to dress (oneself in), to attire oneself in, to adorn"
   },
   {
     "num": 35576,
@@ -978,7 +1086,10 @@
     "onyomiRomaji": "in",
     "kunyomi": "しるし、 じるし、 しる(す)",
     "kunyomiRomaji": "shirushi, jirushi, shiru(su)",
-    "meaning": "stamp, seal, mark, imprint, symbol"
+    "meaning": "stamp, seal, mark, imprint, symbol",
+    "word": "印す",
+    "wordReading": "しるす",
+    "wordMeaning": "to leave (a mark / trace / etc.), to print, to stamp"
   },
   {
     "num": 36870,
@@ -987,7 +1098,10 @@
     "onyomiRomaji": "gyaku, geki",
     "kunyomi": "さか、 さか(さ)、 さか(らう)",
     "kunyomiRomaji": "saka, saka(sa), saka(rau)",
-    "meaning": "inverted, reverse, opposite, wicked"
+    "meaning": "inverted, reverse, opposite, wicked",
+    "word": "逆らう",
+    "wordReading": "さからう",
+    "wordMeaning": "to go against, to oppose, to disobey"
   },
   {
     "num": 25563,
@@ -996,7 +1110,10 @@
     "onyomiRomaji": "kan",
     "kunyomi": "か(える)、 か(える)、 か(わる)",
     "kunyomiRomaji": "ka(eru), ka(eru), ka(waru)",
-    "meaning": "interchange, period, change, convert, replace"
+    "meaning": "interchange, period, change, convert, replace",
+    "word": "換える",
+    "wordReading": "かえる",
+    "wordMeaning": "to replace, to convert, to change"
   },
   {
     "num": 20037,
@@ -1005,7 +1122,10 @@
     "onyomiRomaji": "kyuu, ku",
     "kunyomi": "ひさ(しい)",
     "kunyomiRomaji": "hisa(shii)",
-    "meaning": "long time, old story"
+    "meaning": "long time, old story",
+    "word": "久しい",
+    "wordReading": "ひさしい",
+    "wordMeaning": "long (time that has passed), old (story)"
   },
   {
     "num": 30701,
@@ -1014,7 +1134,10 @@
     "onyomiRomaji": "tan",
     "kunyomi": "みじか(い)",
     "kunyomiRomaji": "mijika(i)",
-    "meaning": "short, brevity, fault, defect, weak point"
+    "meaning": "short, brevity, fault, defect, weak point",
+    "word": "短い",
+    "wordReading": "みじかい",
+    "wordMeaning": "short, brief"
   },
   {
     "num": 27833,
@@ -1032,7 +1155,10 @@
     "onyomiRomaji": "bou, baku",
     "kunyomi": "あば(く)、 あば(れる)",
     "kunyomiRomaji": "aba(ku), aba(reru)",
-    "meaning": "outburst, rave, fret, force, violence"
+    "meaning": "outburst, rave, fret, force, violence",
+    "word": "暴く",
+    "wordReading": "あばく",
+    "wordMeaning": "to disclose, to divulge, to expose"
   },
   {
     "num": 36650,
@@ -1050,7 +1176,10 @@
     "onyomiRomaji": "sen",
     "kunyomi": "し(める)、 うらな(う)",
     "kunyomiRomaji": "shi(meru), urana(u)",
-    "meaning": "fortune-telling, divining, forecasting, occupy, hold"
+    "meaning": "fortune-telling, divining, forecasting, occupy, hold",
+    "word": "占める",
+    "wordReading": "しめる",
+    "wordMeaning": "to account for, to make up, to take up"
   },
   {
     "num": 26893,
@@ -1059,7 +1188,10 @@
     "onyomiRomaji": "shoku",
     "kunyomi": "う(える)、 う(わる)",
     "kunyomiRomaji": "u(eru), u(waru)",
-    "meaning": "plant"
+    "meaning": "plant",
+    "word": "植える",
+    "wordReading": "うえる",
+    "wordMeaning": "to plant, to grow, to raise"
   },
   {
     "num": 28165,
@@ -1068,7 +1200,10 @@
     "onyomiRomaji": "sei, shou, shin",
     "kunyomi": "きよ(い)、 きよ(まる)、 きよ(める)",
     "kunyomiRomaji": "kiyo(i), kiyo(maru), kiyo(meru)",
-    "meaning": "pure, purify, cleanse, exorcise, Manchu dynasty"
+    "meaning": "pure, purify, cleanse, exorcise, Manchu dynasty",
+    "word": "清い",
+    "wordReading": "きよい",
+    "wordMeaning": "clean, clear, pure"
   },
   {
     "num": 20493,
@@ -1086,7 +1221,10 @@
     "onyomiRomaji": "kin",
     "kunyomi": "なら(す)",
     "kunyomiRomaji": "nara(su)",
-    "meaning": "level, average"
+    "meaning": "level, average",
+    "word": "均す",
+    "wordReading": "ならす",
+    "wordMeaning": "to make even, to make smooth, to make level"
   },
   {
     "num": 20740,
@@ -1104,7 +1242,10 @@
     "onyomiRomaji": "atsu, en, ou",
     "kunyomi": "お(す)、 へ(す)、 おさ(える)、 お(さえる)",
     "kunyomiRomaji": "o(su), he(su), osa(eru), o(saeru)",
-    "meaning": "pressure, push, overwhelm, oppress, dominate"
+    "meaning": "pressure, push, overwhelm, oppress, dominate",
+    "word": "圧す",
+    "wordReading": "おす",
+    "wordMeaning": "to push, to thrust, to shove"
   },
   {
     "num": 33464,
@@ -1131,7 +1272,10 @@
     "onyomiRomaji": "shin",
     "kunyomi": "の(びる)、 の(ばす)、 の(べる)、 の(す)",
     "kunyomiRomaji": "no(biru), no(basu), no(beru), no(su)",
-    "meaning": "expand, stretch, extend, lengthen, increase"
+    "meaning": "expand, stretch, extend, lengthen, increase",
+    "word": "伸びる",
+    "wordReading": "のびる",
+    "wordMeaning": "to stretch, to extend, to lengthen"
   },
   {
     "num": 20572,
@@ -1140,7 +1284,10 @@
     "onyomiRomaji": "tei",
     "kunyomi": "と(める)、 と(まる)",
     "kunyomiRomaji": "to(meru), to(maru)",
-    "meaning": "halt, stopping"
+    "meaning": "halt, stopping",
+    "word": "停める",
+    "wordReading": "とめる",
+    "wordMeaning": "to stop, to turn off, to park"
   },
   {
     "num": 29190,
@@ -1149,7 +1296,10 @@
     "onyomiRomaji": "baku",
     "kunyomi": "は(ぜる)",
     "kunyomiRomaji": "ha(zeru)",
-    "meaning": "bomb, burst open, pop, split"
+    "meaning": "bomb, burst open, pop, split",
+    "word": "爆ぜる",
+    "wordReading": "はぜる",
+    "wordMeaning": "to burst open, to pop, to split"
   },
   {
     "num": 38520,
@@ -1185,7 +1335,10 @@
     "onyomiRomaji": "tai",
     "kunyomi": "お(びる)、 おび",
     "kunyomiRomaji": "o(biru), obi",
-    "meaning": "sash, belt, obi, zone, region"
+    "meaning": "sash, belt, obi, zone, region",
+    "word": "帯びる",
+    "wordReading": "おびる",
+    "wordMeaning": "to wear (a sword / decoration / etc.), to carry, to bear"
   },
   {
     "num": 24310,
@@ -1194,7 +1347,10 @@
     "onyomiRomaji": "en",
     "kunyomi": "の(びる)、 の(べる)、 の(べ)、 の(ばす)",
     "kunyomiRomaji": "no(biru), no(beru), no(be), no(basu)",
-    "meaning": "prolong, stretching"
+    "meaning": "prolong, stretching",
+    "word": "延びる",
+    "wordReading": "のびる",
+    "wordMeaning": "to stretch, to extend, to lengthen"
   },
   {
     "num": 32701,
@@ -1212,7 +1368,10 @@
     "onyomiRomaji": "ko",
     "kunyomi": "かた(める)、 かた(まる)、 かた(まり)、 かた(い)",
     "kunyomiRomaji": "kata(meru), kata(maru), kata(mari), kata(i)",
-    "meaning": "harden, set, clot, curdle"
+    "meaning": "harden, set, clot, curdle",
+    "word": "固める",
+    "wordReading": "かためる",
+    "wordMeaning": "to harden, to freeze, to strengthen"
   },
   {
     "num": 21063,
@@ -1221,7 +1380,10 @@
     "onyomiRomaji": "soku",
     "kunyomi": "のっと(る)、 のり、 すなわち",
     "kunyomiRomaji": "notto(ru), nori, sunawachi",
-    "meaning": "rule, law, follow, based on, model after"
+    "meaning": "rule, law, follow, based on, model after",
+    "word": "則る",
+    "wordReading": "のっとる",
+    "wordMeaning": "to follow (a rule / precedent / style / etc.), to conform to, to be in accordance with"
   },
   {
     "num": 20081,
@@ -1230,7 +1392,10 @@
     "onyomiRomaji": "ran, ron",
     "kunyomi": "みだ(れる)、 みだ(る)、 みだ(す)、 みだ、 おさ(める)、 わた(る)",
     "kunyomiRomaji": "mida(reru), mida(ru), mida(su), mida, osa(meru), wata(ru)",
-    "meaning": "riot, war, disorder, disturb"
+    "meaning": "riot, war, disorder, disturb",
+    "word": "乱れる",
+    "wordReading": "みだれる",
+    "wordMeaning": "to be disordered, to be disarranged, to be disarrayed"
   },
   {
     "num": 26222,
@@ -1248,7 +1413,10 @@
     "onyomiRomaji": "soku",
     "kunyomi": "はか(る)",
     "kunyomiRomaji": "haka(ru)",
-    "meaning": "fathom, plan, scheme, measure"
+    "meaning": "fathom, plan, scheme, measure",
+    "word": "測る",
+    "wordReading": "はかる",
+    "wordMeaning": "to measure, to weigh, to survey"
   },
   {
     "num": 35914,
@@ -1266,7 +1434,10 @@
     "onyomiRomaji": "kou",
     "kunyomi": "あつ(い)、 あか",
     "kunyomiRomaji": "atsu(i), aka",
-    "meaning": "thick, heavy, rich, kind, cordial"
+    "meaning": "thick, heavy, rich, kind, cordial",
+    "word": "厚い",
+    "wordReading": "あつい",
+    "wordMeaning": "thick, deep, heavy"
   },
   {
     "num": 40802,
@@ -1284,7 +1455,10 @@
     "onyomiRomaji": "i",
     "kunyomi": "かこ(む)、 かこ(う)、 かこ(い)",
     "kunyomiRomaji": "kako(mu), kako(u), kako(i)",
-    "meaning": "surround, besiege, store, paling, enclosure"
+    "meaning": "surround, besiege, store, paling, enclosure",
+    "word": "囲む",
+    "wordReading": "かこむ",
+    "wordMeaning": "to surround, to encircle, to enclose"
   },
   {
     "num": 21330,
@@ -1293,7 +1467,10 @@
     "onyomiRomaji": "sotsu, shutsu",
     "kunyomi": "そっ(する)、 お(える)、 お(わる)、 ついに、 にわか",
     "kunyomiRomaji": "so(suru), o(eru), o(waru), tsuini, niwaka",
-    "meaning": "graduate, soldier, private, die"
+    "meaning": "graduate, soldier, private, die",
+    "word": "卒する",
+    "wordReading": "そっする",
+    "wordMeaning": "to die, to pass away"
   },
   {
     "num": 30053,
@@ -1311,7 +1488,10 @@
     "onyomiRomaji": "shou, jou",
     "kunyomi": "うけたまわ(る)、 う(ける)",
     "kunyomiRomaji": "uketamawa(ru), u(keru)",
-    "meaning": "acquiesce, hear, listen to, be informed, receive"
+    "meaning": "acquiesce, hear, listen to, be informed, receive",
+    "word": "承る",
+    "wordReading": "うけたまわる",
+    "wordMeaning": "to hear, to be told, to know"
   },
   {
     "num": 38918,
@@ -1338,7 +1518,10 @@
     "onyomiRomaji": "ren",
     "kunyomi": "ね(る)、 ね(り)",
     "kunyomiRomaji": "ne(ru), ne(ri)",
-    "meaning": "practice, gloss, train, drill, polish"
+    "meaning": "practice, gloss, train, drill, polish",
+    "word": "練る",
+    "wordReading": "ねる",
+    "wordMeaning": "to knead, to polish (a plan / etc.), to refine"
   },
   {
     "num": 36605,
@@ -1347,7 +1530,10 @@
     "onyomiRomaji": "kei, kyou, kin",
     "kunyomi": "かる(い)、 かろ(やか)、 かろ(んじる)",
     "kunyomiRomaji": "karu(i), karo(yaka), karo(njiru)",
-    "meaning": "lightly, trifling, unimportant"
+    "meaning": "lightly, trifling, unimportant",
+    "word": "軽い",
+    "wordReading": "かるい",
+    "wordMeaning": "light (i.e. not heavy), light (i.e. of foot), effortless"
   },
   {
     "num": 20102,
@@ -1383,7 +1569,10 @@
     "onyomiRomaji": "kan",
     "kunyomi": "わずら(う)",
     "kunyomiRomaji": "wazura(u)",
-    "meaning": "afflicted, disease, suffer from, be ill"
+    "meaning": "afflicted, disease, suffer from, be ill",
+    "word": "患う",
+    "wordReading": "わずらう",
+    "wordMeaning": "to be ill, to suffer from"
   },
   {
     "num": 23652,
@@ -1428,7 +1617,10 @@
     "onyomiRomaji": "raku",
     "kunyomi": "から(む)、 から(まる)",
     "kunyomiRomaji": "kara(mu), kara(maru)",
-    "meaning": "entwine, coil around, get caught in"
+    "meaning": "entwine, coil around, get caught in",
+    "word": "絡む",
+    "wordReading": "からむ",
+    "wordMeaning": "to twine, to get tangled, to get entangled"
   },
   {
     "num": 25613,
@@ -1437,7 +1629,10 @@
     "onyomiRomaji": "son",
     "kunyomi": "そこ(なう)、 そこな(う)、 そこ(なう)、 そこ(ねる)、 そこ(ねる)",
     "kunyomiRomaji": "soko(nau), sokona(u), soko(nau), soko(neru), soko(neru)",
-    "meaning": "damage, loss, disadvantage, hurt, injure"
+    "meaning": "damage, loss, disadvantage, hurt, injure",
+    "word": "損なう",
+    "wordReading": "そこなう",
+    "wordMeaning": "to harm, to hurt, to injure"
   },
   {
     "num": 21215,
@@ -1446,7 +1641,10 @@
     "onyomiRomaji": "bo",
     "kunyomi": "つの(る)",
     "kunyomiRomaji": "tsuno(ru)",
-    "meaning": "recruit, campaign, gather (contributions), enlist, grow violent"
+    "meaning": "recruit, campaign, gather (contributions), enlist, grow violent",
+    "word": "募る",
+    "wordReading": "つのる",
+    "wordMeaning": "to become stronger, to grow in intensity, to grow violent"
   },
   {
     "num": 35023,
@@ -1482,7 +1680,10 @@
     "onyomiRomaji": "chiku",
     "kunyomi": "きず(く)",
     "kunyomiRomaji": "kizu(ku)",
-    "meaning": "fabricate, build, construct"
+    "meaning": "fabricate, build, construct",
+    "word": "築く",
+    "wordReading": "きずく",
+    "wordMeaning": "to build, to construct, to erect"
   },
   {
     "num": 36008,
@@ -1500,7 +1701,10 @@
     "onyomiRomaji": "kon",
     "kunyomi": "ま(じる)、 ま(じり)、 ま(ざる)、 ま(ぜる)、 こ(む)",
     "kunyomiRomaji": "ma(jiru), ma(jiri), ma(zaru), ma(zeru), ko(mu)",
-    "meaning": "mix, blend, confuse"
+    "meaning": "mix, blend, confuse",
+    "word": "混じる",
+    "wordReading": "まじる",
+    "wordMeaning": "to be mixed, to be blended with, to be combined"
   },
   {
     "num": 26119,
@@ -1509,7 +1713,10 @@
     "onyomiRomaji": "shou",
     "kunyomi": "のぼ(る)",
     "kunyomiRomaji": "nobo(ru)",
-    "meaning": "rise up"
+    "meaning": "rise up",
+    "word": "昇る",
+    "wordReading": "のぼる",
+    "wordMeaning": "to ascend, to go up, to climb"
   },
   {
     "num": 27744,
@@ -1536,7 +1743,10 @@
     "onyomiRomaji": "on",
     "kunyomi": "あたた(か)、 あたた(かい)、 あたた(まる)、 あたた(める)、 ぬく",
     "kunyomiRomaji": "atata(ka), atata(kai), atata(maru), atata(meru), nuku",
-    "meaning": "warm"
+    "meaning": "warm",
+    "word": "温かい",
+    "wordReading": "あたたかい",
+    "wordMeaning": "warm, mild, (pleasantly) hot"
   },
   {
     "num": 23395,
@@ -1563,7 +1773,10 @@
     "onyomiRomaji": "ei",
     "kunyomi": "なが(い)",
     "kunyomiRomaji": "naga(i)",
-    "meaning": "eternity, long, lengthy"
+    "meaning": "eternity, long, lengthy",
+    "word": "永い",
+    "wordReading": "ながい",
+    "wordMeaning": "long (distance / length), long (time), protracted"
   },
   {
     "num": 33879,
@@ -1572,7 +1785,10 @@
     "onyomiRomaji": "cho, chaku",
     "kunyomi": "あらわ(す)、 いちじる(しい)",
     "kunyomiRomaji": "arawa(su), ichijiru(shii)",
-    "meaning": "renowned, publish, write, remarkable, phenomenal"
+    "meaning": "renowned, publish, write, remarkable, phenomenal",
+    "word": "著す",
+    "wordReading": "あらわす",
+    "wordMeaning": "to write, to publish"
   },
   {
     "num": 35468,
@@ -1617,7 +1833,10 @@
     "onyomiRomaji": "kou, kyou",
     "kunyomi": "か、 かお(り)、 かお(る)",
     "kunyomiRomaji": "ka, kao(ri), kao(ru)",
-    "meaning": "incense, smell, perfume"
+    "meaning": "incense, smell, perfume",
+    "word": "香る",
+    "wordReading": "かおる",
+    "wordMeaning": "to smell sweet, to be fragrant"
   },
   {
     "num": 22338,
@@ -1644,7 +1863,10 @@
     "onyomiRomaji": "fu, ho",
     "kunyomi": "ぬの、 し(く)、 きれ",
     "kunyomiRomaji": "nuno, shi(ku), kire",
-    "meaning": "linen, cloth, spread, distribute"
+    "meaning": "linen, cloth, spread, distribute",
+    "word": "布く",
+    "wordReading": "しく",
+    "wordMeaning": "to spread out (e.g. a futon), to lay out, to lay down (e.g. a cushion)"
   },
   {
     "num": 23546,
@@ -1680,7 +1902,10 @@
     "onyomiRomaji": "shin",
     "kunyomi": "ふる(う)、 ふる(える)、 ふる(わせる)、 ふる(わす)",
     "kunyomiRomaji": "furu(u), furu(eru), furu(waseru), furu(wasu)",
-    "meaning": "quake, shake, tremble, quiver, shiver"
+    "meaning": "quake, shake, tremble, quiver, shiver",
+    "word": "震う",
+    "wordReading": "ふるう",
+    "wordMeaning": "to shiver, to shake, to quake"
   },
   {
     "num": 24076,
@@ -1689,7 +1914,10 @@
     "onyomiRomaji": "ki, ke",
     "kunyomi": "まれ、 こいねが(う)",
     "kunyomiRomaji": "mare, koinega(u)",
-    "meaning": "hope, beg, request, pray, beseech"
+    "meaning": "hope, beg, request, pray, beseech",
+    "word": "希う",
+    "wordReading": "こいねがう",
+    "wordMeaning": "to beg, to request, to beseech"
   },
   {
     "num": 35302,
@@ -1698,7 +1926,10 @@
     "onyomiRomaji": "shoku",
     "kunyomi": "ふ(れる)、 さわ(る)、 さわ",
     "kunyomiRomaji": "fu(reru), sawa(ru), sawa",
-    "meaning": "contact, touch, feel, hit, proclaim"
+    "meaning": "contact, touch, feel, hit, proclaim",
+    "word": "触れる",
+    "wordReading": "ふれる",
+    "wordMeaning": "to touch, to feel, to touch (with)"
   },
   {
     "num": 20381,
@@ -1707,7 +1938,10 @@
     "onyomiRomaji": "i, e",
     "kunyomi": "よ(る)",
     "kunyomiRomaji": "yo(ru)",
-    "meaning": "reliant, depend on, consequently, therefore, due to"
+    "meaning": "reliant, depend on, consequently, therefore, due to",
+    "word": "依る",
+    "wordReading": "よる",
+    "wordMeaning": "to be due to, to be caused by, to depend on"
   },
   {
     "num": 31821,
@@ -1725,7 +1959,10 @@
     "onyomiRomaji": "o",
     "kunyomi": "けが(す)、 けが(れる)、 けが(らわしい)、 よご(す)、 よご(れる)、 きたな(い)",
     "kunyomiRomaji": "kega(su), kega(reru), kega(rawashii), yogo(su), yogo(reru), kitana(i)",
-    "meaning": "dirty, pollute, disgrace, rape, defile"
+    "meaning": "dirty, pollute, disgrace, rape, defile",
+    "word": "汚す",
+    "wordReading": "けがす",
+    "wordMeaning": "to pollute, to contaminate, to soil"
   },
   {
     "num": 26522,
@@ -1770,7 +2007,10 @@
     "onyomiRomaji": "ei, you",
     "kunyomi": "さか(える)、 は(え)、 ば(え)、 は(える)、 え",
     "kunyomiRomaji": "saka(eru), ha(e), ba(e), ha(eru), e",
-    "meaning": "flourish, prosperity, honor, glory, splendor"
+    "meaning": "flourish, prosperity, honor, glory, splendor",
+    "word": "栄える",
+    "wordReading": "さかえる",
+    "wordMeaning": "to prosper, to flourish, to thrive"
   },
   {
     "num": 26413,
@@ -1806,7 +2046,10 @@
     "onyomiRomaji": "kei",
     "kunyomi": "かたむ(く)、 かたむ(ける)、 かたぶ(く)、 かた(げる)、 かし(げる)",
     "kunyomiRomaji": "katamu(ku), katamu(keru), katabu(ku), kata(geru), kashi(geru)",
-    "meaning": "lean, incline, tilt, trend, wane"
+    "meaning": "lean, incline, tilt, trend, wane",
+    "word": "傾く",
+    "wordReading": "かたむく",
+    "wordMeaning": "to incline toward, to slant, to lurch"
   },
   {
     "num": 23626,
@@ -1815,7 +2058,10 @@
     "onyomiRomaji": "kai",
     "kunyomi": "とど(ける)、 とど(け)、 とど(く)",
     "kunyomiRomaji": "todo(keru), todo(ke), todo(ku)",
-    "meaning": "deliver, reach, arrive, report, notify"
+    "meaning": "deliver, reach, arrive, report, notify",
+    "word": "届ける",
+    "wordReading": "とどける",
+    "wordMeaning": "to deliver, to forward, to send"
   },
   {
     "num": 24059,
@@ -1824,7 +2070,10 @@
     "onyomiRomaji": "kan, ken",
     "kunyomi": "ま(く)、 まき、 ま(き)",
     "kunyomiRomaji": "ma(ku), maki, ma(ki)",
-    "meaning": "scroll, volume, book, part, roll up"
+    "meaning": "scroll, volume, book, part, roll up",
+    "word": "巻く",
+    "wordReading": "まく",
+    "wordMeaning": "to wind, to coil, to roll"
   },
   {
     "num": 29123,
@@ -1833,7 +2082,10 @@
     "onyomiRomaji": "nen",
     "kunyomi": "も(える)、 も(やす)、 も(す)",
     "kunyomiRomaji": "mo(eru), mo(yasu), mo(su)",
-    "meaning": "burn, blaze, glow"
+    "meaning": "burn, blaze, glow",
+    "word": "燃える",
+    "wordReading": "もえる",
+    "wordMeaning": "to burn, to get fired up"
   },
   {
     "num": 36321,
@@ -1851,7 +2103,10 @@
     "onyomiRomaji": "hou",
     "kunyomi": "つつ(む)、 くる(む)",
     "kunyomiRomaji": "tsutsu(mu), kuru(mu)",
-    "meaning": "wrap, pack up, cover, conceal"
+    "meaning": "wrap, pack up, cover, conceal",
+    "word": "包む",
+    "wordReading": "つつむ",
+    "wordMeaning": "to wrap up, to pack, to bundle"
   },
   {
     "num": 39376,
@@ -1869,7 +2124,10 @@
     "onyomiRomaji": "jaku",
     "kunyomi": "よわ(い)、 よわ(る)、 よわ(まる)、 よわ(める)",
     "kunyomiRomaji": "yowa(i), yowa(ru), yowa(maru), yowa(meru)",
-    "meaning": "weak, frail"
+    "meaning": "weak, frail",
+    "word": "弱い",
+    "wordReading": "よわい",
+    "wordMeaning": "weak, frail, delicate"
   },
   {
     "num": 32057,
@@ -1887,7 +2145,10 @@
     "onyomiRomaji": "ko",
     "kunyomi": "やと(う)",
     "kunyomiRomaji": "yato(u)",
-    "meaning": "employ, hire"
+    "meaning": "employ, hire",
+    "word": "雇う",
+    "wordReading": "やとう",
+    "wordMeaning": "to employ, to hire, to take on"
   },
   {
     "num": 26367,
@@ -1896,7 +2157,10 @@
     "onyomiRomaji": "tai",
     "kunyomi": "か(える)、 か(え)、 か(わる)",
     "kunyomiRomaji": "ka(eru), ka(e), ka(waru)",
-    "meaning": "exchange, spare, substitute, per-"
+    "meaning": "exchange, spare, substitute, per-",
+    "word": "替える",
+    "wordReading": "かえる",
+    "wordMeaning": "to replace, to convert, to change"
   },
   {
     "num": 38928,
@@ -1905,7 +2169,10 @@
     "onyomiRomaji": "yo",
     "kunyomi": "あず(ける)、 あず(かる)",
     "kunyomiRomaji": "azu(keru), azu(karu)",
-    "meaning": "deposit, custody, leave with, entrust to"
+    "meaning": "deposit, custody, leave with, entrust to",
+    "word": "預ける",
+    "wordReading": "あずける",
+    "wordMeaning": "to leave (in someone's keeping), to put (in someone's care), to place (in someone's custody)"
   },
   {
     "num": 28988,
@@ -1914,7 +2181,10 @@
     "onyomiRomaji": "shou",
     "kunyomi": "や(く)、 や(き)、 や(き)、 や(き)、 や(ける)",
     "kunyomiRomaji": "ya(ku), ya(ki), ya(ki), ya(ki), ya(keru)",
-    "meaning": "bake, burning"
+    "meaning": "bake, burning",
+    "word": "焼く",
+    "wordReading": "やく",
+    "wordMeaning": "to burn, to roast, to broil"
   },
   {
     "num": 31777,
@@ -1959,7 +2229,10 @@
     "onyomiRomaji": "zou, sou",
     "kunyomi": "おく(る)",
     "kunyomiRomaji": "oku(ru)",
-    "meaning": "presents, send, give to, award to, confer on"
+    "meaning": "presents, send, give to, award to, confer on",
+    "word": "贈る",
+    "wordReading": "おくる",
+    "wordMeaning": "to give (as a gift), to present, to confer"
   },
   {
     "num": 29031,
@@ -1968,7 +2241,10 @@
     "onyomiRomaji": "shou",
     "kunyomi": "て(る)、 て(らす)、 て(れる)",
     "kunyomiRomaji": "te(ru), te(rasu), te(reru)",
-    "meaning": "illuminate, shine, compare, bashful"
+    "meaning": "illuminate, shine, compare, bashful",
+    "word": "照る",
+    "wordReading": "てる",
+    "wordMeaning": "to shine"
   },
   {
     "num": 34180,
@@ -1977,7 +2253,10 @@
     "onyomiRomaji": "haku",
     "kunyomi": "うす(い)、 うす、 うす、 うす(める)、 うす(まる)、 うす(らぐ)、 うす(ら)、 うす(れる)、 すすき",
     "kunyomiRomaji": "usu(i), usu, usu, usu(meru), usu(maru), usu(ragu), usu(ra), usu(reru), susuki",
-    "meaning": "dilute, thin, weak (tea), pampas grass"
+    "meaning": "dilute, thin, weak (tea), pampas grass",
+    "word": "薄い",
+    "wordReading": "うすい",
+    "wordMeaning": "thin (of an object), pale, light"
   },
   {
     "num": 32676,
@@ -1986,7 +2265,10 @@
     "onyomiRomaji": "gun",
     "kunyomi": "む(れる)、 む(れ)、 むら、 むら(がる)",
     "kunyomiRomaji": "mu(reru), mu(re), mura, mura(garu)",
-    "meaning": "flock, group, crowd, herd, swarm"
+    "meaning": "flock, group, crowd, herd, swarm",
+    "word": "群れる",
+    "wordReading": "むれる",
+    "wordMeaning": "to crowd, to flock, to swarm"
   },
   {
     "num": 31186,
@@ -2004,7 +2286,10 @@
     "onyomiRomaji": "ou",
     "kunyomi": "おく、 おく(まる)、 くま",
     "kunyomiRomaji": "oku, oku(maru), kuma",
-    "meaning": "heart, interior"
+    "meaning": "heart, interior",
+    "word": "奥まる",
+    "wordReading": "おくまる",
+    "wordMeaning": "to lie deep in, to extend far back"
   },
   {
     "num": 35440,
@@ -2013,7 +2298,10 @@
     "onyomiRomaji": "kitsu, kichi",
     "kunyomi": "つ(める)、 つ(め)、 づ(め)、 つ(まる)、 つ(む)",
     "kunyomiRomaji": "tsu(meru), tsu(me), zu(me), tsu(maru), tsu(mu)",
-    "meaning": "packed, close, pressed, reprove, rebuke"
+    "meaning": "packed, close, pressed, reprove, rebuke",
+    "word": "詰める",
+    "wordReading": "つめる",
+    "wordMeaning": "to stuff into, to jam, to cram"
   },
   {
     "num": 21452,
@@ -2031,7 +2319,10 @@
     "onyomiRomaji": "shi",
     "kunyomi": "さ(す)、 さ(さる)、 さ(し)、 さし、 とげ",
     "kunyomiRomaji": "sa(su), sa(saru), sa(shi), sashi, toge",
-    "meaning": "thorn, pierce, stab, prick, sting"
+    "meaning": "thorn, pierce, stab, prick, sting",
+    "word": "刺す",
+    "wordReading": "さす",
+    "wordMeaning": "to pierce, to stab, to prick"
   },
   {
     "num": 32020,
@@ -2058,7 +2349,10 @@
     "onyomiRomaji": "kai",
     "kunyomi": "こころよ(い)",
     "kunyomiRomaji": "kokoroyo(i)",
-    "meaning": "cheerful, pleasant, agreeable, comfortable"
+    "meaning": "cheerful, pleasant, agreeable, comfortable",
+    "word": "快い",
+    "wordReading": "こころよい",
+    "wordMeaning": "pleasant, agreeable, comfortable"
   },
   {
     "num": 29255,
@@ -2076,7 +2370,10 @@
     "onyomiRomaji": "kei, kyou",
     "kunyomi": "うやま(う)",
     "kunyomiRomaji": "uyama(u)",
-    "meaning": "awe, respect, honor, revere"
+    "meaning": "awe, respect, honor, revere",
+    "word": "敬う",
+    "wordReading": "うやまう",
+    "wordMeaning": "to show respect for, to revere, to honour"
   },
   {
     "num": 24745,
@@ -2085,7 +2382,10 @@
     "onyomiRomaji": "nou",
     "kunyomi": "なや(む)、 なや(ます)、 なや(ましい)、 なやみ",
     "kunyomiRomaji": "naya(mu), naya(masu), naya(mashii), nayami",
-    "meaning": "trouble, worry, in pain, distress, illness"
+    "meaning": "trouble, worry, in pain, distress, illness",
+    "word": "悩む",
+    "wordReading": "なやむ",
+    "wordMeaning": "to be worried, to be troubled"
   },
   {
     "num": 27849,
@@ -2112,7 +2412,10 @@
     "onyomiRomaji": "gyo, ryou",
     "kunyomi": "あさ(る)",
     "kunyomiRomaji": "asa(ru)",
-    "meaning": "fishing, fishery"
+    "meaning": "fishing, fishery",
+    "word": "漁る",
+    "wordReading": "あさる",
+    "wordMeaning": "to look for, to search for, to hunt for"
   },
   {
     "num": 33618,
@@ -2121,7 +2424,10 @@
     "onyomiRomaji": "kou",
     "kunyomi": "あ(らす)、 あ(れる)、 あら(い)、 すさ(ぶ)、 すさ(む)、 あ(らし)",
     "kunyomiRomaji": "a(rasu), a(reru), ara(i), susa(bu), susa(mu), a(rashi)",
-    "meaning": "laid waste, rough, rude, wild"
+    "meaning": "laid waste, rough, rude, wild",
+    "word": "荒らす",
+    "wordReading": "あらす",
+    "wordMeaning": "to lay waste, to devastate, to damage"
   },
   {
     "num": 36015,
@@ -2130,7 +2436,10 @@
     "onyomiRomaji": "cho",
     "kunyomi": "た(める)、 たくわ(える)",
     "kunyomiRomaji": "ta(meru), takuwa(eru)",
-    "meaning": "savings, store, lay in, keep, wear mustache"
+    "meaning": "savings, store, lay in, keep, wear mustache",
+    "word": "貯める",
+    "wordReading": "ためる",
+    "wordMeaning": "to save up (money)"
   },
   {
     "num": 30828,
@@ -2139,7 +2448,10 @@
     "onyomiRomaji": "kou",
     "kunyomi": "かた(い)",
     "kunyomiRomaji": "kata(i)",
-    "meaning": "stiff, hard"
+    "meaning": "stiff, hard",
+    "word": "硬い",
+    "wordReading": "かたい",
+    "wordMeaning": "hard, solid, tough"
   },
   {
     "num": 22475,
@@ -2148,7 +2460,10 @@
     "onyomiRomaji": "mai",
     "kunyomi": "う(める)、 う(まる)、 う(もれる)、 うず(める)、 うず(まる)、 い(ける)",
     "kunyomiRomaji": "u(meru), u(maru), u(moreru), uzu(meru), uzu(maru), i(keru)",
-    "meaning": "bury, be filled up, embedded"
+    "meaning": "bury, be filled up, embedded",
+    "word": "埋める",
+    "wordReading": "うめる",
+    "wordMeaning": "to bury (e.g. in the ground), to fill up (e.g. audience fills a hall), to cause to be packed"
   },
   {
     "num": 26609,
@@ -2166,7 +2481,10 @@
     "onyomiRomaji": "sai",
     "kunyomi": "まつ(る)、 まつ(り)、 まつり",
     "kunyomiRomaji": "matsu(ru), matsu(ri), matsuri",
-    "meaning": "ritual, offer prayers, celebrate, deify, enshrine"
+    "meaning": "ritual, offer prayers, celebrate, deify, enshrine",
+    "word": "祭る",
+    "wordReading": "まつる",
+    "wordMeaning": "to deify, to enshrine, to pray"
   },
   {
     "num": 34955,
@@ -2193,7 +2511,10 @@
     "onyomiRomaji": "kun, kin",
     "kunyomi": "おし(える)、 よ(む)、 くん(ずる)",
     "kunyomiRomaji": "oshi(eru), yo(mu), kun(zuru)",
-    "meaning": "instruction, Japanese character reading, explanation, read"
+    "meaning": "instruction, Japanese character reading, explanation, read",
+    "word": "訓える",
+    "wordReading": "おしえる",
+    "wordMeaning": "to teach, to instruct, to tell"
   },
   {
     "num": 28020,
@@ -2202,7 +2523,10 @@
     "onyomiRomaji": "yoku",
     "kunyomi": "あ(びる)、 あ(びせる)",
     "kunyomiRomaji": "a(biru), a(biseru)",
-    "meaning": "bathe, be favored with, bask in"
+    "meaning": "bathe, be favored with, bask in",
+    "word": "浴びる",
+    "wordReading": "あびる",
+    "wordMeaning": "to dash over oneself (e.g. water), to take (e.g. shower), to bask in (e.g. the sun)"
   },
   {
     "num": 31461,
@@ -2265,7 +2589,10 @@
     "onyomiRomaji": "ken",
     "kunyomi": "かしこ(い)",
     "kunyomiRomaji": "kashiko(i)",
-    "meaning": "intelligent, wise, wisdom, cleverness"
+    "meaning": "intelligent, wise, wisdom, cleverness",
+    "word": "賢い",
+    "wordReading": "かしこい",
+    "wordMeaning": "wise, clever, smart"
   },
   {
     "num": 33109,
@@ -2283,7 +2610,10 @@
     "onyomiRomaji": "chou",
     "kunyomi": "きざ(す)、 きざ(し)",
     "kunyomiRomaji": "kiza(su), kiza(shi)",
-    "meaning": "portent, 10**12, trillion, sign, omen"
+    "meaning": "portent, 10**12, trillion, sign, omen",
+    "word": "兆す",
+    "wordReading": "きざす",
+    "wordMeaning": "to show signs, to have symptoms, to give indications (of)"
   },
   {
     "num": 24202,
@@ -2319,7 +2649,10 @@
     "onyomiRomaji": "son",
     "kunyomi": "たっと(い)、 とうと(い)、 たっと(ぶ)、 とうと(ぶ)",
     "kunyomiRomaji": "tatto(i), touto(i), tatto(bu), touto(bu)",
-    "meaning": "revered, valuable, precious, noble, exalted"
+    "meaning": "revered, valuable, precious, noble, exalted",
+    "word": "尊い",
+    "wordReading": "たっとい",
+    "wordMeaning": "precious, valuable, priceless"
   },
   {
     "num": 31069,
@@ -2328,7 +2661,10 @@
     "onyomiRomaji": "shuku, shuu",
     "kunyomi": "いわ(う)",
     "kunyomiRomaji": "iwa(u)",
-    "meaning": "celebrate, congratulate"
+    "meaning": "celebrate, congratulate",
+    "word": "祝う",
+    "wordReading": "いわう",
+    "wordMeaning": "to celebrate, to congratulate, to observe (a festival)"
   },
   {
     "num": 26580,
@@ -2337,7 +2673,10 @@
     "onyomiRomaji": "juu, nyuu",
     "kunyomi": "やわ(らか)、 やわ(らかい)、 やわ、 やわ(ら)",
     "kunyomiRomaji": "yawa(raka), yawa(rakai), yawa, yawa(ra)",
-    "meaning": "tender, weakness, gentleness, softness"
+    "meaning": "tender, weakness, gentleness, softness",
+    "word": "柔らかい",
+    "wordReading": "やわらかい",
+    "wordMeaning": "soft, tender, supple"
   },
   {
     "num": 27583,
@@ -2355,7 +2694,10 @@
     "onyomiRomaji": "nou",
     "kunyomi": "こ(い)",
     "kunyomiRomaji": "ko(i)",
-    "meaning": "concentrated, thick, dark, undiluted"
+    "meaning": "concentrated, thick, dark, undiluted",
+    "word": "濃い",
+    "wordReading": "こい",
+    "wordMeaning": "deep (colour), dark, strong (flavour / smell / etc.)"
   },
   {
     "num": 28082,
@@ -2391,7 +2733,10 @@
     "onyomiRomaji": "rei",
     "kunyomi": "ぜろ、 こぼ(す)、 こぼ(れる)",
     "kunyomiRomaji": "zero, kobo(su), kobo(reru)",
-    "meaning": "zero, spill, overflow, nothing, cipher"
+    "meaning": "zero, spill, overflow, nothing, cipher",
+    "word": "零す",
+    "wordReading": "こぼす",
+    "wordMeaning": "to spill, to drop, to shed (tears)"
   },
   {
     "num": 24188,
@@ -2400,7 +2745,10 @@
     "onyomiRomaji": "you",
     "kunyomi": "おさな(い)",
     "kunyomiRomaji": "osana(i)",
-    "meaning": "infancy, childhood"
+    "meaning": "infancy, childhood",
+    "word": "幼い",
+    "wordReading": "おさない",
+    "wordMeaning": "very young, little, childish"
   },
   {
     "num": 33655,
@@ -2418,7 +2766,10 @@
     "onyomiRomaji": "haku",
     "kunyomi": "と(まる)、 と(める)",
     "kunyomiRomaji": "to(maru), to(meru)",
-    "meaning": "overnight stay, put up at, ride at anchor"
+    "meaning": "overnight stay, put up at, ride at anchor",
+    "word": "泊まる",
+    "wordReading": "とまる",
+    "wordMeaning": "to stay at (e.g. hotel), to be docked, to be berthed"
   },
   {
     "num": 40644,
@@ -2436,7 +2787,10 @@
     "onyomiRomaji": "kan",
     "kunyomi": "あま(い)、 あま(える)、 あま(やかす)、 うま(い)",
     "kunyomiRomaji": "ama(i), ama(eru), ama(yakasu), uma(i)",
-    "meaning": "sweet, coax, pamper, be content, sugary"
+    "meaning": "sweet, coax, pamper, be content, sugary",
+    "word": "甘い",
+    "wordReading": "あまい",
+    "wordMeaning": "sweet-tasting, sweet, sugary"
   },
   {
     "num": 33251,
@@ -2454,7 +2808,10 @@
     "onyomiRomaji": "sen",
     "kunyomi": "あさ(い)",
     "kunyomiRomaji": "asa(i)",
-    "meaning": "shallow, superficial, frivolous, wretched, shameful"
+    "meaning": "shallow, superficial, frivolous, wretched, shameful",
+    "word": "浅い",
+    "wordReading": "あさい",
+    "wordMeaning": "shallow, superficial, slight (wound)"
   },
   {
     "num": 25475,
@@ -2463,7 +2820,10 @@
     "onyomiRomaji": "sou, shu",
     "kunyomi": "は(く)",
     "kunyomiRomaji": "ha(ku)",
-    "meaning": "sweep, brush"
+    "meaning": "sweep, brush",
+    "word": "掃く",
+    "wordReading": "はく",
+    "wordMeaning": "to sweep, to brush, to clean"
   },
   {
     "num": 38642,
@@ -2481,7 +2841,10 @@
     "onyomiRomaji": "kutsu",
     "kunyomi": "ほ(る)",
     "kunyomiRomaji": "ho(ru)",
-    "meaning": "dig, delve, excavate"
+    "meaning": "dig, delve, excavate",
+    "word": "掘る",
+    "wordReading": "ほる",
+    "wordMeaning": "to dig, to excavate, to hollow"
   },
   {
     "num": 25448,
@@ -2490,7 +2853,10 @@
     "onyomiRomaji": "sha",
     "kunyomi": "す(てる)",
     "kunyomiRomaji": "su(teru)",
-    "meaning": "discard, throw away, abandon, resign, reject"
+    "meaning": "discard, throw away, abandon, resign, reject",
+    "word": "捨てる",
+    "wordReading": "すてる",
+    "wordMeaning": "to throw away, to cast away, to dump"
   },
   {
     "num": 36575,
@@ -2499,7 +2865,10 @@
     "onyomiRomaji": "nan",
     "kunyomi": "やわ(らか)、 やわ(らかい)",
     "kunyomiRomaji": "yawa(raka), yawa(rakai)",
-    "meaning": "soft"
+    "meaning": "soft",
+    "word": "軟らかい",
+    "wordReading": "やわらかい",
+    "wordMeaning": "soft, tender, supple"
   },
   {
     "num": 27784,
@@ -2508,7 +2877,10 @@
     "onyomiRomaji": "chin, jin",
     "kunyomi": "しず(む)、 しず(める)",
     "kunyomiRomaji": "shizu(mu), shizu(meru)",
-    "meaning": "sink, be submerged, subside, be depressed, aloes"
+    "meaning": "sink, be submerged, subside, be depressed, aloes",
+    "word": "沈む",
+    "wordReading": "しずむ",
+    "wordMeaning": "to sink, to go under, to submerge"
   },
   {
     "num": 20941,
@@ -2517,7 +2889,10 @@
     "onyomiRomaji": "tou",
     "kunyomi": "こお(る)、 こご(える)、 こご(る)、 い(てる)、 し(みる)",
     "kunyomiRomaji": "koo(ru), kogo(eru), kogo(ru), i(teru), shi(miru)",
-    "meaning": "frozen, congeal, refrigerate"
+    "meaning": "frozen, congeal, refrigerate",
+    "word": "凍る",
+    "wordReading": "こおる",
+    "wordMeaning": "to freeze, to become frozen, to freeze over"
   },
   {
     "num": 20083,
@@ -2535,7 +2910,10 @@
     "onyomiRomaji": "ren",
     "kunyomi": "こ(う)、 こい、 こい(しい)",
     "kunyomiRomaji": "ko(u), koi, koi(shii)",
-    "meaning": "romance, in love, yearn for, miss, darling"
+    "meaning": "romance, in love, yearn for, miss, darling",
+    "word": "恋う",
+    "wordReading": "こう",
+    "wordMeaning": "to love"
   },
   {
     "num": 32005,
@@ -2544,7 +2922,10 @@
     "onyomiRomaji": "kou, ku",
     "kunyomi": "べに、 くれない、 あか(い)",
     "kunyomiRomaji": "beni, kurenai, aka(i)",
-    "meaning": "crimson, deep red"
+    "meaning": "crimson, deep red",
+    "word": "紅い",
+    "wordReading": "あかい",
+    "wordMeaning": "red, crimson, scarlet"
   },
   {
     "num": 37066,
@@ -2580,7 +2961,10 @@
     "onyomiRomaji": "you",
     "kunyomi": "おど(る)",
     "kunyomiRomaji": "odo(ru)",
-    "meaning": "jump, dance, leap, skip"
+    "meaning": "jump, dance, leap, skip",
+    "word": "踊る",
+    "wordReading": "おどる",
+    "wordMeaning": "to dance (orig. a hopping dance), to be manipulated, to dance to someone's tune"
   },
   {
     "num": 20874,
@@ -2598,7 +2982,10 @@
     "onyomiRomaji": "yuu",
     "kunyomi": "いさ(む)",
     "kunyomiRomaji": "isa(mu)",
-    "meaning": "courage, cheer up, be in high spirits, bravery, heroism"
+    "meaning": "courage, cheer up, be in high spirits, bravery, heroism",
+    "word": "勇む",
+    "wordReading": "いさむ",
+    "wordMeaning": "to be in high spirits, to be encouraged, to be lively"
   },
   {
     "num": 26800,
@@ -2625,7 +3012,10 @@
     "onyomiRomaji": "chin",
     "kunyomi": "めずら(しい)、 たから",
     "kunyomiRomaji": "mezura(shii), takara",
-    "meaning": "rare, curious, strange"
+    "meaning": "rare, curious, strange",
+    "word": "珍しい",
+    "wordReading": "めずらしい",
+    "wordMeaning": "rare, uncommon, unusual"
   },
   {
     "num": 21365,
@@ -2652,7 +3042,10 @@
     "onyomiRomaji": "kitsu",
     "kunyomi": "の(む)",
     "kunyomiRomaji": "no(mu)",
-    "meaning": "consume, eat, drink, smoke, receive (a blow)"
+    "meaning": "consume, eat, drink, smoke, receive (a blow)",
+    "word": "喫む",
+    "wordReading": "のむ",
+    "wordMeaning": "to smoke (tobacco)"
   },
   {
     "num": 24178,
@@ -2661,7 +3054,10 @@
     "onyomiRomaji": "kan",
     "kunyomi": "ほ(す)、 ほ(し)、 ぼ(し)、 ひ(る)",
     "kunyomiRomaji": "ho(su), ho(shi), bo(shi), hi(ru)",
-    "meaning": "dry, parch, ebb, recede, interfere"
+    "meaning": "dry, parch, ebb, recede, interfere",
+    "word": "干す",
+    "wordReading": "ほす",
+    "wordMeaning": "to air, to dry, to desiccate"
   },
   {
     "num": 34411,
@@ -2679,7 +3075,10 @@
     "onyomiRomaji": "satsu",
     "kunyomi": "す(る)、 ず(り)、 ずり、 は(く)",
     "kunyomiRomaji": "su(ru), zu(ri), zuri, ha(ku)",
-    "meaning": "printing, print, brush"
+    "meaning": "printing, print, brush",
+    "word": "刷る",
+    "wordReading": "する",
+    "wordMeaning": "to print"
   },
   {
     "num": 28271,
@@ -2697,7 +3096,10 @@
     "onyomiRomaji": "you",
     "kunyomi": "と(ける)、 と(かす)、 と(く)",
     "kunyomiRomaji": "to(keru), to(kasu), to(ku)",
-    "meaning": "melt, dissolve, thaw"
+    "meaning": "melt, dissolve, thaw",
+    "word": "溶ける",
+    "wordReading": "とける",
+    "wordMeaning": "to melt, to liquefy, to soften (e.g. through heat)"
   },
   {
     "num": 37489,
@@ -2742,7 +3144,10 @@
     "onyomiRomaji": "ei",
     "kunyomi": "するど(い)",
     "kunyomiRomaji": "surudo(i)",
-    "meaning": "pointed, sharpness, edge, weapon, sharp"
+    "meaning": "pointed, sharpness, edge, weapon, sharp",
+    "word": "鋭い",
+    "wordReading": "するどい",
+    "wordMeaning": "sharp (knife / claws / etc.), pointed, sharp (pain / tone / etc.)"
   },
   {
     "num": 26525,
@@ -2760,7 +3165,10 @@
     "onyomiRomaji": "to",
     "kunyomi": "ぬ(る)、 ぬ(り)、 まみ(れる)",
     "kunyomiRomaji": "nu(ru), nu(ri), mami(reru)",
-    "meaning": "paint, plaster, daub, smear, coating"
+    "meaning": "paint, plaster, daub, smear, coating",
+    "word": "塗る",
+    "wordReading": "ぬる",
+    "wordMeaning": "to paint, to spread, to plaster"
   },
   {
     "num": 36562,
@@ -2787,7 +3195,10 @@
     "onyomiRomaji": "kyou",
     "kunyomi": "さけ(ぶ)",
     "kunyomiRomaji": "sake(bu)",
-    "meaning": "shout, exclaim, yell"
+    "meaning": "shout, exclaim, yell",
+    "word": "叫ぶ",
+    "wordReading": "さけぶ",
+    "wordMeaning": "to shout, to cry (out), to scream"
   },
   {
     "num": 25309,
@@ -2796,7 +3207,10 @@
     "onyomiRomaji": "hai",
     "kunyomi": "おが(む)、 おろが(む)",
     "kunyomiRomaji": "oga(mu), oroga(mu)",
-    "meaning": "worship, adore, pray to"
+    "meaning": "worship, adore, pray to",
+    "word": "拝む",
+    "wordReading": "おがむ",
+    "wordMeaning": "to assume the posture of praying, to pay one's respects, to beg"
   },
   {
     "num": 27703,
@@ -2805,7 +3219,10 @@
     "onyomiRomaji": "hyou",
     "kunyomi": "こおり、 ひ、 こお(る)",
     "kunyomiRomaji": "koori, hi, koo(ru)",
-    "meaning": "icicle, ice, hail, freeze, congeal"
+    "meaning": "icicle, ice, hail, freeze, congeal",
+    "word": "氷る",
+    "wordReading": "こおる",
+    "wordMeaning": "to freeze, to become frozen, to freeze over"
   },
   {
     "num": 20094,
@@ -2814,7 +3231,10 @@
     "onyomiRomaji": "kan, ken",
     "kunyomi": "かわ(く)、 かわ(かす)、 ほ(す)、 ひ(る)、 いぬい",
     "kunyomiRomaji": "kawa(ku), kawa(kasu), ho(su), hi(ru), inui",
-    "meaning": "drought, dry, desiccate, drink up, heaven"
+    "meaning": "drought, dry, desiccate, drink up, heaven",
+    "word": "乾く",
+    "wordReading": "かわく",
+    "wordMeaning": "to get dry"
   },
   {
     "num": 26834,
@@ -2832,7 +3252,10 @@
     "onyomiRomaji": "ki",
     "kunyomi": "いの(る)",
     "kunyomiRomaji": "ino(ru)",
-    "meaning": "pray, wish"
+    "meaning": "pray, wish",
+    "word": "祈る",
+    "wordReading": "いのる",
+    "wordMeaning": "to pray, to say a prayer, to say grace"
   },
   {
     "num": 25342,
@@ -2841,7 +3264,10 @@
     "onyomiRomaji": "shuu, juu",
     "kunyomi": "ひろ(う)",
     "kunyomiRomaji": "hiro(u)",
-    "meaning": "pick up, gather, find, go on foot, ten"
+    "meaning": "pick up, gather, find, go on foot, ten",
+    "word": "拾う",
+    "wordReading": "ひろう",
+    "wordMeaning": "to pick up, to gather"
   },
   {
     "num": 31881,
@@ -2895,7 +3321,10 @@
     "onyomiRomaji": "shitsu, shuu",
     "kunyomi": "しめ(る)、 しめ(す)、 うるお(う)、 うるお(す)",
     "kunyomiRomaji": "shime(ru), shime(su), uruo(u), uruo(su)",
-    "meaning": "damp, wet, moist"
+    "meaning": "damp, wet, moist",
+    "word": "湿る",
+    "wordReading": "しめる",
+    "wordMeaning": "to become damp, to become moist, to become wet"
   },
   {
     "num": 29942,
@@ -2913,7 +3342,10 @@
     "onyomiRomaji": "shou",
     "kunyomi": "さ(く)、 ざき",
     "kunyomiRomaji": "sa(ku), zaki",
-    "meaning": "blossom, bloom"
+    "meaning": "blossom, bloom",
+    "word": "咲く",
+    "wordReading": "さく",
+    "wordMeaning": "to bloom, to flower, to blossom"
   },
   {
     "num": 21484,
@@ -2922,7 +3354,10 @@
     "onyomiRomaji": "shou",
     "kunyomi": "め(す)",
     "kunyomiRomaji": "me(su)",
-    "meaning": "seduce, call, send for, wear, put on"
+    "meaning": "seduce, call, send for, wear, put on",
+    "word": "召す",
+    "wordReading": "めす",
+    "wordMeaning": "to call, to summon, to send for"
   },
   {
     "num": 32566,
@@ -2958,7 +3393,10 @@
     "onyomiRomaji": "jou, sei",
     "kunyomi": "む(す)、 む(れる)、 む(らす)",
     "kunyomiRomaji": "mu(su), mu(reru), mu(rasu)",
-    "meaning": "steam, heat, sultry, foment, get musty"
+    "meaning": "steam, heat, sultry, foment, get musty",
+    "word": "蒸す",
+    "wordReading": "むす",
+    "wordMeaning": "to steam (food / towel / etc.), to be hot and humid, to be sultry"
   },
   {
     "num": 32908,
@@ -2976,7 +3414,10 @@
     "onyomiRomaji": "kou",
     "kunyomi": "たがや(す)",
     "kunyomiRomaji": "tagaya(su)",
-    "meaning": "till, plow, cultivate"
+    "meaning": "till, plow, cultivate",
+    "word": "耕す",
+    "wordReading": "たがやす",
+    "wordMeaning": "to till, to plow, to plough"
   },
   {
     "num": 37389,
@@ -2985,7 +3426,10 @@
     "onyomiRomaji": "don",
     "kunyomi": "にぶ(い)、 にぶ(る)、 にぶ、 なま(る)、 なまく(ら)",
     "kunyomiRomaji": "nibu(i), nibu(ru), nibu, nama(ru), namaku(ra)",
-    "meaning": "dull, slow, foolish, blunt"
+    "meaning": "dull, slow, foolish, blunt",
+    "word": "鈍い",
+    "wordReading": "にぶい",
+    "wordMeaning": "dull (e.g. a knife), blunt, thickheaded"
   },
   {
     "num": 27877,
@@ -2994,7 +3438,10 @@
     "onyomiRomaji": "dei, nai, de, ni",
     "kunyomi": "どろ、 なず(む)",
     "kunyomiRomaji": "doro, nazu(mu)",
-    "meaning": "mud, mire, adhere to, be attached to"
+    "meaning": "mud, mire, adhere to, be attached to",
+    "word": "泥む",
+    "wordReading": "なずむ",
+    "wordMeaning": "to cling to (e.g. old customs), to adhere to, to stick to"
   },
   {
     "num": 38533,
@@ -3012,7 +3459,10 @@
     "onyomiRomaji": "tou",
     "kunyomi": "ひ、 ほ、 ともしび、 とも(す)、 あかり",
     "kunyomiRomaji": "hi, ho, tomoshibi, tomo(su), akari",
-    "meaning": "lamp, a light, light, counter for lights"
+    "meaning": "lamp, a light, light, counter for lights",
+    "word": "灯す",
+    "wordReading": "ともす",
+    "wordMeaning": "to light (a candle / lamp / etc.), to turn on (a light)"
   },
   {
     "num": 36763,
@@ -3021,7 +3471,10 @@
     "onyomiRomaji": "shin",
     "kunyomi": "から(い)、 つら(い)、 づら(い)、 かのと",
     "kunyomiRomaji": "kara(i), tsura(i), zura(i), kanoto",
-    "meaning": "spicy, bitter, hot, acrid"
+    "meaning": "spicy, bitter, hot, acrid",
+    "word": "辛い",
+    "wordReading": "からい",
+    "wordMeaning": "spicy, hot, salty"
   },
   {
     "num": 30952,
@@ -3030,7 +3483,10 @@
     "onyomiRomaji": "ma",
     "kunyomi": "みが(く)、 す(る)",
     "kunyomiRomaji": "miga(ku), su(ru)",
-    "meaning": "grind, polish, scour, improve, brush (teeth)"
+    "meaning": "grind, polish, scour, improve, brush (teeth)",
+    "word": "磨く",
+    "wordReading": "みがく",
+    "wordMeaning": "to polish, to shine, to burnish"
   },
   {
     "num": 40614,
@@ -3102,7 +3558,10 @@
     "onyomiRomaji": "jou, chou",
     "kunyomi": "たた(む)、 たたみ、 かさ(なる)",
     "kunyomiRomaji": "tata(mu), tatami, kasa(naru)",
-    "meaning": "tatami mat, counter for tatami mats, fold, shut up, do away with"
+    "meaning": "tatami mat, counter for tatami mats, fold, shut up, do away with",
+    "word": "畳む",
+    "wordReading": "たたむ",
+    "wordMeaning": "to fold (clothes / umbrella), to close (a shop / business)"
   },
   {
     "num": 26426,
@@ -3129,7 +3588,10 @@
     "onyomiRomaji": "taku",
     "kunyomi": "すす(ぐ)、 ゆす(ぐ)",
     "kunyomiRomaji": "susu(gu), yusu(gu)",
-    "meaning": "laundry, wash, pour on, rinse"
+    "meaning": "laundry, wash, pour on, rinse",
+    "word": "濯ぐ",
+    "wordReading": "すすぐ",
+    "wordMeaning": "to rinse, to wash out, to have one's revenge"
   },
   {
     "num": 22612,
@@ -3147,7 +3609,10 @@
     "onyomiRomaji": "futsu",
     "kunyomi": "わ(く)、 わ(かす)",
     "kunyomiRomaji": "wa(ku), wa(kasu)",
-    "meaning": "seethe, boil, ferment, uproar, breed"
+    "meaning": "seethe, boil, ferment, uproar, breed",
+    "word": "沸く",
+    "wordReading": "わく",
+    "wordMeaning": "to grow hot (e.g. water), to boil, to get excited (at)"
   },
   {
     "num": 28784,
@@ -3183,7 +3648,10 @@
     "onyomiRomaji": "ko",
     "kunyomi": "か(れる)、 か(らす)",
     "kunyomiRomaji": "ka(reru), ka(rasu)",
-    "meaning": "wither, die, dry up, be seasoned"
+    "meaning": "wither, die, dry up, be seasoned",
+    "word": "枯れる",
+    "wordReading": "かれる",
+    "wordMeaning": "to wither (of a plant), to be blasted, to die"
   },
   {
     "num": 28092,
@@ -3192,7 +3660,10 @@
     "onyomiRomaji": "ryou",
     "kunyomi": "すず(しい)、 すず(む)、 すず(やか)、 うす(い)、 ひや(す)、 まことに",
     "kunyomiRomaji": "suzu(shii), suzu(mu), suzu(yaka), usu(i), hiya(su), makotoni",
-    "meaning": "refreshing, nice and cool"
+    "meaning": "refreshing, nice and cool",
+    "word": "涼しい",
+    "wordReading": "すずしい",
+    "wordMeaning": "cool, refreshing, clear (e.g. eyes)"
   },
   {
     "num": 33311,
@@ -3228,7 +3699,10 @@
     "onyomiRomaji": "zou",
     "kunyomi": "にく(む)、 にく(い)、 にく(らしい)、 にく(しみ)",
     "kunyomiRomaji": "niku(mu), niku(i), niku(rashii), niku(shimi)",
-    "meaning": "hate, detest"
+    "meaning": "hate, detest",
+    "word": "憎む",
+    "wordReading": "にくむ",
+    "wordMeaning": "to hate, to detest"
   },
   {
     "num": 30399,
@@ -3255,7 +3729,10 @@
     "onyomiRomaji": "sou",
     "kunyomi": "はしゃ(ぐ)",
     "kunyomiRomaji": "hasha(gu)",
-    "meaning": "parch, dry up"
+    "meaning": "parch, dry up",
+    "word": "燥ぐ",
+    "wordReading": "はしゃぐ",
+    "wordMeaning": "to make merry, to frolic, to be in high spirits"
   },
   {
     "num": 30044,
@@ -3273,7 +3750,10 @@
     "onyomiRomaji": "kyou, shou",
     "kunyomi": "はさ(む)、 はさ(まる)、 わきばさ(む)、 さしはさ(む)",
     "kunyomiRomaji": "hasa(mu), hasa(maru), wakibasa(mu), sashihasa(mu)",
-    "meaning": "pinch, between"
+    "meaning": "pinch, between",
+    "word": "挟む",
+    "wordReading": "はさむ",
+    "wordMeaning": "to hold between (e.g. one's fingers / chopsticks), to grip (from both sides), to put between"
   },
   {
     "num": 26311,
@@ -3282,7 +3762,10 @@
     "onyomiRomaji": "don",
     "kunyomi": "くも(る)",
     "kunyomiRomaji": "kumo(ru)",
-    "meaning": "cloudy weather, cloud up"
+    "meaning": "cloudy weather, cloud up",
+    "word": "曇る",
+    "wordReading": "くもる",
+    "wordMeaning": "to get cloudy, to cloud over, to become overcast"
   },
   {
     "num": 28404,
@@ -3291,7 +3774,10 @@
     "onyomiRomaji": "teki",
     "kunyomi": "しずく、 したた(る)",
     "kunyomiRomaji": "shizuku, shitata(ru)",
-    "meaning": "drip, drop"
+    "meaning": "drip, drop",
+    "word": "滴る",
+    "wordReading": "したたる",
+    "wordMeaning": "to drip, to drop, to trickle"
   },
   {
     "num": 20282,
@@ -3300,6 +3786,9 @@
     "onyomiRomaji": "shi",
     "kunyomi": "うかが(う)",
     "kunyomiRomaji": "ukaga(u)",
-    "meaning": "pay respects, visit, ask, inquire, question"
+    "meaning": "pay respects, visit, ask, inquire, question",
+    "word": "伺う",
+    "wordReading": "うかがう",
+    "wordMeaning": "to call on someone, to call at a place, to pay a visit"
   }
 ]

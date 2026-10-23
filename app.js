@@ -55,6 +55,10 @@
     deckPickList: document.getElementById("deckPickList"),
     lessonDeckBtn: document.getElementById("lessonDeckBtn"),
     cardLegacyRows: document.getElementById("cardLegacyRows"),
+    cardWordBlock: document.getElementById("cardWordBlock"),
+    cardWord: document.getElementById("cardWord"),
+    typeWordBlock: document.getElementById("typeWordBlock"),
+    typeWord: document.getElementById("typeWord"),
     cardSections: document.getElementById("cardSections"),
     typeLegacyRows: document.getElementById("typeLegacyRows"),
     typeSections: document.getElementById("typeSections"),
@@ -727,6 +731,7 @@
           meaning: Array.isArray(val.meaning) ? val.meaning : [],
           onyomi: Array.isArray(val.onyomi) ? val.onyomi : [],
           kunyomi: Array.isArray(val.kunyomi) ? val.kunyomi : [],
+          wordMeaning: Array.isArray(val.wordMeaning) ? val.wordMeaning : [],
         };
       }
     });
@@ -1931,6 +1936,8 @@
       els.onyomi.textContent = item.onyomi || "—";
       els.kunyomi.textContent = item.kunyomi || "—";
       els.meaning.textContent = item.meaning || "—";
+      els.cardWordBlock.hidden = !item.word;
+      if (item.word) els.cardWord.textContent = `${item.word}（${item.wordReading}）${item.wordMeaning}`;
     }
     els.cardStats.hidden = Boolean(item.sections);
     const cardStats = getCardStats(item.num);
@@ -2713,7 +2720,31 @@
       badgeClass: "qt-onyomi",
       placeholder: "答え",
     },
+    // The kanji's verb or adjective (item.word): its reading, then its meaning.
+    wordReading: {
+      label: "単語の読み",
+      badgeClass: "qt-kunyomi",
+      placeholder: "答え",
+    },
+    wordMeaning: {
+      label: "単語の意味",
+      badgeClass: "",
+      placeholder: "Answer",
+    },
   };
+
+  const isWordType = (type) => type === "wordReading" || type === "wordMeaning";
+
+  // Where a question type's added answers are kept.
+  const answerBucket = (type) => (type === "wordReading" ? "kunyomi" : type);
+
+  // Accepted forms of one English gloss: with and without a leading "to" and
+  // without parenthetical notes ("to run (a business)" -> "run").
+  function glossVariants(part) {
+    const t = normalize(part);
+    const noParens = t.replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+    return [t, noParens, t.replace(/^to\s+/, ""), noParens.replace(/^to\s+/, "")].filter(Boolean);
+  }
 
   // Custom-deck items ask one question per section (type ids "s0", "s1", ...).
   const sectionIndex = (type) => Number(type.slice(1));
@@ -2764,6 +2795,7 @@
     }
     const types = ["meaning"];
     if (item.onyomi) types.push("onyomi");
+    if (item.word) types.push("wordReading", "wordMeaning");
     return types;
   }
 
@@ -2785,6 +2817,8 @@
       else if (wanakana.isHiragana(value)) wanakana.bind(els.typeInput, { IMEMode: "toHiragana" });
     } else if (type === "onyomi") {
       wanakana.bind(els.typeInput, { IMEMode: "toKatakana" });
+    } else if (type === "wordReading") {
+      wanakana.bind(els.typeInput, { IMEMode: "toHiragana" });
     }
   }
 
@@ -2803,7 +2837,11 @@
       return set;
     }
     const set = new Set();
-    if (type === "meaning") {
+    if (type === "wordReading") {
+      set.add(normalize(item.wordReading));
+    } else if (type === "wordMeaning") {
+      item.wordMeaning.split(/[;,/]/).forEach((part) => glossVariants(part).forEach((v) => set.add(v)));
+    } else if (type === "meaning") {
       item.meaning.split(/[;,]/).forEach((part) => {
         const t = normalize(part);
         if (t) {
@@ -2822,7 +2860,7 @@
         });
       });
     }
-    getCustomAnswers(item.num, type).forEach((a) => {
+    getCustomAnswers(item.num, answerBucket(type)).forEach((a) => {
       const t = normalize(a);
       if (t) set.add(t);
     });
@@ -2874,8 +2912,9 @@
     els.typeForm.hidden = false;
     els.typeCongratsMsg.hidden = true;
     els.typeNewDeckBtn.hidden = true;
-    els.typeKanji.textContent = item.kanji;
-    fitFront(els.typeKanji, item.kanji);
+    const shown = isWordType(currentQuestionType) ? item.word : item.kanji;
+    els.typeKanji.textContent = shown;
+    fitFront(els.typeKanji, shown);
     els.typeProgress.textContent =
       mode === "lesson-type"
         ? `${lessonSession.seen} / ${lessonSession.total}`
@@ -2904,7 +2943,7 @@
       const deck = customDeckById(item.deckId);
       list = deck ? getCustomDeckAnswers(deck, item.front, item.sections[sectionIndex(type)].label) : [];
     } else {
-      list = getCustomAnswers(item.num, type);
+      list = getCustomAnswers(item.num, answerBucket(type));
     }
     if (list.length) {
       els.typeCustomAnswersList.textContent = list.join(", ");
@@ -2928,7 +2967,7 @@
     const item = queue[0];
     const raw = els.typeInput.value;
     const accepted = buildAnswersForType(item, currentQuestionType);
-    const { correct, fuzzy } = matchAnswer(raw, accepted, item.sections ? true : currentQuestionType === "meaning");
+    const { correct, fuzzy } = matchAnswer(raw, accepted, item.sections ? true : currentQuestionType === "meaning" || currentQuestionType === "wordMeaning");
 
     typeAnswering = false;
     pendingTypeCorrect = correct;
@@ -2948,6 +2987,8 @@
       els.typeOnyomi.textContent = item.onyomi || "—";
       els.typeKunyomi.textContent = item.kunyomi || "—";
       els.typeMeaning.textContent = item.meaning || "—";
+      els.typeWordBlock.hidden = !item.word;
+      if (item.word) els.typeWord.textContent = `${item.word}（${item.wordReading}）${item.wordMeaning}`;
     }
     renderTypeCustomAnswers(item, currentQuestionType);
     updateAddAnswerButton();
@@ -3004,7 +3045,7 @@
       const deck = customDeckById(item.deckId);
       if (deck) addCustomDeckAnswer(deck, item.front, item.sections[sectionIndex(currentQuestionType)].label, pendingTypeRawAnswer);
     } else {
-      addCustomAnswer(item.num, currentQuestionType, pendingTypeRawAnswer);
+      addCustomAnswer(item.num, answerBucket(currentQuestionType), pendingTypeRawAnswer);
     }
     pendingTypeCorrect = true;
     updateTypeFeedbackResult(true, pendingTypeRawAnswer);
@@ -3102,6 +3143,7 @@
 
   function mergeCustomAnswerEntries(a, b) {
     return {
+      wordMeaning: mergeAnswerLists((a && a.wordMeaning) || [], (b && b.wordMeaning) || []),
       meaning: mergeAnswerLists((a && a.meaning) || [], (b && b.meaning) || []),
       onyomi: mergeAnswerLists((a && a.onyomi) || [], (b && b.onyomi) || []),
       kunyomi: mergeAnswerLists((a && a.kunyomi) || [], (b && b.kunyomi) || []),
