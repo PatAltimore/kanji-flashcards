@@ -150,6 +150,11 @@
     syncSasYesBtn: document.getElementById("syncSasYesBtn"),
     syncSasNoBtn: document.getElementById("syncSasNoBtn"),
     customDecksDue: document.getElementById("customDecksDue"),
+    streak: document.getElementById("streak"),
+    rank: document.getElementById("rank"),
+    rankName: document.getElementById("rankName"),
+    rankLevel: document.getElementById("rankLevel"),
+    streakNum: document.getElementById("streakNum"),
     customDecksDueNum: document.getElementById("customDecksDueNum"),
     exportDataBtn: document.getElementById("exportDataBtn"),
     importDataBtn: document.getElementById("importDataBtn"),
@@ -361,7 +366,34 @@
 
   // The Custom Decks tile on the home screen shows how many reviews are due
   // across all of the player's decks.
+  // Consecutive days with at least one answered question, up to today. If
+  // today has no answers yet the streak is still alive (it counts back from
+  // yesterday) until the day ends.
+  function currentStreak() {
+    const daily = stats.daily || {};
+    const studied = (d) => Boolean(daily[dateKey(d)] && daily[dateKey(d)].completed > 0);
+    const day = new Date();
+    const doneToday = studied(day);
+    if (!doneToday) day.setDate(day.getDate() - 1);
+    let days = 0;
+    while (studied(day)) {
+      days++;
+      day.setDate(day.getDate() - 1);
+    }
+    return { days, doneToday };
+  }
+
   function updateHomeInfo() {
+    const streak = currentStreak();
+    els.streakNum.textContent = String(streak.days);
+    els.streak.classList.toggle("pending", !streak.doneToday);
+    const rank = rankInfo(totalReviews());
+    els.rank.style.setProperty("--tone", RANK_TONES[rank.index]);
+    els.streak.style.setProperty("--tone", STREAK_TONES[Math.floor(streak.days / 10) % STREAK_TONES.length]);
+    els.rankName.textContent = rank.name;
+    els.rankLevel.textContent = `Lv.${rank.level}`;
+    els.rank.title = rank.maxed ? "最高ランクです" : `次のレベルまであと${rank.toNext}回の復習`;
+    els.streak.title = streak.doneToday ? "連続で学習した日数" : "今日はまだ学習していません。続けるには今日学習しましょう。";
     let due = getReviewCards(visibleKanji()).length;
     customDecks.forEach((deck) => {
       due += getDueCustomCards(deck).length;
@@ -615,11 +647,72 @@
 
   function bumpOwnCounts(day, cardKey, correct) {
     const own = ownCounts();
-    const d = own.daily[day] || (own.daily[day] = { completed: 0, right: 0, wrong: 0 });
+    const d = own.daily[day] || (own.daily[day] = { completed: 0, right: 0, wrong: 0, reviews: 0 });
     d.completed++;
     d[correct ? "right" : "wrong"]++;
     const c = own.perCard[cardKey] || (own.perCard[cardKey] = { right: 0, wrong: 0 });
     c[correct ? "right" : "wrong"]++;
+    saveSyncCounts();
+  }
+
+  // ---------- rank (sumo ranks, levelled up by completing reviews) ----------
+  // A review is a question answered correctly in 復習 or すべて復習. Each rank
+  // has five levels, and a level takes 100 reviews in the first rank (前相撲),
+  // 200 in the next, and so on up to 横綱.
+
+  const RANKS = ["前相撲", "序ノ口", "序二段", "三段目", "幕下", "十両", "前頭", "小結", "関脇", "大関", "横綱"];
+  const LEVELS_PER_RANK = 5;
+
+  // Colours (r, g, b), cold to warm: one per rank, and a cycle for the streak
+  // that moves on every 10 days.
+  const RANK_TONES = [
+    "130, 140, 230",
+    "100, 165, 240",
+    "92, 195, 240",
+    "76, 205, 205",
+    "100, 215, 160",
+    "170, 220, 110",
+    "255, 215, 80",
+    "255, 175, 90",
+    "255, 130, 80",
+    "255, 100, 95",
+    "235, 60, 60",
+  ];
+  const STREAK_TONES = [
+    "110, 130, 240",
+    "92, 180, 240",
+    "76, 200, 200",
+    "126, 226, 168",
+    "255, 210, 77",
+    "255, 150, 90",
+    "255, 100, 100",
+  ];
+
+  function totalReviews() {
+    return Object.values(stats.daily || {}).reduce((sum, day) => sum + ((day && day.reviews) || 0), 0);
+  }
+
+  function rankInfo(total) {
+    let remaining = total;
+    for (let i = 0; i < RANKS.length; i++) {
+      const perLevel = 100 * (i + 1);
+      if (remaining < perLevel * LEVELS_PER_RANK) {
+        const level = Math.floor(remaining / perLevel) + 1;
+        return { name: RANKS[i], index: i, level, toNext: perLevel - (remaining % perLevel), maxed: false };
+      }
+      remaining -= perLevel * LEVELS_PER_RANK;
+    }
+    return { name: RANKS[RANKS.length - 1], index: RANKS.length - 1, level: LEVELS_PER_RANK, toNext: 0, maxed: true };
+  }
+
+  function addReviewPoint() {
+    const day = dateKey(new Date());
+    if (!stats.daily[day]) stats.daily[day] = { completed: 0, right: 0, wrong: 0, reviews: 0 };
+    stats.daily[day].reviews = (stats.daily[day].reviews || 0) + 1;
+    const own = ownCounts();
+    const d = own.daily[day] || (own.daily[day] = { completed: 0, right: 0, wrong: 0, reviews: 0 });
+    d.reviews = (d.reviews || 0) + 1;
+    saveStats();
     saveSyncCounts();
   }
 
@@ -633,8 +726,8 @@
     const otherTotals = KanjiFlashSync.totalCounts(others);
     const own = ownCounts();
     Object.keys(stats.daily || {}).forEach((day) => {
-      const mine = own.daily[day] || (own.daily[day] = { completed: 0, right: 0, wrong: 0 });
-      ["completed", "right", "wrong"].forEach((field) => {
+      const mine = own.daily[day] || (own.daily[day] = { completed: 0, right: 0, wrong: 0, reviews: 0 });
+      ["completed", "right", "wrong", "reviews"].forEach((field) => {
         const need = (stats.daily[day][field] || 0) - ((otherTotals.daily[day] && otherTotals.daily[day][field]) || 0);
         if (need > mine[field]) mine[field] = need;
       });
@@ -664,7 +757,7 @@
   function recordResult(kanjiNum, correct, gradeSrs = true) {
     const day = dateKey(new Date());
     if (!stats.daily[day]) {
-      stats.daily[day] = { completed: 0, right: 0, wrong: 0 };
+      stats.daily[day] = { completed: 0, right: 0, wrong: 0, reviews: 0 };
     }
     stats.daily[day].completed++;
     if (correct) {
@@ -2051,6 +2144,7 @@
     if (customTypeMode !== "quiz") {
       if (pendingCustomTypeCorrect) {
         customTypeDone++;
+        if (customTypeMode === "review") addReviewPoint();
       } else {
         const at = Math.min(customTypeCards.length, customTypeIndex + 1 + REQUEUE_GAP);
         customTypeCards.splice(at, 0, customTypeCards[customTypeIndex]);
@@ -3027,7 +3121,7 @@
       const d = new Date();
       d.setDate(today.getDate() - i);
       const key = dateKey(d);
-      const entry = stats.daily[key] || { completed: 0, right: 0, wrong: 0 };
+      const entry = stats.daily[key] || { completed: 0, right: 0, wrong: 0, reviews: 0 };
       rows.push({ label: formatDayLabel(d, i === 0), ...entry });
     }
 
@@ -3136,7 +3230,7 @@
 
   els.resetStatsBtn.addEventListener("click", () => {
     const ok = window.confirm(
-      "Reset all statistics? Daily history and per-card right/wrong counts will be erased. This cannot be undone."
+      "Reset all statistics? Daily history, per-card right/wrong counts and your rank will be erased. This cannot be undone."
     );
     if (!ok) return;
     stats = { daily: {}, perCard: {} };
@@ -3587,6 +3681,7 @@
         }
       }
       if (!all || isItemStudied(item)) recordItemResult(item, pendingTypeCorrect, false);
+      if (pendingTypeCorrect && (all || lessonSession.kind === "review")) addReviewPoint();
       gradeLessonTerm(item, pendingTypeCorrect);
       lessonSession.seen++;
       if (pendingTypeCorrect) lessonSession.right++;
@@ -3753,6 +3848,7 @@
         completed: a.completed + b.completed,
         right: a.right + b.right,
         wrong: a.wrong + b.wrong,
+        reviews: (a.reviews || 0) + (b.reviews || 0),
       };
     });
 

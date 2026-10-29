@@ -23,7 +23,7 @@ const empty = (deviceId = "a") => ({
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const own = (state) => state.counts.devices[state.deviceId];
-const day = (completed, right = completed, wrong = 0) => ({ completed, right, wrong });
+const day = (completed, right = completed, wrong = 0, reviews = 0) => ({ completed, right, wrong, reviews });
 const total = (state) => totalCounts(state.counts);
 
 let passed = 0;
@@ -42,6 +42,17 @@ test("merging identical states changes nothing (idempotent)", () => {
   const once = mergeState(clone(s), clone(s));
   assert.deepEqual(once, mergeState(clone(once), clone(once)));
   assert.deepEqual(total(once).daily["2026-10-18"], day(5, 4, 1));
+});
+
+test("review counts (for the rank) add across devices and never double count", () => {
+  const phone = empty("phone");
+  const pc = empty("pc");
+  own(phone).daily["d"] = day(10, 10, 0, 7);
+  own(pc).daily["d"] = day(4, 3, 1, 2);
+  const merged = mergeState(clone(phone), clone(pc));
+  assert.equal(total(merged).daily.d.reviews, 9);
+  const again = mergeState(clone(merged), clone(pc));
+  assert.equal(total(again).daily.d.reviews, 9);
 });
 
 test("two devices' counters add, and re-syncing never counts anything twice", () => {

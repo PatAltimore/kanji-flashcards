@@ -2471,3 +2471,66 @@ button.edit-row {
   color: var(--text-dim);
   font-size: 0.9rem;
 }
+
+/* ---------- daily streak (home) ---------- */
+
+.home-info {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rank {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  background: rgb(var(--tone, 255, 255, 255));
+  color: #1d2126;
+  font-weight: 700;
+}
+
+.rank-name {
+  font-size: 1rem;
+}
+
+.rank-level {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: rgba(29, 33, 38, 0.7);
+}
+
+.streak {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 18px;
+  border-radius: 999px;
+  border: 2px solid rgb(var(--tone, 143, 205, 240));
+  background: rgba(var(--tone, 143, 205, 240), 0.14);
+  color: #e8f4fb;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.streak-num {
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--tone, 143, 205, 240));
+}
+
+.streak.pending {
+  border-color: #5a606a;
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.streak.pending .streak-num {
+  color: inherit;
+}

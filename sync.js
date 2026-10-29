@@ -26,7 +26,7 @@
   // ---------------------------------------------------------------- merge
 
   const SRS_FIELDS = ["box", "due", "lastSeen", "streak"];
-  const DAILY_FIELDS = ["completed", "right", "wrong"];
+  const DAILY_FIELDS = ["completed", "right", "wrong", "reviews"];
   const CARD_FIELDS = ["right", "wrong"];
 
   function isObj(value) {
@@ -115,7 +115,7 @@
     Object.keys(devices).forEach((id) => {
       const device = devices[id];
       Object.keys(device.daily || {}).forEach((day) => {
-        const sum = total.daily[day] || { completed: 0, right: 0, wrong: 0 };
+        const sum = total.daily[day] || { completed: 0, right: 0, wrong: 0, reviews: 0 };
         DAILY_FIELDS.forEach((field) => {
           sum[field] += num(device.daily[day][field]);
         });
