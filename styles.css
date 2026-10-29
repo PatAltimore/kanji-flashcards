@@ -2334,3 +2334,62 @@ button.edit-row {
   color: #7ee2a8;
   font-weight: 600;
 }
+
+/* ---------- Jisho-style labels (common word, JLPT level) ---------- */
+
+.tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid #5a606a;
+  color: #aab0ba;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.tag-common {
+  color: #7ee2a8;
+  border-color: #3e6b3e;
+}
+
+.tag-jlpt {
+  border-color: #3b6580;
+}
+
+.tag-jlpt5 { color: #8be28b; }
+.tag-jlpt4 { color: #b6e07a; }
+.tag-jlpt3 { color: #ffd27a; }
+.tag-jlpt2 { color: #ffa86b; }
+.tag-jlpt1 { color: #ff8f86; }
+
+.term-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+}
+
+.term-tile.selected .tag {
+  background: rgba(20, 24, 30, 0.9);
+}
+
+.edit-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-main .edit-sub {
+  flex: none;
+}
+
+.edit-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}

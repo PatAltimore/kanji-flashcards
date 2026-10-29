@@ -414,6 +414,7 @@
         front: card.front,
         deckId: deck.id,
         sections: card.sections,
+        tags: card.tags || null,
       }));
   }
 
@@ -906,6 +907,28 @@
   // bogus extra flashcard section.
   const EXTRA_ANSWERS_SUFFIX = " (extra answers)";
 
+  // Two optional columns carry Jisho-style labels instead of study content:
+  // "Common" ("Common word" or "Uncommon") and "JLPT" ("N3"). They are kept on
+  // the card as `tags` and shown as badges, never asked as questions.
+  const COMMON_HEADER = "common";
+  const JLPT_HEADER = "jlpt";
+
+  function parseTags(commonCell, jlptCell) {
+    const common = /^common/i.test(commonCell) ? true : /^(uncommon|not common)/i.test(commonCell) ? false : null;
+    const level = /([1-5])/.exec(jlptCell || "");
+    const jlpt = level ? Number(level[1]) : null;
+    return common === null && jlpt === null ? null : { common, jlpt };
+  }
+
+  function termTagsHtml(tags) {
+    if (!tags) return "";
+    const out = [];
+    if (tags.common) out.push(`<span class="tag tag-common">Common word</span>`);
+    if (tags.jlpt) out.push(`<span class="tag tag-jlpt tag-jlpt${tags.jlpt}">JLPT N${tags.jlpt}</span>`);
+    if (!tags.common && !tags.jlpt) out.push(`<span class="tag">Uncommon</span>`);
+    return out.join("");
+  }
+
   // Returns { columns, cards, answers }. `columns` is the full ordered
   // header list of regular content columns (kept at the deck level, not
   // just implied by each card's sections) so a column that's blank on
@@ -917,13 +940,15 @@
     const header = rows[0];
     const rawLabels = header.slice(1).map((h, idx) => (h || "").trim() || `Column ${idx + 2}`);
     const columns = [];
+    const commonIdx = rawLabels.findIndex((l) => l.toLowerCase() === COMMON_HEADER);
+    const jlptIdx = rawLabels.findIndex((l) => l.toLowerCase() === JLPT_HEADER);
     // Parallel to rawLabels: null for a regular column, or the label it
     // supplies extra answers for.
-    const extraAnswerTarget = rawLabels.map((label) => {
+    const extraAnswerTarget = rawLabels.map((label, idx) => {
       if (label.endsWith(EXTRA_ANSWERS_SUFFIX)) {
         return label.slice(0, -EXTRA_ANSWERS_SUFFIX.length);
       }
-      columns.push(label);
+      if (idx !== commonIdx && idx !== jlptIdx) columns.push(label);
       return null;
     });
 
@@ -937,6 +962,7 @@
       rawLabels.forEach((label, idx) => {
         const value = (row[idx + 1] || "").trim();
         if (!value) return;
+        if (idx === commonIdx || idx === jlptIdx) return;
         const targetLabel = extraAnswerTarget[idx];
         if (targetLabel) {
           const list = value.split(";").map((s) => s.trim()).filter(Boolean);
@@ -950,7 +976,11 @@
           sections.push({ label, value });
         }
       });
-      cards.push({ front, sections });
+      const tags = parseTags(
+        commonIdx >= 0 ? (row[commonIdx + 1] || "").trim() : "",
+        jlptIdx >= 0 ? (row[jlptIdx + 1] || "").trim() : ""
+      );
+      cards.push(tags ? { front, sections, tags } : { front, sections });
     }
     return { columns, cards, answers };
   }
@@ -990,10 +1020,12 @@
     const extraColumns = columns.filter((label) =>
       deck.cards.some((card) => ((answers[card.front] && answers[card.front][label]) || []).length)
     );
+    const hasTags = deck.cards.some((card) => card.tags);
     const header = [
       "Front",
       ...columns,
       ...extraColumns.map((label) => `${label}${EXTRA_ANSWERS_SUFFIX}`),
+      ...(hasTags ? ["Common", "JLPT"] : []),
     ];
     const lines = [header.map(csvEscapeField).join(",")];
     deck.cards.forEach((card) => {
@@ -1002,7 +1034,13 @@
       const extraCells = extraColumns.map((label) =>
         ((answers[card.front] && answers[card.front][label]) || []).join("; ")
       );
-      const row = [card.front, ...mainCells, ...extraCells];
+      const tagCells = hasTags
+        ? [
+            card.tags && card.tags.common ? "Common word" : card.tags && card.tags.common === false ? "Uncommon" : "",
+            card.tags && card.tags.jlpt ? `N${card.tags.jlpt}` : "",
+          ]
+        : [];
+      const row = [card.front, ...mainCells, ...extraCells, ...tagCells];
       lines.push(row.map(csvEscapeField).join(","));
     });
     return lines.join("\r\n");
@@ -1265,7 +1303,10 @@
             return `
         <div class="edit-row status-${status}" data-index="${index}">
           <span class="edit-front">${escapeHtml(card.front)}</span>
-          <span class="edit-sub">${escapeHtml(cardSummary(card))}</span>
+          <span class="edit-main">
+            <span class="edit-sub">${escapeHtml(cardSummary(card))}</span>
+            ${card.tags ? `<span class="edit-tags">${termTagsHtml(card.tags)}</span>` : ""}
+          </span>
           <button class="edit-delete" data-action="delete-card" type="button" aria-label="${escapeHtml(card.front)}を削除">✕</button>
         </div>`;
           })
@@ -2459,6 +2500,7 @@
           <span class="term-reading">${escapeHtml(parts.above)}</span>
           <span class="term-word">${escapeHtml(item.kanji)}</span>
           <span class="term-meaning">${escapeHtml(parts.below)}</span>
+          ${item.tags ? `<span class="term-tags">${termTagsHtml(item.tags)}</span>` : ""}
         </button>`;
       })
       .join("");
