@@ -1196,7 +1196,8 @@ body {
   color: var(--card-ink-dim);
 }
 
-.type-input:disabled {
+.type-input:disabled,
+.type-input.locked {
   opacity: 0.6;
 }
 

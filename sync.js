@@ -208,6 +208,22 @@
     return merged;
   }
 
+  // Which N2 kanji were removed from (or restored to) the built-in deck: per
+  // kanji the most recent change wins, so an undo on one device isn't undone
+  // again by another device's older removal.
+  function mergeKanjiRemovals(local, remote) {
+    const out = {};
+    const l = isObj(local) ? local : {};
+    const r = isObj(remote) ? remote : {};
+    new Set([...Object.keys(l), ...Object.keys(r)]).forEach((key) => {
+      const a = isObj(l[key]) ? l[key] : null;
+      const b = isObj(r[key]) ? r[key] : null;
+      const pick = b && (!a || num(b.at) > num(a.at)) ? b : a;
+      if (pick && typeof pick.removed === "boolean") out[key] = { at: num(pick.at), removed: pick.removed };
+    });
+    return out;
+  }
+
   function mergeDeckPair(a, b) {
     const ua = a.updatedAt || "";
     const ub = b.updatedAt || "";
@@ -288,6 +304,7 @@
       lessons: mergeLessons(local.lessons, remote.lessons),
       customDecks: decks.decks,
       deletedDecks: decks.deleted,
+      kanjiRemovals: mergeKanjiRemovals(local.kanjiRemovals, remote.kanjiRemovals),
     };
   }
 

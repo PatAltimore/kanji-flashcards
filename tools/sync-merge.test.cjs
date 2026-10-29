@@ -269,6 +269,20 @@ test("verification number: same on both devices, different for different connect
   assert.equal(fingerprintFromSdp("v=0"), null);
 });
 
+test("removed N2 kanji: the latest change per kanji wins on every device", () => {
+  const removedAt = (at, removed) => ({ at, removed });
+  const phone = { ...empty(), kanjiRemovals: { 100: removedAt(5, true), 200: removedAt(5, true) } };
+  const pc = { ...empty(), kanjiRemovals: { 100: removedAt(9, false), 300: removedAt(4, true) } };
+  const a = mergeState(phone, pc);
+  const b = mergeState(pc, phone);
+  assert.deepEqual(a.kanjiRemovals, b.kanjiRemovals);
+  assert.equal(a.kanjiRemovals[100].removed, false); // restored later on the PC
+  assert.equal(a.kanjiRemovals[200].removed, true);
+  assert.equal(a.kanjiRemovals[300].removed, true);
+  // an older client that doesn't send the field changes nothing
+  assert.deepEqual(mergeState(phone, empty()).kanjiRemovals, phone.kanjiRemovals);
+});
+
 (async () => {
   for (const { name, fn } of queue) {
     await fn();

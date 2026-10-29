@@ -68,6 +68,7 @@
     deckEditUndo: document.getElementById("deckEditUndo"),
     deckEditUndoText: document.getElementById("deckEditUndoText"),
     deckEditUndoBtn: document.getElementById("deckEditUndoBtn"),
+    deckEditRestoreBtn: document.getElementById("deckEditRestoreBtn"),
     lessonDeckBtn: document.getElementById("lessonDeckBtn"),
     cardLegacyRows: document.getElementById("cardLegacyRows"),
     cardWordBlock: document.getElementById("cardWordBlock"),
@@ -357,7 +358,7 @@
   // The Custom Decks tile on the home screen shows how many reviews are due
   // across all of the player's decks.
   function updateHomeInfo() {
-    let due = getReviewCards(n2Kanji).length;
+    let due = getReviewCards(visibleKanji()).length;
     customDecks.forEach((deck) => {
       due += getDueCustomCards(deck).length;
     });
@@ -373,6 +374,21 @@
   const KANJI_DECK_ID = "n2-kanji";
   const CUSTOM_ITEM_BASE = 2000000000;
   const DECK_STATES_KEY = "kanjiFlashN2.deckStates.v1";
+  const KANJI_REMOVALS_KEY = "kanjiFlashN2.kanjiRemovals.v1";
+  // N2 kanji removed from the built-in deck in the editor: { num: { at, removed } }.
+  let kanjiRemovals = {};
+
+  function saveKanjiRemovals() {
+    saveJson(KANJI_REMOVALS_KEY, kanjiRemovals);
+  }
+
+  function setKanjiRemoved(num, removed) {
+    kanjiRemovals[num] = { at: Date.now(), removed };
+    saveKanjiRemovals();
+  }
+
+  const isKanjiRemoved = (num) => Boolean(kanjiRemovals[num] && kanjiRemovals[num].removed);
+  const visibleKanji = () => n2Kanji.filter((k) => !isKanjiRemoved(k.num));
   let n2Kanji = [];
   let activeDeckId = KANJI_DECK_ID;
 
@@ -402,7 +418,7 @@
   }
 
   function deckItems(deckId) {
-    if (deckId === KANJI_DECK_ID) return n2Kanji;
+    if (deckId === KANJI_DECK_ID) return visibleKanji();
     const deck = customDeckById(deckId.replace(/^custom:/, ""));
     return deck ? buildCustomItems(deck) : [];
   }
@@ -1133,7 +1149,7 @@
     els.customDecksEmpty.hidden = customDecks.length > 0;
     const n2Row = `
       <div class="custom-deck-row" data-deck-id="${KANJI_DECK_ID}">
-        <div class="custom-deck-header">${deckReviewButton("N2漢字", n2Kanji.length, getReviewCards(n2Kanji).length)}
+        <div class="custom-deck-header">${deckReviewButton("N2漢字", visibleKanji().length, getReviewCards(visibleKanji()).length)}
         </div>
       </div>`;
     els.customDecksList.innerHTML = n2Row + customDecks
@@ -1184,24 +1200,60 @@
     return card.sections.map((s) => s.value).join(" · ");
   }
 
+  function renderKanjiEdit() {
+    const removedCount = n2Kanji.length - visibleKanji().length;
+    els.deckEditLegend.hidden = false;
+    els.deckEditToolbar.hidden = false;
+    els.deckEditToolbar.querySelectorAll("[data-action]").forEach((btn) => {
+      btn.hidden = btn.dataset.action !== "restore-kanji";
+    });
+    els.deckEditRestoreBtn.disabled = removedCount === 0;
+    els.deckEditRestoreBtn.textContent = removedCount ? `削除した漢字を戻す（${removedCount}）` : "削除した漢字はありません";
+    els.deckEditTitle.textContent = "N2漢字";
+    els.deckEditList.innerHTML = visibleKanji()
+      .map((item) => {
+        const status = statusOfEntry(srsOf(item), isItemStudied(item));
+        return `
+        <div class="edit-row status-${status}" data-num="${item.num}">
+          <span class="edit-front">${escapeHtml(item.kanji)}</span>
+          <span class="edit-sub">${escapeHtml([item.onyomi || item.kunyomi, item.meaning].filter(Boolean).join(" · "))}</span>
+          <button class="edit-delete" data-action="delete-card" type="button" aria-label="${escapeHtml(item.kanji)}を削除">✕</button>
+        </div>`;
+      })
+      .join("");
+  }
+
   function renderDeckEdit() {
+    if (editingDeckId === KANJI_DECK_ID) {
+      renderKanjiEdit();
+      return;
+    }
     const deck = editingDeckId ? customDeckById(editingDeckId) : null;
     if (editingDeckId && !deck) editingDeckId = null;
     els.deckEditLegend.hidden = !deck;
     els.deckEditToolbar.hidden = !deck;
+    if (deck) {
+      els.deckEditToolbar.querySelectorAll("[data-action]").forEach((btn) => {
+        btn.hidden = btn.dataset.action === "restore-kanji";
+      });
+    }
     if (!deck) {
       els.deckEditTitle.textContent = "デッキを編集";
-      els.deckEditList.innerHTML = customDecks.length
-        ? customDecks
-            .map(
-              (d) => `
+      els.deckEditList.innerHTML =
+        `
+        <button class="edit-row" type="button" data-edit-deck="${KANJI_DECK_ID}">
+          <span class="edit-front">N2漢字</span>
+          <span class="edit-sub">${visibleKanji().length}枚</span>
+        </button>` +
+        customDecks
+          .map(
+            (d) => `
         <button class="edit-row" type="button" data-edit-deck="${escapeHtml(d.id)}">
           <span class="edit-front">${escapeHtml(d.name)}</span>
           <span class="edit-sub">${d.cards.length}枚</span>
         </button>`
-            )
-            .join("")
-        : `<p class="stats-footnote">編集できるデッキがありません。ホーム画面の「デッキ追加」からアップロードしてください。</p>`;
+          )
+          .join("");
       return;
     }
     els.deckEditTitle.textContent = deck.name;
@@ -1264,6 +1316,19 @@
       return;
     }
     const del = event.target.closest("[data-action='delete-card']");
+    if (del && editingDeckId === KANJI_DECK_ID) {
+      const num = Number(del.closest(".edit-row").dataset.num);
+      const item = n2Kanji.find((k) => k.num === num);
+      if (!item) return;
+      setKanjiRemoved(num, true);
+      lastDeletedCard = { kanjiNum: num };
+      els.deckEditUndoText.textContent = `「${item.kanji}」を削除しました`;
+      els.deckEditUndo.hidden = false;
+      window.clearTimeout(undoTimer);
+      undoTimer = window.setTimeout(hideEditUndo, 8000);
+      renderDeckEdit();
+      return;
+    }
     const deck = editingDeckId && customDeckById(editingDeckId);
     if (!del || !deck) return;
     deleteDeckCard(deck, Number(del.closest(".edit-row").dataset.index));
@@ -1271,6 +1336,12 @@
 
   els.deckEditUndoBtn.addEventListener("click", () => {
     const last = lastDeletedCard;
+    if (last && last.kanjiNum !== undefined) {
+      setKanjiRemoved(last.kanjiNum, false);
+      hideEditUndo();
+      renderDeckEdit();
+      return;
+    }
     const deck = last && customDeckById(last.deckId);
     if (!deck) return;
     deck.cards.splice(Math.min(last.index, deck.cards.length), 0, last.card);
@@ -1286,6 +1357,14 @@
 
   els.deckEditToolbar.addEventListener("click", (event) => {
     const btn = event.target.closest("[data-action]");
+    if (btn && btn.dataset.action === "restore-kanji" && editingDeckId === KANJI_DECK_ID) {
+      Object.keys(kanjiRemovals).forEach((num) => {
+        if (kanjiRemovals[num].removed) setKanjiRemoved(num, false);
+      });
+      hideEditUndo();
+      renderDeckEdit();
+      return;
+    }
     const deck = btn && editingDeckId && customDeckById(editingDeckId);
     if (!deck) return;
     const action = btn.dataset.action;
@@ -1776,7 +1855,7 @@
     customTypeCurrentSection = customTypeAsked[idx];
     customTypeAnswering = true;
     els.customTypeCard.classList.remove("answer-wrong", "answer-right");
-    els.customTypeInput.disabled = false;
+    lockAnswerInput(els.customTypeInput, false);
     els.customTypeInput.value = "";
     els.customTypeFeedback.hidden = true;
     els.customTypeSubmitBtn.textContent = "確認";
@@ -1841,7 +1920,7 @@
     customTypeAnswering = false;
     pendingCustomTypeCorrect = correct;
     pendingCustomTypeRawAnswer = raw.trim();
-    els.customTypeInput.disabled = true;
+    lockAnswerInput(els.customTypeInput, true);
     els.customTypeSubmitBtn.textContent = "次へ";
 
     els.customTypeFeedback.hidden = false;
@@ -1856,7 +1935,7 @@
         if (!customTypeAnswering && pendingCustomTypeCorrect) advanceCustomTypeCard();
       }, AUTO_ADVANCE_MS);
     } else {
-      els.customTypeSubmitBtn.focus();
+      els.customTypeInput.focus();
     }
   }
 
@@ -2186,7 +2265,7 @@
   let deckPickFor = "lesson"; // "lesson" | "marathon"
 
   function deckPickEntries() {
-    const entries = [{ id: KANJI_DECK_ID, name: "N2漢字", count: n2Kanji.length }];
+    const entries = [{ id: KANJI_DECK_ID, name: "N2漢字", count: visibleKanji().length }];
     customDecks.forEach((deck) => {
       entries.push({
         id: `custom:${deck.id}`,
@@ -2758,7 +2837,7 @@
       if (srsTier(stats.perCard[key]) === "known") known++;
       else learning++;
     });
-    const totalKanji = n2Kanji.length || 367;
+    const totalKanji = visibleKanji().length || n2Kanji.length || 367;
     const newCount = Math.max(totalKanji - cardsAttempted, 0);
     const dueCount = getReviewCards().length;
 
@@ -3008,6 +3087,30 @@
     }
   }
 
+  // After an answer is submitted the field is "locked": it ignores typing but is
+  // never disabled or blurred, so a phone keyboard stays up for the next
+  // question. (A disabled field loses focus and closes the keyboard.)
+  function lockAnswerInput(input, locked) {
+    input.dataset.locked = locked ? input.value : "";
+    input.classList.toggle("locked", locked);
+    input.readOnlyLock = locked;
+  }
+
+  [els.typeInput, els.customTypeInput].forEach((input) => {
+    input.addEventListener("beforeinput", (event) => {
+      if (input.readOnlyLock) event.preventDefault();
+    });
+    // Composition input can't be cancelled, so put the answer back instead.
+    input.addEventListener("input", () => {
+      if (input.readOnlyLock && input.value !== input.dataset.locked) input.value = input.dataset.locked;
+    });
+  });
+
+  // Tapping the check / next button must not pull focus off the field.
+  [els.typeSubmitBtn, els.customTypeSubmitBtn].forEach((btn) => {
+    btn.addEventListener("pointerdown", (event) => event.preventDefault());
+  });
+
   // Re-fit the visible front when the window changes size.
   window.addEventListener("resize", () => {
     if (!els.screenPlay.hidden && queue[0]) fitFront(els.kanji, queue[0].kanji);
@@ -3107,7 +3210,7 @@
   function renderType() {
     typeAnswering = true;
     els.typeCard.classList.remove("answer-wrong", "answer-right");
-    els.typeInput.disabled = false;
+    lockAnswerInput(els.typeInput, false);
     els.typeInput.value = "";
     els.typeFeedback.hidden = true;
     els.typeSubmitBtn.textContent = "確認";
@@ -3203,7 +3306,7 @@
     typeAnswering = false;
     pendingTypeCorrect = correct;
     pendingTypeRawAnswer = raw.trim();
-    els.typeInput.disabled = true;
+    lockAnswerInput(els.typeInput, true);
     els.typeSubmitBtn.textContent = "次へ";
 
     els.typeFeedback.hidden = false;
@@ -3234,7 +3337,7 @@
       }, AUTO_ADVANCE_MS);
     } else {
       // The disabled input drops focus; park it on Next so Enter continues.
-      els.typeSubmitBtn.focus();
+      els.typeInput.focus();
     }
   }
 
@@ -3777,6 +3880,7 @@
       },
       customDecks,
       deletedDecks: loadJson(DECK_TOMBSTONES_KEY, {}),
+      kanjiRemovals,
     };
   }
 
@@ -3834,6 +3938,8 @@
     customDecks = merged.customDecks;
     saveCustomDecks();
     saveJson(DECK_TOMBSTONES_KEY, merged.deletedDecks);
+    kanjiRemovals = merged.kanjiRemovals || {};
+    saveKanjiRemovals();
     const group = loadSyncGroup();
     if (group) {
       group.members = merged.members;
@@ -4046,6 +4152,7 @@
   customAnswers = normalizeCustomAnswersShape(loadCustomAnswers());
   saveCustomAnswers();
   customDecks = loadCustomDecks();
+  kanjiRemovals = loadJson(KANJI_REMOVALS_KEY, {}) || {};
   applySettings();
   dailyMinutes = settings.defaultDailyMinutes;
 
@@ -4053,8 +4160,8 @@
     .then((res) => res.json())
     .then((data) => {
       n2Kanji = data;
-      allKanji = data;
-      kanjiByNum = new Map(data.map((item) => [item.num, item]));
+      allKanji = visibleKanji();
+      kanjiByNum = new Map(allKanji.map((item) => [item.num, item]));
       applyDeckState();
 
       showScreen("home");
