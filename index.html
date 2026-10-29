@@ -28,10 +28,10 @@
           <span class="streak-num" id="streakNum">0</span>
           <span class="streak-unit">日</span>
         </div>
-        <div class="rank" id="rank" title="復習を重ねてランクアップ">
+        <button class="rank" id="rank" type="button" title="復習を重ねてランクアップ" aria-haspopup="dialog">
           <span class="rank-name" id="rankName">前相撲</span>
           <span class="rank-level" id="rankLevel">Lv.1</span>
-        </div>
+        </button>
       </div>
       <button class="mode-btn" id="modeLessonsBtn" type="button">
         <span class="mode-label">レッスン</span>
@@ -96,6 +96,15 @@
     </header>
     <div class="deck-pick-body" id="deckPickList"></div>
   </section>
+
+  <!-- RANK POPUP -->
+  <div class="modal" id="rankModal" role="dialog" aria-modal="true" aria-labelledby="rankModalTitle" hidden>
+    <div class="modal-card">
+      <div class="modal-title" id="rankModalTitle">前相撲 Lv.1</div>
+      <div class="modal-body" id="rankModalBody"></div>
+      <button class="primary-btn" id="rankModalClose" type="button">閉じる</button>
+    </div>
+  </div>
 
   <!-- LESSONS -->
   <section class="screen" id="screen-lessons" hidden>

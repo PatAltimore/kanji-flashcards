@@ -2484,6 +2484,9 @@ button.edit-row {
 }
 
 .rank {
+  border: none;
+  font: inherit;
+  cursor: pointer;
   display: flex;
   align-items: baseline;
   gap: 6px;
@@ -2533,4 +2536,73 @@ button.edit-row {
 
 .streak.pending .streak-num {
   color: inherit;
+}
+
+/* ---------- popup (rank) ---------- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--surface-2, #3a3a3a);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
+}
+
+.modal-title {
+  align-self: center;
+  padding: 6px 22px;
+  border-radius: 999px;
+  background: rgb(var(--tone, 255, 255, 255));
+  color: #1d2126;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.9rem;
+}
+
+.modal-row strong {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.modal-note {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-dim);
 }

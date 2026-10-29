@@ -152,6 +152,10 @@
     customDecksDue: document.getElementById("customDecksDue"),
     streak: document.getElementById("streak"),
     rank: document.getElementById("rank"),
+    rankModal: document.getElementById("rankModal"),
+    rankModalTitle: document.getElementById("rankModalTitle"),
+    rankModalBody: document.getElementById("rankModalBody"),
+    rankModalClose: document.getElementById("rankModalClose"),
     rankName: document.getElementById("rankName"),
     rankLevel: document.getElementById("rankLevel"),
     streakNum: document.getElementById("streakNum"),
@@ -698,12 +702,72 @@
       const perLevel = 100 * (i + 1);
       if (remaining < perLevel * LEVELS_PER_RANK) {
         const level = Math.floor(remaining / perLevel) + 1;
-        return { name: RANKS[i], index: i, level, toNext: perLevel - (remaining % perLevel), maxed: false };
+        return {
+          name: RANKS[i],
+          index: i,
+          level,
+          toNext: perLevel - (remaining % perLevel),
+          nextRank: i + 1 < RANKS.length ? RANKS[i + 1] : null,
+          toNextRank: perLevel * LEVELS_PER_RANK - remaining,
+          maxed: false,
+        };
       }
       remaining -= perLevel * LEVELS_PER_RANK;
     }
-    return { name: RANKS[RANKS.length - 1], index: RANKS.length - 1, level: LEVELS_PER_RANK, toNext: 0, maxed: true };
+    return {
+      name: RANKS[RANKS.length - 1],
+      index: RANKS.length - 1,
+      level: LEVELS_PER_RANK,
+      toNext: 0,
+      nextRank: null,
+      toNextRank: 0,
+      maxed: true,
+    };
   }
+
+  // Tapping the rank bubble shows how far the next level and the next rank are.
+  function openRankModal() {
+    const total = totalReviews();
+    const rank = rankInfo(total);
+    els.rankModal.style.setProperty("--tone", RANK_TONES[rank.index]);
+    els.rankModalTitle.textContent = `${rank.name} Lv.${rank.level}`;
+    const rows = [];
+    if (rank.maxed) {
+      rows.push(["", "最高ランクを達成しました。"]);
+    } else {
+      const lastLevel = rank.level === LEVELS_PER_RANK;
+      if (!lastLevel || !rank.nextRank) {
+        rows.push(["次のレベルまで", `あと${rank.toNext}回`]);
+      }
+      if (rank.nextRank) {
+        rows.push([`${rank.nextRank}にランクアップまで`, `あと${rank.toNextRank}回`]);
+      }
+    }
+    rows.push(["これまでの復習回数", `${total}回`]);
+    els.rankModalBody.innerHTML =
+      rows
+        .map(([label, value]) =>
+          label
+            ? `<div class="modal-row"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`
+            : `<div class="modal-note">${escapeHtml(value)}</div>`
+        )
+        .join("") + `<div class="modal-note">復習・すべて復習で正解するたびに1回と数えます。</div>`;
+    els.rankModal.hidden = false;
+    els.rankModalClose.focus();
+  }
+
+  function closeRankModal() {
+    els.rankModal.hidden = true;
+  }
+
+  els.rank.addEventListener("click", openRankModal);
+  els.rankModalClose.addEventListener("click", closeRankModal);
+  els.rankModal.addEventListener("click", (event) => {
+    if (event.target === els.rankModal) closeRankModal();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !els.rankModal.hidden) closeRankModal();
+  });
 
   function addReviewPoint() {
     const day = dateKey(new Date());
