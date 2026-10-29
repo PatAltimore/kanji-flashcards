@@ -70,6 +70,10 @@
     deckEditUndoBtn: document.getElementById("deckEditUndoBtn"),
     deckEditRestoreBtn: document.getElementById("deckEditRestoreBtn"),
     lessonDeckBtn: document.getElementById("lessonDeckBtn"),
+    lessonFilterBar: document.getElementById("lessonFilterBar"),
+    lessonFilterBtn: document.getElementById("lessonFilterBtn"),
+    selectShownBtn: document.getElementById("selectShownBtn"),
+    lessonFilterPanel: document.getElementById("lessonFilterPanel"),
     cardLegacyRows: document.getElementById("cardLegacyRows"),
     cardWordBlock: document.getElementById("cardWordBlock"),
     cardWord: document.getElementById("cardWord"),
@@ -415,6 +419,7 @@
         deckId: deck.id,
         sections: card.sections,
         tags: card.tags || null,
+        facets: tagFacets(card.tags),
       }));
   }
 
@@ -912,12 +917,58 @@
   // the card as `tags` and shown as badges, never asked as questions.
   const COMMON_HEADER = "common";
   const JLPT_HEADER = "jlpt";
+  const POS_HEADERS = ["part of speech", "pos"];
 
-  function parseTags(commonCell, jlptCell) {
+  // The part of speech column holds Jisho/JMdict-style text such as
+  // "verb (ru)", "i-adj" or "noun, suru verb". Each comma-separated part maps
+  // to one broad category used for the filters and the badges.
+  const POS_CATEGORIES = [
+    ["noun", "Noun"],
+    ["verb", "Verb"],
+    ["adjective", "Adjective"],
+    ["adverb", "Adverb"],
+    ["pronoun", "Pronoun"],
+    ["particle", "Particle"],
+    ["conjunction", "Conjunction"],
+    ["interjection", "Interjection"],
+    ["expression", "Expression"],
+    ["auxiliary", "Auxiliary"],
+    ["affix", "Prefix / Suffix"],
+    ["number", "Number"],
+    ["other", "Other"],
+  ];
+  const POS_LABELS = Object.fromEntries(POS_CATEGORIES);
+
+  function posCategories(raw) {
+    const found = new Set();
+    String(raw || "")
+      .split(",")
+      .map((p) => p.trim().toLowerCase())
+      .filter(Boolean)
+      .forEach((p) => {
+        if (/^aux/.test(p)) found.add("auxiliary");
+        else if (/verb/.test(p) || p === "kuru") found.add("verb");
+        else if (/adj/.test(p)) found.add("adjective");
+        else if (/^adv/.test(p)) found.add("adverb");
+        else if (/^pron/.test(p)) found.add("pronoun");
+        else if (/^part/.test(p)) found.add("particle");
+        else if (/^conj/.test(p)) found.add("conjunction");
+        else if (/^interj/.test(p)) found.add("interjection");
+        else if (/^expr/.test(p)) found.add("expression");
+        else if (/suffix|prefix/.test(p)) found.add("affix");
+        else if (/^num|^count/.test(p)) found.add("number");
+        else if (/^noun|^n$/.test(p)) found.add("noun");
+        else found.add("other");
+      });
+    return Array.from(found);
+  }
+
+  function parseTags(commonCell, jlptCell, posCell) {
     const common = /^common/i.test(commonCell) ? true : /^(uncommon|not common)/i.test(commonCell) ? false : null;
     const level = /([1-5])/.exec(jlptCell || "");
     const jlpt = level ? Number(level[1]) : null;
-    return common === null && jlpt === null ? null : { common, jlpt };
+    const pos = posCell ? posCell : null;
+    return common === null && jlpt === null && pos === null ? null : { common, jlpt, pos };
   }
 
   function termTagsHtml(tags) {
@@ -925,8 +976,19 @@
     const out = [];
     if (tags.common) out.push(`<span class="tag tag-common">Common word</span>`);
     if (tags.jlpt) out.push(`<span class="tag tag-jlpt tag-jlpt${tags.jlpt}">JLPT N${tags.jlpt}</span>`);
-    if (!tags.common && !tags.jlpt) out.push(`<span class="tag">Uncommon</span>`);
+    if (tags.common === false && !tags.jlpt) out.push(`<span class="tag">Uncommon</span>`);
+    posCategories(tags.pos).forEach((cat) => out.push(`<span class="tag tag-pos">${escapeHtml(POS_LABELS[cat])}</span>`));
     return out.join("");
+  }
+
+  // What the lesson filters look at for a card.
+  function tagFacets(tags) {
+    if (!tags) return null;
+    return {
+      common: tags.common ? "common" : "other",
+      jlpt: tags.jlpt ? String(tags.jlpt) : "none",
+      pos: posCategories(tags.pos),
+    };
   }
 
   // Returns { columns, cards, answers }. `columns` is the full ordered
@@ -942,13 +1004,14 @@
     const columns = [];
     const commonIdx = rawLabels.findIndex((l) => l.toLowerCase() === COMMON_HEADER);
     const jlptIdx = rawLabels.findIndex((l) => l.toLowerCase() === JLPT_HEADER);
+    const posIdx = rawLabels.findIndex((l) => POS_HEADERS.includes(l.toLowerCase()));
     // Parallel to rawLabels: null for a regular column, or the label it
     // supplies extra answers for.
     const extraAnswerTarget = rawLabels.map((label, idx) => {
       if (label.endsWith(EXTRA_ANSWERS_SUFFIX)) {
         return label.slice(0, -EXTRA_ANSWERS_SUFFIX.length);
       }
-      if (idx !== commonIdx && idx !== jlptIdx) columns.push(label);
+      if (idx !== commonIdx && idx !== jlptIdx && idx !== posIdx) columns.push(label);
       return null;
     });
 
@@ -962,7 +1025,7 @@
       rawLabels.forEach((label, idx) => {
         const value = (row[idx + 1] || "").trim();
         if (!value) return;
-        if (idx === commonIdx || idx === jlptIdx) return;
+        if (idx === commonIdx || idx === jlptIdx || idx === posIdx) return;
         const targetLabel = extraAnswerTarget[idx];
         if (targetLabel) {
           const list = value.split(";").map((s) => s.trim()).filter(Boolean);
@@ -978,7 +1041,8 @@
       });
       const tags = parseTags(
         commonIdx >= 0 ? (row[commonIdx + 1] || "").trim() : "",
-        jlptIdx >= 0 ? (row[jlptIdx + 1] || "").trim() : ""
+        jlptIdx >= 0 ? (row[jlptIdx + 1] || "").trim() : "",
+        posIdx >= 0 ? (row[posIdx + 1] || "").trim() : ""
       );
       cards.push(tags ? { front, sections, tags } : { front, sections });
     }
@@ -1025,7 +1089,7 @@
       "Front",
       ...columns,
       ...extraColumns.map((label) => `${label}${EXTRA_ANSWERS_SUFFIX}`),
-      ...(hasTags ? ["Common", "JLPT"] : []),
+      ...(hasTags ? ["Common", "JLPT", "Part of speech"] : []),
     ];
     const lines = [header.map(csvEscapeField).join(",")];
     deck.cards.forEach((card) => {
@@ -1038,6 +1102,7 @@
         ? [
             card.tags && card.tags.common ? "Common word" : card.tags && card.tags.common === false ? "Uncommon" : "",
             card.tags && card.tags.jlpt ? `N${card.tags.jlpt}` : "",
+            (card.tags && card.tags.pos) || "",
           ]
         : [];
       const row = [card.front, ...mainCells, ...extraCells, ...tagCells];
@@ -2476,39 +2541,158 @@
     els.clearSelectionBtn.disabled = count === 0;
   }
 
+  // ---- lesson filters (labels from the deck's Common / JLPT / part of speech columns)
+
+  const lessonFilters = { common: new Set(), jlpt: new Set(), pos: new Set() };
+  let lessonFilterDeckId = null;
+  let lessonFilterOpen = false;
+
+  function matchesLessonFilters(item) {
+    return Object.keys(lessonFilters).every((group) => {
+      const wanted = lessonFilters[group];
+      if (!wanted.size) return true;
+      if (!item.facets) return false;
+      const value = item.facets[group];
+      return Array.isArray(value) ? value.some((v) => wanted.has(v)) : wanted.has(value);
+    });
+  }
+
+  function filterOptions(pending) {
+    const count = (group, test) => pending.filter((item) => item.facets && test(item.facets[group])).length;
+    const jlptValues = ["5", "4", "3", "2", "1", "none"];
+    return [
+      {
+        group: "common",
+        title: "共通性",
+        options: [
+          ["common", "Common word"],
+          ["other", "Not common"],
+        ].map(([value, label]) => ({ value, label, n: count("common", (v) => v === value) })),
+      },
+      {
+        group: "jlpt",
+        title: "JLPTレベル",
+        options: jlptValues.map((value) => ({
+          value,
+          label: value === "none" ? "No JLPT level" : `JLPT N${value}`,
+          n: count("jlpt", (v) => v === value),
+        })),
+      },
+      {
+        group: "pos",
+        title: "品詞",
+        options: POS_CATEGORIES.map(([value, label]) => ({ value, label, n: count("pos", (v) => v.includes(value)) })),
+      },
+    ].map((g) => ({ ...g, options: g.options.filter((o) => o.n > 0 || lessonFilters[g.group].has(o.value)) }));
+  }
+
+  function renderTermChart() {
+    const selected = new Set(todaysNums());
+    const pending = allKanji.filter(lessonPending);
+    const tagged = pending.some((item) => item.facets);
+    const visible = pending.filter(matchesLessonFilters);
+    const activeCount = Object.values(lessonFilters).reduce((n, set) => n + set.size, 0);
+
+    els.lessonFilterBar.hidden = !tagged;
+    els.lessonFilterPanel.hidden = !tagged || !lessonFilterOpen;
+    els.lessonFilterBtn.textContent = activeCount ? `絞り込み（${activeCount}）` : "絞り込み";
+    els.selectShownBtn.hidden = !activeCount;
+    if (tagged && lessonFilterOpen) {
+      els.lessonFilterPanel.innerHTML =
+        filterOptions(pending)
+          .filter((g) => g.options.length)
+          .map(
+            (g) => `
+        <div class="filter-group">
+          <div class="filter-title">${g.title}</div>
+          <div class="filter-chips">${g.options
+            .map(
+              (o) =>
+                `<button class="filter-chip${lessonFilters[g.group].has(o.value) ? " on" : ""}" type="button" data-group="${g.group}" data-value="${escapeHtml(o.value)}">${escapeHtml(o.label)} <i>${o.n}</i></button>`
+            )
+            .join("")}</div>
+        </div>`
+          )
+          .join("") +
+        `<button class="secondary-btn filter-clear" type="button" data-action="clear-filters"${activeCount ? "" : " disabled"}>絞り込みを解除</button>`;
+    }
+
+    els.lessonSubtitle.textContent = !pending.length
+      ? `すべての${deckNoun()}のレッスンが完了しました。復習で定着させましょう。`
+      : activeCount
+      ? `${visible.length}件を表示中（全${pending.length}件）。タップして選択してください。`
+      : `学習したい${deckNoun()}をタップして選択してください。`;
+    els.termChart.innerHTML = visible.length
+      ? visible
+          .map((item) => {
+            const parts = chartParts(item);
+            const classes = `term-tile${selected.has(item.num) ? " selected" : ""}`;
+            return `<button class="${classes}" type="button" data-num="${item.num}">
+          <span class="term-reading">${escapeHtml(parts.above)}</span>
+          <span class="term-word">${escapeHtml(item.kanji)}</span>
+          <span class="term-meaning">${escapeHtml(parts.below)}</span>
+          ${item.tags ? `<span class="term-tags">${termTagsHtml(item.tags)}</span>` : ""}
+        </button>`;
+          })
+          .join("")
+      : pending.length
+      ? `<p class="filter-empty">条件に合う項目がありません。</p>`
+      : "";
+    // Long words shrink to one line once the screen is visible.
+    window.requestAnimationFrame(() => {
+      els.termChart.querySelectorAll(".term-word").forEach((el) => fitFront(el, el.textContent));
+    });
+    updateLessonSelection();
+  }
+
+  els.lessonFilterBtn.addEventListener("click", () => {
+    lessonFilterOpen = !lessonFilterOpen;
+    renderTermChart();
+  });
+
+  els.lessonFilterPanel.addEventListener("click", (event) => {
+    if (event.target.closest("[data-action='clear-filters']")) {
+      Object.values(lessonFilters).forEach((set) => set.clear());
+      renderTermChart();
+      return;
+    }
+    const chip = event.target.closest(".filter-chip");
+    if (!chip) return;
+    const set = lessonFilters[chip.dataset.group];
+    if (set.has(chip.dataset.value)) set.delete(chip.dataset.value);
+    else set.add(chip.dataset.value);
+    renderTermChart();
+  });
+
+  // Selects every term the filters currently show.
+  els.selectShownBtn.addEventListener("click", () => {
+    const today = ensureTodaysLesson();
+    allKanji
+      .filter((item) => lessonPending(item) && matchesLessonFilters(item))
+      .forEach((item) => {
+        if (!today.nums.includes(item.num)) today.nums.push(item.num);
+      });
+    saveLessonHistory();
+    renderTermChart();
+  });
+
   function renderLessons() {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
     const todayKey = dateKey(today);
     ensureTodaysLesson();
-    const selected = new Set(todaysNums());
     els.lessonDeckBtn.textContent = `デッキ: ${deckName(activeDeckId)}`;
     els.lessonMonthLabel.textContent = today.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
     els.lessonTitle.textContent = "今日のレッスン";
 
-    const pending = allKanji.filter(lessonPending);
-    els.lessonSubtitle.textContent = pending.length
-      ? `学習したい${deckNoun()}をタップして選択してください。`
-      : `すべての${deckNoun()}のレッスンが完了しました。復習で定着させましょう。`;
+    if (lessonFilterDeckId !== activeDeckId) {
+      lessonFilterDeckId = activeDeckId;
+      Object.values(lessonFilters).forEach((set) => set.clear());
+      lessonFilterOpen = false;
+    }
     els.termChart.parentElement.scrollTop = 0;
-    els.termChart.innerHTML = pending
-      .map((item) => {
-        const parts = chartParts(item);
-        const classes = `term-tile${selected.has(item.num) ? " selected" : ""}`;
-        return `<button class="${classes}" type="button" data-num="${item.num}">
-          <span class="term-reading">${escapeHtml(parts.above)}</span>
-          <span class="term-word">${escapeHtml(item.kanji)}</span>
-          <span class="term-meaning">${escapeHtml(parts.below)}</span>
-          ${item.tags ? `<span class="term-tags">${termTagsHtml(item.tags)}</span>` : ""}
-        </button>`;
-      })
-      .join("");
-    // Long words shrink to one line once the screen is visible.
-    window.requestAnimationFrame(() => {
-      els.termChart.querySelectorAll(".term-word").forEach((el) => fitFront(el, el.textContent));
-    });
-    updateLessonSelection();
+    renderTermChart();
 
     const headings = ["日", "月", "火", "水", "木", "金", "土"];
     let html = headings.map((day) => `<span class="calendar-heading">${day}</span>`).join("");

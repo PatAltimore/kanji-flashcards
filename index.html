@@ -99,8 +99,13 @@
         <h1 id="lessonTitle">今日のレッスン</h1>
         <p id="lessonSubtitle">学習したい項目をタップして選択してください。</p>
         <button class="deck-chip" id="lessonDeckBtn" type="button">デッキ: N2漢字</button>
+        <div class="filter-bar" id="lessonFilterBar" hidden>
+          <button class="deck-chip" id="lessonFilterBtn" type="button">絞り込み</button>
+          <button class="deck-chip" id="selectShownBtn" type="button">表示中をすべて選択</button>
+        </div>
       </div>
       <div class="lesson-scroll">
+        <div class="filter-panel" id="lessonFilterPanel" hidden></div>
         <div class="calendar" id="lessonCalendar" aria-label="レッスンカレンダー"></div>
         <div class="term-chart" id="termChart"></div>
       </div>

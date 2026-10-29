@@ -4,7 +4,7 @@ A dependency-free, mobile-friendly flashcard app for studying the 367 kanji in t
 
 ## Features
 
-- **Labels on terms**: an uploaded deck can include a `Common` column (`Common word` or `Uncommon`) and a `JLPT` column (`N3`), as exported by cave-story-assist. They are shown as Jisho-style badges on the lesson buttons and in 編集 and are not asked as questions.
+- **Labels on terms**: an uploaded deck can include a `Common` column (`Common word` or `Uncommon`) and a `JLPT` column (`N3`), as exported by cave-story-assist. A `Part of speech` column is read the same way. They are shown as Jisho-style badges on the lesson buttons and in 編集, are not asked as questions, and the lesson chart can be filtered by them (common word, JLPT level, part of speech).
 - **Review All (すべて復習)**: pick a deck and answer every reading and meaning question for every term in it once, typed; a report card at the end lists what was wrong, with your answer and the right one.
 - **Daily Challenge**: review as many cards as possible before the selected time limit expires.
 - **Type Answer**: enter an onyomi reading or English meaning and receive immediate feedback.

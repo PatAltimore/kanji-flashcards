@@ -2393,3 +2393,81 @@ button.edit-row {
   flex-wrap: wrap;
   gap: 4px;
 }
+
+/* ---------- lesson filters ---------- */
+
+.tag-pos {
+  color: #b9c0cb;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, var(--surface), var(--surface-2));
+}
+
+.filter-title {
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filter-chip {
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter-chip i {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+.filter-chip.on {
+  background: #eaf6fd;
+  border-color: #5cb8ec;
+  color: #2b2f33;
+  box-shadow: 0 0 10px rgba(92, 184, 236, 0.5);
+}
+
+.filter-chip.on i {
+  color: #5b6570;
+}
+
+.filter-clear {
+  align-self: flex-start;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+}
+
+.filter-empty {
+  grid-column: 1 / -1;
+  margin: 8px 0;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
