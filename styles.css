@@ -2260,3 +2260,76 @@ button.edit-row {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
+
+/* ---------- report card (すべて復習) ---------- */
+
+.results-report {
+  width: 100%;
+  max-width: 520px;
+  max-height: 38vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.report-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+
+.report-perfect {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.report-row {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+}
+
+.report-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.report-term {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.report-type {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.report-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+.report-given {
+  color: #ff8f86;
+  text-decoration: line-through;
+}
+
+.report-arrow {
+  color: var(--text-dim);
+}
+
+.report-answer {
+  color: #7ee2a8;
+  font-weight: 600;
+}

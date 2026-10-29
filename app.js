@@ -10,6 +10,11 @@
   // How long the "Correct!" confirmation shows before a right typed answer
   // moves on to the next card by itself.
   const AUTO_ADVANCE_MS = 700;
+  // In lessons and reviews a question answered wrongly goes back into the
+  // session this many places later (or to the end if fewer remain), and the
+  // session only ends once every question has been answered correctly.
+  // すべて復習 asks each question once and ends with a report card instead.
+  const REQUEUE_GAP = 4;
   const EXPORT_APP_ID = "kanji-flash";
   const EXPORT_VERSION = 1;
   const SYNC_GROUP_KEY = "kanjiFlashN2.syncGroup.v1";
@@ -113,6 +118,7 @@
     lessonResultWrong: document.getElementById("lessonResultWrong"),
     lessonResultAccuracy: document.getElementById("lessonResultAccuracy"),
     lessonResultsLessonsBtn: document.getElementById("lessonResultsLessonsBtn"),
+    lessonResultReport: document.getElementById("lessonResultReport"),
     // stats
     statsBody: document.getElementById("statsBody"),
     resetStatsBtn: document.getElementById("resetStatsBtn"),
@@ -285,6 +291,8 @@
   let customTypeDeck = null;
   let customTypeIndex = 0;
   let customTypeAnswering = true;
+  let customTypeDone = 0;
+  let customTypeTotal = 0;
   let customTypeCurrentSection = null;
   let pendingCustomTypeCorrect = false;
   let pendingCustomTypeRawAnswer = "";
@@ -1720,6 +1728,8 @@
     });
     customTypeMode = mode;
     customTypeIndex = 0;
+    customTypeDone = 0;
+    customTypeTotal = questions.length;
     customQuizKnown = 0;
     showScreen("customType");
     renderCustomType();
@@ -1778,7 +1788,7 @@
     els.customTypeProgress.textContent =
       customTypeMode === "quiz"
         ? `${idx + 1} / ${customTypeCards.length} · 新規${getUnreviewedCustomCards(deck).length}`
-        : `${idx + 1} / ${customTypeCards.length}`;
+        : `${customTypeDone} / ${customTypeTotal}`;
     els.customTypeInput.focus();
   }
 
@@ -1813,7 +1823,8 @@
     const accepted = buildCustomAcceptedAnswers(section.value, extra);
     const { correct, fuzzy } = matchAnswer(raw, accepted, true);
     const state = customTermState.get(card.front);
-    state.left--;
+    // Outside the quiz a missed question is asked again, so it isn't counted off.
+    if (customTypeMode === "quiz" || correct) state.left--;
     if (!correct) {
       state.wrongs++;
       if (!state.graded) {
@@ -1852,6 +1863,15 @@
   function advanceCustomTypeCard() {
     window.clearTimeout(customTypeAutoAdvanceTimer);
     customTypeAutoAdvanceTimer = null;
+    if (customTypeMode !== "quiz") {
+      if (pendingCustomTypeCorrect) {
+        customTypeDone++;
+      } else {
+        const at = Math.min(customTypeCards.length, customTypeIndex + 1 + REQUEUE_GAP);
+        customTypeCards.splice(at, 0, customTypeCards[customTypeIndex]);
+        customTypeAsked.splice(at, 0, customTypeAsked[customTypeIndex]);
+      }
+    }
     customTypeIndex++;
     renderCustomType();
   }
@@ -1873,6 +1893,7 @@
     addCustomDeckAnswer(deck, card.front, customTypeCurrentSection.label, pendingCustomTypeRawAnswer);
     const state = customTermState.get(card.front);
     state.wrongs--;
+    if (customTypeMode !== "quiz") state.left--;
     if (customTypeMode === "quiz" && state.wrongs === 0 && state.graded === "wrong") {
       // The miss was already saved as this card's first placement; now that
       // the player's answer has been accepted, undo it and place the card as
@@ -2202,8 +2223,14 @@
       renderLessons();
       showScreen("lessons");
     } else {
-      startMarathon();
+      startAllReview();
     }
+  }
+
+  // すべて復習: every question of every term in the deck, shuffled, each asked
+  // once; a report card of the mistakes follows.
+  function startAllReview() {
+    if (allKanji.length) beginLesson(shuffle(allKanji), "all");
   }
 
   els.deckPickList.addEventListener("click", (event) => {
@@ -2400,6 +2427,7 @@
       seen: 0,
       right: 0,
       wrong: 0,
+      mistakes: [],
     };
     // A kanji is graded once per lesson: wrong as soon as any of its
     // questions is missed, right after all of them are answered correctly.
@@ -2418,21 +2446,52 @@
     renderType();
   }
 
+  // In すべて復習 a term only counts toward the review schedule if it was
+  // already studied, and a correct run only moves it up when it was due, so
+  // going through the whole deck neither marks new terms as lessoned nor
+  // speeds up the schedule.
   function gradeLessonTerm(item, correct) {
     const state = lessonTermState.get(item.num);
-    state.left--;
+    const all = lessonSession.kind === "all";
+    const counts = !all || isItemStudied(item);
+    // In lessons and reviews a missed question stays in the session, so it is
+    // not counted off.
+    if (correct || all) state.left--;
     if (!correct) {
       state.wrongs++;
       if (!state.graded) {
-        gradeItemSrs(item, false);
+        if (counts) gradeItemSrs(item, false);
         state.graded = "wrong";
       }
     }
     if (state.left === 0 && state.wrongs === 0 && !state.graded) {
-      gradeItemSrs(item, true);
+      if (counts && (!all || isDue(srsOf(item), dateKey(new Date())))) gradeItemSrs(item, true);
       state.graded = "right";
     }
   }
+
+  // What the right answer to a question was, for the report card.
+  function expectedAnswerText(item, type) {
+    if (item.sections) return item.sections[sectionIndex(type)].value;
+    return { meaning: item.meaning, onyomi: item.onyomi, wordReading: item.wordReading, wordMeaning: item.wordMeaning }[type] || "";
+  }
+
+  function reportCardHtml(mistakes) {
+    if (!mistakes.length) return `<div class="report-perfect">全問正解！</div>`;
+    const rows = mistakes
+      .map(({ item, type, given }) => {
+        const shown = isWordType(type) ? item.word : item.kanji;
+        return `
+        <div class="report-row">
+          <div class="report-head"><span class="report-term">${escapeHtml(shown)}</span><span class="report-type">${escapeHtml(typeConfig(item, type).label)}</span></div>
+          <div class="report-line"><span class="report-given">${given ? escapeHtml(given) : "未回答"}</span><span class="report-arrow">→</span><span class="report-answer">${escapeHtml(expectedAnswerText(item, type))}</span></div>
+        </div>`;
+      })
+      .join("");
+    return `<div class="report-title">間違えた問題（${mistakes.length}）</div>${rows}`;
+  }
+
+  let lessonResultsKind = "lesson";
 
   function finishLesson() {
     if (lessonSession.kind === "lesson") {
@@ -2445,8 +2504,14 @@
       masteredCount = savedMainSession.masteredCount;
     }
     savedMainSession = null;
-    els.lessonResultTitle.textContent = lessonSession.kind === "review" ? "復習完了" : "レッスン完了";
+    const kind = lessonSession.kind;
+    lessonResultsKind = kind;
+    els.lessonResultTitle.textContent =
+      kind === "all" ? "すべて復習完了" : kind === "review" ? "復習完了" : "レッスン完了";
     els.lessonResultNote.hidden = true;
+    els.lessonResultReport.hidden = kind !== "all";
+    if (kind === "all") els.lessonResultReport.innerHTML = reportCardHtml(lessonSession.mistakes);
+    els.lessonResultsLessonsBtn.textContent = kind === "all" ? "ホームに戻る" : "レッスンに戻る";
     els.lessonResultSeen.textContent = String(lessonSession.seen);
     els.lessonResultRight.textContent = String(lessonSession.right);
     els.lessonResultWrong.textContent = String(lessonSession.wrong);
@@ -2488,6 +2553,10 @@
   });
 
   els.lessonResultsLessonsBtn.addEventListener("click", () => {
+    if (lessonResultsKind === "all") {
+      showScreen("home");
+      return;
+    }
     renderLessons();
     showScreen("lessons");
   });
@@ -3079,7 +3148,7 @@
     fitFront(els.typeKanji, shown);
     els.typeProgress.textContent =
       mode === "lesson-type"
-        ? `${lessonSession.seen} / ${lessonSession.total}`
+        ? `${lessonSession.kind === "all" ? lessonSession.seen : lessonSession.right} / ${lessonSession.total}`
         : `${masteredCount} / ${totalCount} · 残り${queue.length}`;
     els.typeInput.focus();
     if (mode === "type") saveState();
@@ -3177,8 +3246,18 @@
       masteredCount++;
     }
     if (mode === "lesson-type") {
-      lessonQuestionTypes.shift();
-      recordItemResult(item, pendingTypeCorrect, false);
+      const type = lessonQuestionTypes.shift();
+      const all = lessonSession.kind === "all";
+      if (!pendingTypeCorrect) {
+        if (all) {
+          lessonSession.mistakes.push({ item, type, given: pendingTypeRawAnswer });
+        } else {
+          const at = Math.min(queue.length, REQUEUE_GAP);
+          queue.splice(at, 0, item);
+          lessonQuestionTypes.splice(at, 0, type);
+        }
+      }
+      if (!all || isItemStudied(item)) recordItemResult(item, pendingTypeCorrect, false);
       gradeLessonTerm(item, pendingTypeCorrect);
       lessonSession.seen++;
       if (pendingTypeCorrect) lessonSession.right++;

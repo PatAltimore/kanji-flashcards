@@ -4,7 +4,7 @@ A dependency-free, mobile-friendly flashcard app for studying the 367 kanji in t
 
 ## Features
 
-- **Marathon**: work through the complete deck, marking cards as `Got it` or `Again`.
+- **Review All (すべて復習)**: pick a deck and answer every reading and meaning question for every term in it once, typed; a report card at the end lists what was wrong, with your answer and the right one.
 - **Daily Challenge**: review as many cards as possible before the selected time limit expires.
 - **Type Answer**: enter an onyomi reading or English meaning and receive immediate feedback.
 - **Lessons**: pick a deck (the N2 kanji or any custom deck) and choose the terms to study from a chart of every term, with the reading above and the meaning below; selected terms light up. The lesson itself is typed questions on those terms (every reading and meaning, shuffled; for N2 kanji with a verb or adjective, also that word's reading and meaning); completion is tracked on a monthly calendar, and due terms can be reviewed the same way.
