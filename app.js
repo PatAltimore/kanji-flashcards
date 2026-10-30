@@ -3458,18 +3458,62 @@
   function fitFront(el, text) {
     el.style.fontSize = "";
     el.style.whiteSpace = "";
-    if (Array.from(text).length <= 2) return;
-    el.style.whiteSpace = "nowrap";
-    const available = el.clientWidth * 0.94;
-    if (!available) return;
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    const needed = range.getBoundingClientRect().width;
-    if (needed > available) {
-      const current = parseFloat(getComputedStyle(el).fontSize);
-      el.style.fontSize = `${Math.floor((current * available) / needed)}px`;
+    if (Array.from(text).length > 2) {
+      el.style.whiteSpace = "nowrap";
+      const available = el.clientWidth * 0.94;
+      if (available) {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const needed = range.getBoundingClientRect().width;
+        if (needed > available) {
+          const current = parseFloat(getComputedStyle(el).fontSize);
+          el.style.fontSize = `${Math.floor((current * available) / needed)}px`;
+        }
+      }
     }
+    capToHeight(el);
   }
+
+  // On the typed screens the front fills whatever height is left above the
+  // answer bar, which shrinks when a phone keyboard is open (or the feedback
+  // shows), so the character is also scaled to fit that height.
+  function capToHeight(el) {
+    if (getComputedStyle(el).flexGrow !== "1") return;
+    const height = el.clientHeight;
+    if (!height) return;
+    const current = parseFloat(getComputedStyle(el).fontSize);
+    const largest = Math.max(28, Math.floor(height * 0.8));
+    if (current > largest) el.style.fontSize = `${largest}px`;
+  }
+
+  if (typeof ResizeObserver !== "undefined") {
+    const frontObserver = new ResizeObserver((entries) => {
+      entries.forEach(({ target }) => {
+        if (target.clientHeight && getComputedStyle(target).flexGrow === "1") fitFront(target, target.textContent);
+      });
+    });
+    frontObserver.observe(els.typeKanji);
+    frontObserver.observe(els.customTypeFront);
+  }
+
+  // iOS keeps the layout viewport the same size when the keyboard opens and
+  // scrolls the page instead, which pushed the top of the screen out of view.
+  // Size the app to the visible area and pin it to the top of that area.
+  function trackViewport() {
+    const vv = window.visualViewport;
+    const app = document.querySelector(".app");
+    if (!vv || !app) return;
+    const root = document.documentElement;
+    const update = () => {
+      root.style.setProperty("--app-h", `${vv.height}px`);
+      app.style.transform = vv.offsetTop ? `translateY(${vv.offsetTop}px)` : "";
+      root.classList.toggle("kb-open", window.innerHeight - vv.height > 120);
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+  }
+  trackViewport();
 
   // After an answer is submitted the field is "locked": it ignores typing but is
   // never disabled or blurred, so a phone keyboard stays up for the next

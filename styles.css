@@ -94,6 +94,7 @@ html, body {
   height: 100%;
   margin: 0;
   overscroll-behavior: none;
+  overflow: hidden;
 }
 
 .no-stylized-font .kanji,
@@ -114,7 +115,7 @@ body {
 }
 
 .app {
-  height: 100dvh;
+  height: var(--app-h, 100dvh);
   position: relative;
   padding-top: var(--safe-top);
   padding-bottom: var(--safe-bottom);
@@ -1738,6 +1739,7 @@ body {
 [data-theme="dark"] .type-card .kanji {
   order: 1;
   flex: 1;
+  min-height: 0; /* lets the character be scaled down to the space left */
   margin: 0;
   display: flex;
   align-items: center;
@@ -2614,4 +2616,112 @@ button.edit-row {
   text-align: center;
   font-size: 0.78rem;
   color: var(--text-dim);
+}
+
+/* Keyboard open (phone): no home-indicator space, a slimmer header, and a
+   little more room for the feedback above the answer bar. */
+.kb-open .app {
+  padding-bottom: 0;
+}
+
+.kb-open .topbar {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.kb-open[data-theme="dark"] .type-card .type-feedback,
+[data-theme="dark"] .kb-open .type-card .type-feedback {
+  max-height: 50%;
+  padding-bottom: 8px;
+}
+
+/* Short screens (a phone with its keyboard open): the feedback below the
+   character is laid out compactly so the reading, meaning and word all stay
+   in view without scrolling. */
+@media (max-height: 820px) {
+  [data-theme="dark"] .type-card .type-feedback {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px 18px;
+    padding: 2px 16px 6px;
+    /* The character keeps at least a readable size; the feedback gets the rest
+       and scrolls only if that is still not enough. */
+    max-height: none;
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+
+  [data-theme="dark"] .type-card .kanji {
+    min-height: 76px;
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback > .type-feedback-result,
+  [data-theme="dark"] .type-card .type-feedback .meaning,
+  [data-theme="dark"] .type-card .type-feedback .custom-answers {
+    flex: 1 1 100%;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback .reading-block {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback .reading-label {
+    margin-bottom: 0;
+    font-size: 0.62rem;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback .reading-value {
+    font-size: 0.98rem;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback .meaning {
+    padding: 2px 6px 0;
+    margin-top: 0;
+    font-size: 0.95rem;
+    border-top: none;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback .card-stats {
+    display: none;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback .add-answer-btn {
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback .custom-study-sections {
+    flex: 1 1 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px 18px;
+    overflow: visible;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback-result {
+    font-size: 0.95rem;
+  }
+
+  /* The word line (word, reading, meaning) takes a full row in a smaller size. */
+  [data-theme="dark"] .type-card .type-feedback #typeWordBlock {
+    flex: 1 1 100%;
+  }
+
+  [data-theme="dark"] .type-card .type-feedback #typeWordBlock .reading-value {
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  .screen:has(.type-card) .topbar {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
 }
