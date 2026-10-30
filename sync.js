@@ -432,6 +432,19 @@
     return null;
   }
 
+  // One key per address family the device found, v4 first. Two devices on the
+  // same network might each see only some of the families (a phone often shows
+  // just IPv6 while a PC shows IPv4 too), so the devices try every key and meet
+  // in whichever room they share.
+  function networkKeysFromAddresses(addresses) {
+    const keys = [];
+    const v4 = addresses.find((a) => /^\d{1,3}(\.\d{1,3}){3}$/.test(a));
+    if (v4) keys.push("v4:" + v4);
+    const v6 = addresses.find((a) => a.includes(":"));
+    if (v6) keys.push("v6:" + expandIPv6(v6).slice(0, 4).join(":"));
+    return keys;
+  }
+
   function findPublicAddresses(timeoutMs) {
     return new Promise((resolve) => {
       const addresses = [];
@@ -470,10 +483,16 @@
 
   // `roomSalt` is for testing only: it gives a test its own room so it can't
   // meet real devices on the same network.
-  async function nearbyRoomId(roomSalt) {
-    const key = networkKeyFromAddresses(await findPublicAddresses(STUN_TIMEOUT_MS));
-    if (!key) return null;
-    return PEER_PREFIX + "near-" + (await sha256Hex(NEARBY_SALT + (roomSalt || "") + key)).slice(0, 24);
+  async function nearbyRooms(roomSalt) {
+    const keys = networkKeysFromAddresses(await findPublicAddresses(STUN_TIMEOUT_MS));
+    const rooms = [];
+    for (const key of keys) {
+      rooms.push({
+        label: key.slice(0, 2),
+        id: PEER_PREFIX + "near-" + (await sha256Hex(NEARBY_SALT + (roomSalt || "") + key)).slice(0, 24),
+      });
+    }
+    return rooms;
   }
 
   function fingerprintFromSdp(sdp) {
@@ -514,18 +533,17 @@
    * room's host's group wins (the groups merge), if neither does a new one is
    * created.
    */
-  function nearbyPairing(handlers, options) {
+  function nearbyRoom(handlers, options, roomId, shared, label) {
     const groupKey = options && options.key;
     const myId = options && options.deviceId;
     const myMembers = () => (options && options.getMembers ? options.getMembers() : {});
-    const stage = reporter(handlers);
+    const baseStage = reporter(handlers);
+    const stage = (text) => baseStage(shared.multi ? `${text} [${label}]` : text);
     let stopped = false;
-    let done = false;
     let peer = null;
     let conn = null;
     let timer = null;
     let verifying = false;
-    let roomId = null;
 
     function release() {
       if (conn) {
@@ -545,10 +563,11 @@
         peer = null;
       }
       verifying = false;
+      if (shared.busy === roomId) shared.busy = null;
     }
 
     function retry(delay) {
-      if (stopped || done) return;
+      if (stopped || shared.done) return;
       release();
       handlers.onWaiting();
       timer = root.setTimeout(claim, delay === undefined ? NEARBY_RETRY_MS : delay);
@@ -558,6 +577,7 @@
     // device that claimed the room, "b" the one that joined it).
     async function verify(c, role) {
       verifying = true;
+      shared.busy = roomId;
       let localOk = false;
       let remoteOk = false;
       let finished = false;
@@ -571,9 +591,9 @@
 
       const finishJoined = (key, members) => {
         finished = true;
-        done = true;
+        shared.done = true;
         handlers.onJoined({ key, members });
-        root.setTimeout(cancel, 800);
+        root.setTimeout(shared.cancelAll, 800);
       };
 
       // Host: once both people confirmed, ask the guest what it has.
@@ -626,7 +646,7 @@
         })
       );
       c.on("close", () => {
-        if (!finished && !stopped && !done) {
+        if (!finished && !stopped && !shared.done) {
           finished = true;
           handlers.onVerifyCancelled();
           retry();
@@ -654,6 +674,7 @@
           }
           conn = null;
           verifying = false;
+          if (shared.busy === roomId) shared.busy = null;
         } else {
           retry(MEMBER_RECHECK_MS);
         }
@@ -695,7 +716,7 @@
         // nothing answers, start over (which tries to claim the room again).
         let opened = false;
         const noAnswer = root.setTimeout(() => {
-          if (!opened && !stopped && !done) {
+          if (!opened && !stopped && !shared.done) {
             stage("no answer, trying again");
             retry();
           }
@@ -703,6 +724,11 @@
         c.on("open", () => {
           opened = true;
           root.clearTimeout(noAnswer);
+          // Another room is already comparing numbers with a device: wait.
+          if (shared.busy && shared.busy !== roomId) {
+            retry(5000);
+            return;
+          }
           verify(c, "b");
         });
         c.on("close", () => {
@@ -725,7 +751,7 @@
       peer = new root.Peer(roomId);
       peer.on("open", () => stage("waiting for nearby device"));
       peer.on("connection", (c) => {
-        if (verifying) {
+        if (verifying || (shared.busy && shared.busy !== roomId)) {
           c.close();
           return;
         }
@@ -754,22 +780,38 @@
       release();
     }
 
+    claim();
+    return { cancel };
+  }
+
+  // Looks for another device on the same network. A room is derived from each
+  // address family the device could see (see networkKeysFromAddresses); one
+  // pairing runs per room and at most one compares numbers at a time.
+  function nearbyPairing(handlers, options) {
+    const stage = reporter(handlers);
+    const shared = { done: false, busy: null, multi: false, rooms: [], cancelAll: null };
+    let cancelled = false;
+    shared.cancelAll = () => {
+      cancelled = true;
+      shared.rooms.forEach((room) => room.cancel());
+    };
+
     stage("finding your network");
-    nearbyRoomId(options && options.roomSalt)
-      .catch(() => null)
-      .then((id) => {
-        if (stopped) return;
-        if (!id) {
+    nearbyRooms(options && options.roomSalt)
+      .catch(() => [])
+      .then((rooms) => {
+        if (cancelled) return;
+        if (!rooms.length) {
           handlers.onError("no-network-id");
           return;
         }
-        roomId = id;
-        stage("network found");
+        shared.multi = rooms.length > 1;
+        stage("network found: " + rooms.map((r) => r.label).join("+"));
         handlers.onWaiting();
-        claim();
+        rooms.forEach((room) => shared.rooms.push(nearbyRoom(handlers, options, room.id, shared, room.label)));
       });
 
-    return { cancel };
+    return { cancel: shared.cancelAll };
   }
 
   // ------------------------------------------------------- syncing: group mesh
@@ -958,6 +1000,7 @@
     // exposed for tests
     expandIPv6,
     networkKeyFromAddresses,
+    networkKeysFromAddresses,
     fingerprintFromSdp,
     verificationNumber,
   };

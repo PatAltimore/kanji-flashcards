@@ -6,6 +6,7 @@ const {
   totalCounts,
   expandIPv6,
   networkKeyFromAddresses,
+  networkKeysFromAddresses,
   fingerprintFromSdp,
   verificationNumber,
 } = require("../sync.js");
@@ -265,6 +266,13 @@ test("network key: IPv4 preferred, IPv6 uses the /64 prefix", () => {
     networkKeyFromAddresses(["2001:0db8:0001:0002::9"])
   );
   assert.equal(networkKeyFromAddresses([]), null);
+  // every family found gives a room, so a phone with only IPv6 and a PC with
+  // both can still meet in the IPv6 room
+  const pc = networkKeysFromAddresses(["2001:db8:1:2:aaaa:bbbb:cccc:dddd", "203.0.113.7"]);
+  const phone = networkKeysFromAddresses(["2001:db8:1:2:1111:2222:3333:4444"]);
+  assert.deepEqual(pc, ["v4:203.0.113.7", "v6:2001:db8:1:2"]);
+  assert.ok(pc.some((key) => phone.includes(key)));
+  assert.deepEqual(networkKeysFromAddresses([]), []);
   assert.deepEqual(expandIPv6("2001:db8::1"), ["2001", "db8", "0", "0", "0", "0", "0", "1"]);
 });
 
